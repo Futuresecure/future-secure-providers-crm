@@ -543,6 +543,10 @@
             <h3>Converted</h3>
             <div class="number" id="convertedCount">0</div>
           </div>
+          <div class="stat-card">
+            <h3>Today's Tasks</h3>
+            <div class="number" id="todayTasksCount">0</div>
+          </div>
 
         </div>
 
@@ -871,19 +875,61 @@
       <!-- TASKS -->
 
       <section id="tasksPage" class="page hidden">
-
         <div class="card">
-
-          <h2>Today's Tasks</h2>
-
-          <div class="placeholder">
-            Task management module will be added next.
+          <div class="card-header">
+            <h2>Today's Tasks</h2>
+            <button class="btn-primary" onclick="openTaskForm()">+ Add Task</button>
           </div>
 
+          <div id="taskFormBox" style="display:none; margin-bottom:20px; border-top:1px solid var(--border); padding-top:20px;">
+            <form id="taskForm">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="taskTitle">Task Title *</label>
+                  <input type="text" id="taskTitle" required placeholder="Example: Call customer" />
+                </div>
+                <div class="form-group">
+                  <label for="taskDue">Due Date & Time</label>
+                  <input type="datetime-local" id="taskDue" />
+                </div>
+                <div class="form-group full">
+                  <label for="taskDescription">Description</label>
+                  <textarea id="taskDescription" placeholder="Task details..."></textarea>
+                </div>
+              </div>
+              <div class="form-actions">
+                <button type="submit" class="btn-primary" id="saveTaskButton">Save Task</button>
+                <button type="button" class="btn-secondary" onclick="closeTaskForm()">Cancel</button>
+              </div>
+            </form>
+          </div>
+
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:15px;">
+            <button class="btn-secondary" onclick="filterTasks('all')">All</button>
+            <button class="btn-secondary" onclick="filterTasks('overdue')">Overdue</button>
+            <button class="btn-secondary" onclick="filterTasks('today')">Today</button>
+            <button class="btn-secondary" onclick="filterTasks('upcoming')">Upcoming</button>
+            <button class="btn-secondary" onclick="filterTasks('completed')">Completed</button>
+          </div>
+
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Task</th>
+                  <th>Due</th>
+                  <th>Priority</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="tasksTable">
+                <tr><td colspan="5" class="empty">Loading tasks...</td></tr>
+              </tbody>
+            </table>
+          </div>
         </div>
-
       </section>
-
 
       <!-- REPORTS -->
 
@@ -1682,6 +1728,153 @@
 
   /*
   ========================================
+  TASKS MANAGEMENT
+  ========================================
+  */
+
+  let allTasks = [];
+
+  function openTaskForm() {
+    document.getElementById("taskFormBox").style.display = "block";
+    document.getElementById("taskForm").reset();
+    delete document.getElementById("taskForm").dataset.editId;
+    document.getElementById("saveTaskButton").innerText = "Save Task";
+  }
+
+  function closeTaskForm() {
+    document.getElementById("taskFormBox").style.display = "none";
+    document.getElementById("taskForm").reset();
+    delete document.getElementById("taskForm").dataset.editId;
+  }
+
+  function getTaskType(task) {
+    if (task.status === "Completed") return "completed";
+    if (!task.due_at) return "upcoming";
+    const d = new Date(task.due_at);
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const tomorrow = new Date(todayStart);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    if (d < todayStart) return "overdue";
+    if (d >= todayStart && d < tomorrow) return "today";
+    return "upcoming";
+  }
+
+  async function loadTasks() {
+    const { data, error } = await supabaseClient
+      .from("tasks")
+      .select("*")
+      .order("due_at", { ascending: true });
+
+    if (error) {
+      console.error("Task load error:", error);
+      document.getElementById("tasksTable").innerHTML =
+        `<tr><td colspan="5" class="empty">Tasks table not ready. Run the Supabase SQL first.</td></tr>`;
+      return;
+    }
+
+    allTasks = data || [];
+    updateTodayTasksCount();
+    filterTasks("all");
+  }
+
+  function updateTodayTasksCount() {
+    const count = allTasks.filter(task => getTaskType(task) === "today").length;
+    const el = document.getElementById("todayTasksCount");
+    if (el) el.innerText = count;
+  }
+
+  function filterTasks(filter) {
+    const table = document.getElementById("tasksTable");
+    let tasks = [...allTasks];
+    if (filter !== "all") tasks = tasks.filter(task => getTaskType(task) === filter);
+
+    if (!tasks.length) {
+      table.innerHTML = `<tr><td colspan="5" class="empty">No tasks found</td></tr>`;
+      return;
+    }
+
+    table.innerHTML = tasks.map(task => {
+      const type = getTaskType(task);
+      const label = task.status === "Completed" ? "Completed" :
+        type === "overdue" ? "Overdue" : type === "today" ? "Today" : "Upcoming";
+
+      return `<tr class="${type === "overdue" ? "followup-overdue" : type === "today" ? "followup-today" : ""}">
+        <td><strong>${escapeHtml(task.title)}</strong><br><small>${escapeHtml(task.description || "")}</small></td>
+        <td>${formatDate(task.due_at)}</td>
+        <td><span class="followup-badge badge-${type === "completed" ? "upcoming" : type}">${label}</span></td>
+        <td><span class="status">${escapeHtml(task.status || "Pending")}</span></td>
+        <td><div class="action-buttons">
+          ${task.status !== "Completed" ? `<button class="btn-complete" onclick="completeTask(${Number(task.id)})">Complete</button>` : ""}
+          <button class="btn-edit" onclick="editTask(${Number(task.id)})">Edit</button>
+          <button class="btn-delete" onclick="deleteTask(${Number(task.id)})">Delete</button>
+        </div></td>
+      </tr>`;
+    }).join("");
+  }
+
+  document.getElementById("taskForm").addEventListener("submit", async function(event) {
+    event.preventDefault();
+
+    const title = document.getElementById("taskTitle").value.trim();
+    const description = document.getElementById("taskDescription").value.trim();
+    const dueAt = document.getElementById("taskDue").value || null;
+    const editId = document.getElementById("taskForm").dataset.editId;
+    const payload = { title, description: description || null, due_at: dueAt, status: "Pending" };
+
+    const button = document.getElementById("saveTaskButton");
+    button.disabled = true;
+    button.innerText = "Saving...";
+
+    let error;
+    if (editId) {
+      ({ error } = await supabaseClient.from("tasks").update(payload).eq("id", editId));
+    } else {
+      ({ error } = await supabaseClient.from("tasks").insert([payload]));
+    }
+
+    button.disabled = false;
+    button.innerText = editId ? "Update Task" : "Save Task";
+
+    if (error) {
+      alert("Task save error: " + error.message);
+      return;
+    }
+
+    closeTaskForm();
+    await loadTasks();
+  });
+
+  async function editTask(id) {
+    const task = allTasks.find(item => Number(item.id) === Number(id));
+    if (!task) return;
+
+    document.getElementById("taskFormBox").style.display = "block";
+    document.getElementById("taskTitle").value = task.title || "";
+    document.getElementById("taskDescription").value = task.description || "";
+    document.getElementById("taskDue").value = task.due_at ? new Date(task.due_at).toISOString().slice(0,16) : "";
+    document.getElementById("taskForm").dataset.editId = id;
+    document.getElementById("saveTaskButton").innerText = "Update Task";
+  }
+
+  async function completeTask(id) {
+    const { error } = await supabaseClient.from("tasks")
+      .update({ status: "Completed" })
+      .eq("id", id);
+
+    if (error) { alert("Unable to complete task: " + error.message); return; }
+    await loadTasks();
+  }
+
+  async function deleteTask(id) {
+    if (!confirm("Delete this task?")) return;
+    const { error } = await supabaseClient.from("tasks").delete().eq("id", id);
+    if (error) { alert("Unable to delete task: " + error.message); return; }
+    await loadTasks();
+  }
+
+  /*
+  ========================================
   INITIAL LOAD
   ========================================
   */
@@ -1691,6 +1884,7 @@
     function() {
 
       loadLeads();
+      loadTasks();
 
     }
   );
