@@ -351,7 +351,17 @@
       border: 1px solid #fca5a5;
     }
 
-    .action-buttons { display:flex; gap:8px; }
+    .action-buttons { display:flex; gap:8px; flex-wrap:wrap; }
+    .followup-today { background:#fff7cc; }
+    .followup-overdue { background:#fee2e2; }
+    .followup-upcoming { background:#eef2ff; }
+    .followup-badge { display:inline-block; padding:5px 9px; border-radius:14px; font-size:12px; }
+    .badge-overdue { background:#fee2e2; color:#991b1b; }
+    .badge-today { background:#fff7cc; color:#854d0e; }
+    .badge-upcoming { background:#e0e7ff; color:#3730a3; }
+    .btn-complete { background:#15803d; color:white; padding:8px 12px; }
+    .btn-call { background:#0891b2; color:white; padding:8px 12px; }
+    .btn-whatsapp { background:#16a34a; color:white; padding:8px 12px; }
     .btn-edit { background:#2563eb; color:white; padding:8px 12px; }
     .btn-delete { background:#dc2626; color:white; padding:8px 12px; }
     .search-input { width:260px; max-width:100%; }
@@ -828,42 +838,35 @@
       <!-- FOLLOWUPS -->
 
       <section id="followupsPage" class="page hidden">
-
         <div class="card">
-
           <div class="card-header">
             <h2>Follow-ups</h2>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+              <button class="btn-secondary" onclick="filterFollowups('all')">All</button>
+              <button class="btn-secondary" onclick="filterFollowups('overdue')">Overdue</button>
+              <button class="btn-secondary" onclick="filterFollowups('today')">Today</button>
+              <button class="btn-secondary" onclick="filterFollowups('upcoming')">Upcoming</button>
+            </div>
           </div>
-
           <div class="table-wrapper">
-
             <table>
-
               <thead>
                 <tr>
                   <th>Name</th>
                   <th>Mobile</th>
-                  <th>Next Follow-up</th>
+                  <th>Follow-up</th>
+                  <th>Priority</th>
                   <th>Status</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
-
               <tbody id="followupsTable">
-                <tr>
-                  <td colspan="4" class="empty">
-                    No follow-ups scheduled
-                  </td>
-                </tr>
+                <tr><td colspan="6" class="empty">No follow-ups scheduled</td></tr>
               </tbody>
-
             </table>
-
           </div>
-
         </div>
-
       </section>
-
 
       <!-- TASKS -->
 
@@ -1397,81 +1400,77 @@
   ========================================
   */
 
-  function renderFollowups(leads) {
+  let allFollowupLeads = [];
 
-    const table =
-      document.getElementById("followupsTable");
-
-
-    const followups =
-      leads.filter(
-        lead =>
-          lead.next_follow_up
-      );
-
-
-    if (followups.length === 0) {
-
-      table.innerHTML =
-        `
-          <tr>
-            <td colspan="4" class="empty">
-              No follow-ups scheduled
-            </td>
-          </tr>
-        `;
-
-      return;
-
-    }
-
-
-    table.innerHTML =
-      followups
-        .sort(
-          function(a, b) {
-
-            return new Date(
-              a.next_follow_up
-            ) -
-            new Date(
-              b.next_follow_up
-            );
-
-          }
-        )
-        .map(
-          lead =>
-            `
-              <tr>
-
-                <td>
-                  ${escapeHtml(lead.full_name)}
-                </td>
-
-                <td>
-                  ${escapeHtml(lead.mobile_number)}
-                </td>
-
-                <td>
-                  ${formatDate(
-                    lead.next_follow_up
-                  )}
-                </td>
-
-                <td>
-                  <span class="status">
-                    ${escapeHtml(lead.status)}
-                  </span>
-                </td>
-
-              </tr>
-            `
-        )
-        .join("");
-
+  function getFollowupType(value) {
+    const d = new Date(value);
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const tomorrow = new Date(todayStart);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    if (d < todayStart) return "overdue";
+    if (d >= todayStart && d < tomorrow) return "today";
+    return "upcoming";
   }
 
+  function updateFollowupCount(leads) {
+    document.getElementById("followupCount").innerText = leads.filter(lead => lead.next_follow_up).length;
+  }
+
+  function renderFollowups(leads) {
+    allFollowupLeads = (leads || []).filter(lead => lead.next_follow_up);
+    filterFollowups("all");
+  }
+
+  function filterFollowups(filter) {
+    const table = document.getElementById("followupsTable");
+    let rows = [...allFollowupLeads];
+
+    if (filter !== "all") {
+      rows = rows.filter(lead => getFollowupType(lead.next_follow_up) === filter);
+    }
+
+    rows.sort((a,b) => new Date(a.next_follow_up) - new Date(b.next_follow_up));
+
+    if (!rows.length) {
+      table.innerHTML = `<tr><td colspan="6" class="empty">No ${filter === "all" ? "" : filter + " "}follow-ups found</td></tr>`;
+      return;
+    }
+
+    table.innerHTML = rows.map(lead => {
+      const type = getFollowupType(lead.next_follow_up);
+      const label = type === "overdue" ? "Overdue" : type === "today" ? "Today" : "Upcoming";
+      return `
+        <tr class="followup-${type}">
+          <td>${escapeHtml(lead.full_name)}</td>
+          <td>${escapeHtml(lead.mobile_number)}</td>
+          <td>${formatDate(lead.next_follow_up)}</td>
+          <td><span class="followup-badge badge-${type}">${label}</span></td>
+          <td><span class="status">${escapeHtml(lead.status)}</span></td>
+          <td><div class="action-buttons">
+            <button class="btn-complete" onclick="completeFollowup(${Number(lead.id)})">Complete</button>
+            <button class="btn-edit" onclick="editLead(${Number(lead.id)})">Reschedule</button>
+            <a class="btn-call" href="tel:${encodeURIComponent(lead.mobile_number || '')}">Call</a>
+            <a class="btn-whatsapp" target="_blank" href="https://wa.me/${String(lead.mobile_number || '').replace(/\D/g,'')}">WhatsApp</a>
+          </div></td>
+        </tr>`;
+    }).join("");
+  }
+
+  async function completeFollowup(id) {
+    const { error } = await supabaseClient
+      .from("leads")
+      .update({ next_follow_up: null, status: "Contacted" })
+      .eq("id", id);
+
+    if (error) {
+      alert("Unable to complete follow-up: " + error.message);
+      return;
+    }
+
+    await loadLeads();
+    alert("Follow-up marked as completed.");
+  }
 
   /*
   ========================================
