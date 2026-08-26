@@ -93,16 +93,19 @@ button{border:0;border-radius:8px;padding:10px 14px;cursor:pointer}.btn-primary{
 
 <section id="tasksPage" class="page hidden">
 <div class="stats">
-  <div class="stat-card"><h3>Today's Tasks</h3><div class="number" id="todayTaskCount">0</div></div>
+  <div class="stat-card"><h3>Pending</h3><div class="number" id="pendingTaskCount">0</div></div>
   <div class="stat-card"><h3>Overdue</h3><div class="number" id="overdueTaskCount">0</div></div>
-  <div class="stat-card"><h3>Interested</h3><div class="number" id="interestedTaskCount">0</div></div>
-  <div class="stat-card"><h3>Total Active</h3><div class="number" id="totalTaskCount">0</div></div>
+  <div class="stat-card"><h3>Today</h3><div class="number" id="todayTaskCount">0</div></div>
+  <div class="stat-card"><h3>Completed</h3><div class="number" id="completedTaskCount">0</div></div>
 </div>
-<div class="card"><div class="card-header"><h2>Today's Tasks</h2><button class="btn-primary" onclick="loadTasks()">Refresh</button></div>
-<div class="table-wrapper"><table>
-<thead><tr><th>Priority</th><th>Name</th><th>Mobile</th><th>Task</th><th>Follow-up Time</th><th>Status</th><th>Action</th></tr></thead>
-<tbody id="tasksList"></tbody>
-</table></div></div></section>
+<div class="card">
+  <div class="card-header"><h2>Tasks</h2><div class="actions"><button class="btn-secondary" onclick="loadTasks()">Refresh</button><button class="btn-primary" onclick="openTaskModal()">+ Add Task</button></div></div>
+  <div class="table-wrapper"><table>
+    <thead><tr><th>Task</th><th>Lead</th><th>Due Date & Time</th><th>Priority</th><th>Status</th><th>Action</th></tr></thead>
+    <tbody id="tasksList"></tbody>
+  </table></div>
+</div>
+</section>
 
 <section id="reportsPage" class="page hidden">
 <div class="stats"><div class="stat-card"><h3>Conversion Rate</h3><div class="number" id="reportConversionRate">0%</div></div><div class="stat-card"><h3>Today's Leads</h3><div class="number" id="reportTodayLeads">0</div></div><div class="stat-card"><h3>This Week</h3><div class="number" id="reportWeekLeads">0</div></div><div class="stat-card"><h3>This Month</h3><div class="number" id="reportMonthLeads">0</div></div></div>
@@ -301,25 +304,63 @@ async function saveFollowup(){
   alert(nextValue?"Follow-up saved and next follow-up scheduled.":"Follow-up saved successfully.");
 }
 function renderReports(rows){const now=new Date(),today=new Date(now.getFullYear(),now.getMonth(),now.getDate()),tomorrow=new Date(today);tomorrow.setDate(tomorrow.getDate()+1);const week=new Date(today);week.setDate(week.getDate()-((week.getDay()+6)%7));const month=new Date(now.getFullYear(),now.getMonth(),1);const d=x=>x.created_at?new Date(x.created_at):null;const conv=rows.filter(x=>x.status==="Converted").length;reportConversionRate.textContent=(rows.length?(conv/rows.length*100).toFixed(1):0)+"%";reportTodayLeads.textContent=rows.filter(x=>{const z=d(x);return z&&z>=today&&z<tomorrow}).length;reportWeekLeads.textContent=rows.filter(x=>{const z=d(x);return z&&z>=week}).length;reportMonthLeads.textContent=rows.filter(x=>{const z=d(x);return z&&z>=month}).length;const statuses=["New","Contacted","Follow-up","Interested","Converted","Not Interested"];statusReportTable.innerHTML=statuses.map(s=>`<tr><td>${s}</td><td><strong>${rows.filter(x=>x.status===s).length}</strong></td></tr>`).join("")}
+let currentTasks=[];
 async function loadTasks(){
-const {data,error}=await supabaseClient.from("leads").select("*").order("next_follow_up",{ascending:true});
-if(error){tasksList.innerHTML=`<tr><td colspan="7" class="empty">${escapeHtml(error.message)}</td></tr>`;return}
-const all=data||[], rows=all.filter(x=>x.next_follow_up), now=new Date();
-const startToday=new Date(now.getFullYear(),now.getMonth(),now.getDate());
-const startTomorrow=new Date(startToday);startTomorrow.setDate(startTomorrow.getDate()+1);
-const overdue=rows.filter(x=>new Date(x.next_follow_up)<now);
-const todayRows=rows.filter(x=>{const d=new Date(x.next_follow_up);return d>=startToday&&d<startTomorrow});
-const interested=all.filter(x=>String(x.status||"").toLowerCase()==="interested");
-const active=[...new Map([...overdue,...todayRows].map(x=>[x.id,x])).values()];
-todayTaskCount.textContent=todayRows.length;
-overdueTaskCount.textContent=overdue.length;
-interestedTaskCount.textContent=interested.length;
-totalTaskCount.textContent=active.length;
-const taskRows=[
-...overdue.map(x=>({...x,_priority:"Overdue",_task:"Complete overdue follow-up"})),
-...todayRows.filter(x=>new Date(x.next_follow_up)>=now).map(x=>({...x,_priority:"Today",_task:"Scheduled follow-up"}))
-].sort((a,b)=>new Date(a.next_follow_up)-new Date(b.next_follow_up));
-tasksList.innerHTML=taskRows.map(x=>`<tr><td><span class="status">${x._priority==="Overdue"?"⚠️ Overdue":"📅 Today"}</span></td><td>${escapeHtml(x.full_name||"-")}</td><td>${escapeHtml(x.mobile_number||"-")}</td><td>${x._task}</td><td>${formatDate(x.next_follow_up)}</td><td>${escapeHtml(x.status||"New")}</td><td><div class="actions"><button class="btn-primary" onclick="completeFollowup(${Number(x.id)})">Complete</button><button class="btn-secondary" onclick="viewLead(${Number(x.id)},'tasks')">View</button></div></td></tr>`).join("")||`<tr><td colspan="7" class="empty">No tasks for today 🎉</td></tr>`;
+  const {data,error}=await supabaseClient.from("tasks").select("*, leads(full_name,mobile_number)").order("status",{ascending:true}).order("due_date",{ascending:true});
+  if(error){tasksList.innerHTML=`<tr><td colspan="6" class="empty">${escapeHtml(error.message)}</td></tr>`;return}
+  currentTasks=data||[];
+  const now=new Date(), startToday=new Date(now.getFullYear(),now.getMonth(),now.getDate()), tomorrow=new Date(startToday);tomorrow.setDate(tomorrow.getDate()+1);
+  const pending=currentTasks.filter(t=>t.status==="Pending");
+  const completed=currentTasks.filter(t=>t.status==="Completed");
+  const overdue=pending.filter(t=>t.due_date&&new Date(t.due_date)<now);
+  const today=pending.filter(t=>{if(!t.due_date)return false;const d=new Date(t.due_date);return d>=startToday&&d<tomorrow});
+  pendingTaskCount.textContent=pending.length;
+  overdueTaskCount.textContent=overdue.length;
+  todayTaskCount.textContent=today.length;
+  completedTaskCount.textContent=completed.length;
+  tasksList.innerHTML=currentTasks.map(t=>{
+    const lead=t.leads?.full_name||"-";
+    const priorityClass=`priority-${String(t.priority||"Medium").toLowerCase()}`;
+    return `<tr class="${t.status==="Completed"?"task-completed":""}">
+      <td><strong>${escapeHtml(t.title||"-")}</strong>${t.description?`<div class="small-muted">${escapeHtml(t.description)}</div>`:""}</td>
+      <td>${escapeHtml(lead)}</td>
+      <td>${t.due_date?formatDate(t.due_date):"-"}</td>
+      <td><span class="${priorityClass}">${escapeHtml(t.priority||"Medium")}</span></td>
+      <td>${t.status==="Completed"?"✅ Completed":"⏳ Pending"}</td>
+      <td><div class="actions">${t.status==="Pending"?`<button class="btn-primary" onclick="completeTask(${Number(t.id)})">Complete</button>`:""}<button class="btn-secondary" onclick="deleteTask(${Number(t.id)})">Delete</button></div></td>
+    </tr>`;
+  }).join("")||`<tr><td colspan="6" class="empty">No tasks yet</td></tr>`;
+}
+async function openTaskModal(){
+  taskTitle.value="";taskDescription.value="";taskDueDate.value="";taskPriority.value="Medium";taskLead.innerHTML='<option value="">No lead selected</option>';
+  const {data,error}=await supabaseClient.from("leads").select("id,full_name,mobile_number").order("full_name",{ascending:true});
+  if(error)return alert("Unable to load leads: "+error.message);
+  (data||[]).forEach(l=>{const o=document.createElement("option");o.value=l.id;o.textContent=`${l.full_name||"Unnamed"}${l.mobile_number?" - "+l.mobile_number:""}`;taskLead.appendChild(o)});
+  document.getElementById("taskModal").classList.add("show");
+}
+function closeTaskModal(){document.getElementById("taskModal").classList.remove("show")}
+async function saveTask(){
+  const title=taskTitle.value.trim();if(!title)return alert("Please enter task title.");
+  const payload={title,description:taskDescription.value.trim()||null,lead_id:taskLead.value?Number(taskLead.value):null,due_date:localDateTimeToISOString(taskDueDate.value),priority:taskPriority.value,status:"Pending"};
+  const {data,error}=await supabaseClient.from("tasks").insert([payload]).select().single();
+  if(error)return alert("Error saving task: "+error.message);
+  if(payload.lead_id)await addLeadActivity(payload.lead_id,"Task Created",`Task: ${title}${payload.due_date?` | Due: ${formatDate(payload.due_date)}`:""}`);
+  closeTaskModal();await loadTasks();alert("Task saved successfully.");
+}
+async function completeTask(id){
+  const task=currentTasks.find(t=>Number(t.id)===Number(id));
+  const {error}=await supabaseClient.from("tasks").update({status:"Completed",completed_at:new Date().toISOString()}).eq("id",id);
+  if(error)return alert("Error completing task: "+error.message);
+  if(task?.lead_id)await addLeadActivity(task.lead_id,"Task Completed",`Task completed: ${task.title||"-"}.`);
+  await loadTasks();
+}
+async function deleteTask(id){
+  const task=currentTasks.find(t=>Number(t.id)===Number(id));
+  if(!confirm("Delete this task?"))return;
+  const {error}=await supabaseClient.from("tasks").delete().eq("id",id);
+  if(error)return alert("Error deleting task: "+error.message);
+  if(task?.lead_id)await addLeadActivity(task.lead_id,"Task Deleted",`Task deleted: ${task.title||"-"}.`);
+  await loadTasks();
 }
 document.addEventListener("DOMContentLoaded",()=>{loadLeads();loadPipeline()});
 </script>
@@ -365,6 +406,22 @@ document.addEventListener("DOMContentLoaded",()=>{loadLeads();loadPipeline()});
 .followup-modal-box select,.followup-modal-box textarea,.followup-modal-box input{width:100%;box-sizing:border-box;border:1px solid #d7dce3;border-radius:9px;padding:12px;font:inherit;background:#fff}
 .followup-modal-box textarea{min-height:88px;resize:vertical}
 .followup-modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:22px}
+</style>
+
+<div id="taskModal" class="followup-modal">
+  <div class="followup-modal-box">
+    <div class="followup-modal-header"><h3>Add Task</h3><button type="button" class="modal-close" onclick="closeTaskModal()">×</button></div>
+    <label>Task Title</label><input id="taskTitle" placeholder="Enter task title">
+    <label>Description <span>(Optional)</span></label><textarea id="taskDescription" placeholder="Add task details..."></textarea>
+    <label>Linked Lead <span>(Optional)</span></label><select id="taskLead"><option value="">No lead selected</option></select>
+    <label>Due Date & Time <span>(Optional)</span></label><input type="datetime-local" id="taskDueDate">
+    <label>Priority</label><select id="taskPriority"><option value="Low">Low</option><option value="Medium" selected>Medium</option><option value="High">High</option></select>
+    <div class="followup-modal-actions"><button type="button" class="btn-secondary" onclick="closeTaskModal()">Cancel</button><button type="button" class="btn-primary" onclick="saveTask()">Save Task</button></div>
+  </div>
+</div>
+<style>
+.priority-high{font-weight:700}.priority-medium{font-weight:600}.priority-low{font-weight:500}
+.task-completed{text-decoration:line-through;opacity:.65}
 </style>
 
 </body>
