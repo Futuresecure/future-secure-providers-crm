@@ -208,30 +208,94 @@ await viewLead(id,previousPage);
 }
 
 async function loadFollowups(preloaded){let rows=preloaded;if(!rows){const {data,error}=await supabaseClient.from("leads").select("*").not("next_follow_up","is",null).order("next_follow_up",{ascending:true});if(error){followupsTable.innerHTML=`<tr><td colspan="6" class="empty">${escapeHtml(error.message)}</td></tr>`;return}rows=data||[]}rows=rows.filter(x=>x.next_follow_up);const now=new Date(),today=new Date(now.getFullYear(),now.getMonth(),now.getDate()),tomorrow=new Date(today),dayAfter=new Date(today);tomorrow.setDate(tomorrow.getDate()+1);dayAfter.setDate(dayAfter.getDate()+2);const type=x=>{const d=new Date(x.next_follow_up);if(d<now)return"Overdue";if(d>=today&&d<tomorrow)return"Today";if(d>=tomorrow&&d<dayAfter)return"Tomorrow";return"Upcoming"};todayFollowupCount.textContent=rows.filter(x=>type(x)==="Today").length;tomorrowFollowupCount.textContent=rows.filter(x=>type(x)==="Tomorrow").length;overdueFollowupCount.textContent=rows.filter(x=>type(x)==="Overdue").length;followupsTable.innerHTML=rows.map(x=>`<tr><td><span class="status">${type(x)}</span></td><td>${escapeHtml(x.full_name)}</td><td>${escapeHtml(x.mobile_number)}</td><td>${formatDate(x.next_follow_up)}</td><td>${escapeHtml(x.status||"New")}</td><td><div class="actions"><button class="btn-primary" onclick="completeFollowup(${Number(x.id)})">Complete</button><button class="btn-secondary" onclick="viewLead(${Number(x.id)},'followups')">View</button></div></td></tr>`).join("")||`<tr><td colspan="6" class="empty">No follow-ups scheduled</td></tr>`}
-async function completeFollowup(id){
-const {data:lead,error}=await supabaseClient.from("leads").select("*").eq("id",id).single();
-if(error||!lead)return alert(error?.message||"Lead not found");
-const result=prompt("Follow-up result (example: Spoke / No Answer / Interested / Call Later):","Spoke");
-if(result===null)return;
-const note=prompt("Follow-up note (optional):","");
-if(note===null)return;
-const next=prompt("Enter NEXT follow-up date & time (YYYY-MM-DDTHH:MM). Leave blank if no next follow-up:","");
-if(next===null)return;
-let nextValue=null;
-if(next.trim()){const d=new Date(next.trim());if(isNaN(d))return alert("Invalid date/time. Example: 2026-08-27T10:30");nextValue=d.toISOString()}
-const stamp=new Date().toLocaleString("en-IN");
-const activity=`[Follow-up completed | ${stamp}] Result: ${result||"-"}${note?` | Note: ${note}`:""}`;
-const notes=[lead.notes,activity].filter(Boolean).join("\n");
-const update={next_follow_up:nextValue,notes};
-if(lead.status==="New"||lead.status==="Contacted")update.status="Follow-up";
-const {error:updateError}=await supabaseClient.from("leads").update(update).eq("id",id);
-if(updateError)return alert("Error completing follow-up: "+updateError.message);
-await loadLeads();await loadPipeline();await loadFollowups();
-alert(nextValue?"Follow-up saved and next follow-up scheduled.":"Follow-up saved successfully.");
+let followupLeadId=null;
+
+function completeFollowup(id){
+  followupLeadId=id;
+  document.getElementById("followupModal").classList.add("show");
+  document.getElementById("followupResult").value="Spoke";
+  document.getElementById("followupNote").value="";
+  document.getElementById("nextFollowup").value="";
+}
+
+function closeFollowupModal(){
+  document.getElementById("followupModal").classList.remove("show");
+  followupLeadId=null;
+}
+
+async function saveFollowup(){
+  if(!followupLeadId)return;
+  const {data:lead,error}=await supabaseClient.from("leads").select("*").eq("id",followupLeadId).single();
+  if(error||!lead)return alert(error?.message||"Lead not found");
+
+  const result=document.getElementById("followupResult").value;
+  const note=document.getElementById("followupNote").value.trim();
+  const next=document.getElementById("nextFollowup").value;
+  const nextValue=next ? new Date(next).toISOString() : null;
+
+  const stamp=new Date().toLocaleString("en-IN");
+  const activity=`[Follow-up completed | ${stamp}] Result: ${result||"-"}${note?` | Note: ${note}`:""}`;
+  const notes=[lead.notes,activity].filter(Boolean).join("\n");
+
+  const update={next_follow_up:nextValue,notes};
+  if(lead.status==="New"||lead.status==="Contacted")update.status="Follow-up";
+
+  const {error:updateError}=await supabaseClient.from("leads").update(update).eq("id",followupLeadId);
+  if(updateError)return alert("Error completing follow-up: "+updateError.message);
+
+  closeFollowupModal();
+  await loadLeads();
+  await loadPipeline();
+  await loadFollowups();
+  alert(nextValue?"Follow-up saved and next follow-up scheduled.":"Follow-up saved successfully.");
 }
 function renderReports(rows){const now=new Date(),today=new Date(now.getFullYear(),now.getMonth(),now.getDate()),tomorrow=new Date(today);tomorrow.setDate(tomorrow.getDate()+1);const week=new Date(today);week.setDate(week.getDate()-((week.getDay()+6)%7));const month=new Date(now.getFullYear(),now.getMonth(),1);const d=x=>x.created_at?new Date(x.created_at):null;const conv=rows.filter(x=>x.status==="Converted").length;reportConversionRate.textContent=(rows.length?(conv/rows.length*100).toFixed(1):0)+"%";reportTodayLeads.textContent=rows.filter(x=>{const z=d(x);return z&&z>=today&&z<tomorrow}).length;reportWeekLeads.textContent=rows.filter(x=>{const z=d(x);return z&&z>=week}).length;reportMonthLeads.textContent=rows.filter(x=>{const z=d(x);return z&&z>=month}).length;const statuses=["New","Contacted","Follow-up","Interested","Converted","Not Interested"];statusReportTable.innerHTML=statuses.map(s=>`<tr><td>${s}</td><td><strong>${rows.filter(x=>x.status===s).length}</strong></td></tr>`).join("")}
 async function loadTasks(){const box=tasksBox;const {data,error}=await supabaseClient.from("tasks").select("*").order("due_at",{ascending:true});if(error){box.textContent="Task module needs a Supabase table named tasks. Leads CRM continues to work normally.";return}box.innerHTML=(data||[]).length?`<div class="table-wrapper"><table><tbody>${data.map(x=>`<tr><td>${escapeHtml(x.title)}</td><td>${formatDate(x.due_at)}</td><td>${escapeHtml(x.status||"Pending")}</td></tr>`).join("")}</tbody></table></div>`:"No tasks found."}
 document.addEventListener("DOMContentLoaded",()=>{loadLeads();loadPipeline()});
 </script>
+
+<div id="followupModal" class="followup-modal">
+  <div class="followup-modal-box">
+    <div class="followup-modal-header">
+      <h3>Complete Follow-up</h3>
+      <button type="button" class="modal-close" onclick="closeFollowupModal()">×</button>
+    </div>
+
+    <label>Follow-up Result</label>
+    <select id="followupResult">
+      <option value="Spoke">Spoke</option>
+      <option value="No Answer">No Answer</option>
+      <option value="Interested">Interested</option>
+      <option value="Call Later">Call Later</option>
+      <option value="Not Interested">Not Interested</option>
+    </select>
+
+    <label>Follow-up Note <span>(Optional)</span></label>
+    <textarea id="followupNote" placeholder="Add follow-up note..."></textarea>
+
+    <label>Next Follow-up Date & Time <span>(Optional)</span></label>
+    <input type="datetime-local" id="nextFollowup">
+
+    <div class="followup-modal-actions">
+      <button type="button" class="btn-secondary" onclick="closeFollowupModal()">Cancel</button>
+      <button type="button" class="btn-primary" onclick="saveFollowup()">Save Follow-up</button>
+    </div>
+  </div>
+</div>
+
+<style>
+.followup-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;padding:20px}
+.followup-modal.show{display:flex}
+.followup-modal-box{width:min(480px,100%);background:#fff;border-radius:16px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.28)}
+.followup-modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.followup-modal-header h3{margin:0;font-size:21px}
+.modal-close{border:0;background:transparent;font-size:30px;line-height:1;cursor:pointer}
+.followup-modal-box label{display:block;font-weight:600;margin:14px 0 7px}
+.followup-modal-box label span{font-weight:400;color:#777}
+.followup-modal-box select,.followup-modal-box textarea,.followup-modal-box input{width:100%;box-sizing:border-box;border:1px solid #d7dce3;border-radius:9px;padding:12px;font:inherit;background:#fff}
+.followup-modal-box textarea{min-height:88px;resize:vertical}
+.followup-modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:22px}
+</style>
+
 </body>
 </html>
