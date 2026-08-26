@@ -363,6 +363,9 @@
     .btn-call { background:#0891b2; color:white; padding:8px 12px; }
     .btn-whatsapp { background:#16a34a; color:white; padding:8px 12px; }
     .btn-view { background:#7c3aed; color:white; padding:8px 12px; }
+    .timeline { position:relative; margin-top:10px; }
+    .timeline-item { border-left:3px solid #7c3aed; padding:0 0 18px 18px; margin-left:8px; }
+    .timeline-date { font-size:12px; opacity:.7; margin-top:4px; }
     .btn-edit { background:#2563eb; color:white; padding:8px 12px; }
     .btn-delete { background:#dc2626; color:white; padding:8px 12px; }
     .search-input { width:260px; max-width:100%; }
@@ -1389,10 +1392,60 @@
 
   async function deleteLead(id) {
     if (!confirm("Are you sure you want to delete this lead?")) return;
+    await addLeadActivity(id, "Lead Deleted", "Lead was deleted from CRM.");
     const { error } = await supabaseClient.from("leads").delete().eq("id", id);
     if (error) { alert("Error deleting lead: " + error.message); return; }
     await loadLeads();
     alert("Lead deleted successfully!");
+  }
+
+  /*
+  ========================================
+  LEAD ACTIVITY TIMELINE
+  ========================================
+  */
+
+  async function addLeadActivity(leadId, activityType, description) {
+    const { error } = await supabaseClient
+      .from("lead_activities")
+      .insert([{
+        lead_id: Number(leadId),
+        activity_type: activityType,
+        description: description
+      }]);
+
+    if (error) console.error("Activity save error:", error);
+  }
+
+  async function loadLeadActivities(leadId) {
+    const box = document.getElementById("leadActivityTimeline");
+    if (!box) return;
+
+    const { data, error } = await supabaseClient
+      .from("lead_activities")
+      .select("*")
+      .eq("lead_id", Number(leadId))
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      box.innerHTML = `<div class="empty">Activity history will appear after the database SQL is set up.</div>`;
+      return;
+    }
+
+    if (!data || !data.length) {
+      box.innerHTML = `<div class="empty">No activity history yet.</div>`;
+      return;
+    }
+
+    box.innerHTML = `<div class="timeline">${
+      data.map(item => `
+        <div class="timeline-item">
+          <strong>${escapeHtml(item.activity_type || "Activity")}</strong>
+          <div>${escapeHtml(item.description || "")}</div>
+          <div class="timeline-date">${formatDate(item.created_at)}</div>
+        </div>
+      `).join("")
+    }</div>`;
   }
 
   /*
@@ -1439,6 +1492,11 @@
         <div>${safe(lead.notes || "No notes added")}</div>
       </div>
 
+      <div class="card" style="box-shadow:none;border:1px solid var(--border);margin-bottom:18px;">
+        <h3 style="margin-bottom:14px;">Activity Timeline</h3>
+        <div id="leadActivityTimeline">Loading activity history...</div>
+      </div>
+
       <div class="card" style="box-shadow:none;border:1px solid var(--border);">
         <h3 style="margin-bottom:14px;">Quick Actions</h3>
         <div class="action-buttons">
@@ -1451,6 +1509,7 @@
     `;
 
     showPage("leadProfile", null);
+    await loadLeadActivities(id);
   }
 
   /*
@@ -1592,6 +1651,7 @@
       return;
     }
 
+    await addLeadActivity(id, "Follow-up Completed", "Follow-up was marked as completed.");
     await loadLeads();
     alert("Follow-up marked as completed.");
   }
@@ -1753,6 +1813,12 @@
             "success"
           );
 
+
+          await addLeadActivity(
+            editId || (data && data[0] ? data[0].id : null),
+            editId ? "Lead Updated" : "Lead Created",
+            editId ? "Lead details were updated." : "New lead was created."
+          );
 
           document.getElementById("leadForm").reset();
           delete document.getElementById("leadForm").dataset.editId;
