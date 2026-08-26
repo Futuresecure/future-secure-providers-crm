@@ -351,6 +351,10 @@
       border: 1px solid #fca5a5;
     }
 
+    .action-buttons { display:flex; gap:8px; }
+    .btn-edit { background:#2563eb; color:white; padding:8px 12px; }
+    .btn-delete { background:#dc2626; color:white; padding:8px 12px; }
+    .search-input { width:260px; max-width:100%; }
     .placeholder {
       text-align: center;
       padding: 50px 20px;
@@ -775,14 +779,10 @@
           <div class="card-header">
 
             <h2>All Leads</h2>
-
-            <button
-              class="btn-primary"
-              onclick="showPage('addLead', document.querySelector('[data-page=addLead]'))">
-
-              + Add New Lead
-
-            </button>
+            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+              <input class="search-input" type="text" id="leadSearch" placeholder="Search name or mobile..." oninput="searchLeads(this.value)" />
+              <button class="btn-primary" onclick="showPage('addLead', document.querySelector('[data-page=addLead]'))">+ Add New Lead</button>
+            </div>
 
           </div>
 
@@ -800,6 +800,7 @@
                   <th>Source</th>
                   <th>Status</th>
                   <th>Follow-up</th>
+                  <th>Actions</th>
                 </tr>
 
               </thead>
@@ -808,7 +809,7 @@
               <tbody id="leadsTable">
 
                 <tr>
-                  <td colspan="6" class="empty">
+                  <td colspan="7" class="empty">
                     Loading leads...
                   </td>
                 </tr>
@@ -1182,7 +1183,7 @@
           .innerHTML =
           `
             <tr>
-              <td colspan="6" class="empty">
+              <td colspan="7" class="empty">
                 Unable to load leads
               </td>
             </tr>
@@ -1268,69 +1269,62 @@
   */
 
   function renderLeads(leads) {
-
-    const table =
-      document.getElementById("leadsTable");
-
-
-    if (leads.length === 0) {
-
-      table.innerHTML =
-        `
-          <tr>
-            <td colspan="6" class="empty">
-              No leads available
-            </td>
-          </tr>
-        `;
-
+    const table = document.getElementById("leadsTable");
+    if (!leads || leads.length === 0) {
+      table.innerHTML = `<tr><td colspan="7" class="empty">No leads available</td></tr>`;
       return;
-
     }
-
-
-    table.innerHTML =
-      leads
-        .map(
-          lead =>
-            `
-              <tr>
-
-                <td>
-                  ${escapeHtml(lead.full_name)}
-                </td>
-
-                <td>
-                  ${escapeHtml(lead.mobile_number)}
-                </td>
-
-                <td>
-                  ${escapeHtml(lead.city)}
-                </td>
-
-                <td>
-                  ${escapeHtml(lead.lead_source)}
-                </td>
-
-                <td>
-                  <span class="status">
-                    ${escapeHtml(lead.status)}
-                  </span>
-                </td>
-
-                <td>
-                  ${formatDate(
-                    lead.next_follow_up
-                  )}
-                </td>
-
-              </tr>
-            `
-        )
-        .join("");
-
+    table.innerHTML = leads.map(lead => `
+      <tr>
+        <td>${escapeHtml(lead.full_name)}</td>
+        <td>${escapeHtml(lead.mobile_number)}</td>
+        <td>${escapeHtml(lead.city)}</td>
+        <td>${escapeHtml(lead.lead_source)}</td>
+        <td><span class="status">${escapeHtml(lead.status)}</span></td>
+        <td>${formatDate(lead.next_follow_up)}</td>
+        <td><div class="action-buttons">
+          <button class="btn-edit" onclick="editLead(${Number(lead.id)})">Edit</button>
+          <button class="btn-delete" onclick="deleteLead(${Number(lead.id)})">Delete</button>
+        </div></td>
+      </tr>
+    `).join("");
   }
 
+  async function searchLeads(value) {
+    const searchValue = (value || "").trim();
+    let query = supabaseClient.from("leads").select("*").order("created_at", { ascending: false });
+    if (searchValue) {
+      const safeValue = searchValue.replace(/[%(),]/g, "");
+      query = query.or(`full_name.ilike.%${safeValue}%,mobile_number.ilike.%${safeValue}%`);
+    }
+    const { data, error } = await query;
+    if (error) { console.error("Search error:", error); return; }
+    renderLeads(data || []);
+  }
+
+  async function editLead(id) {
+    const { data: lead, error } = await supabaseClient.from("leads").select("*").eq("id", id).single();
+    if (error) { alert("Unable to load lead: " + error.message); return; }
+
+    document.getElementById("leadName").value = lead.full_name || "";
+    document.getElementById("leadPhone").value = lead.mobile_number || "";
+    document.getElementById("leadCity").value = lead.city || "";
+    document.getElementById("leadSource").value = lead.lead_source || "Manual";
+    document.getElementById("leadStatus").value = lead.status || "New";
+    document.getElementById("leadFollowUp").value = lead.next_follow_up ? new Date(lead.next_follow_up).toISOString().slice(0,16) : "";
+    document.getElementById("leadNotes").value = lead.notes || "";
+    document.getElementById("leadForm").dataset.editId = id;
+    document.getElementById("saveLeadButton").innerText = "Update Lead";
+    showPage("addLead", document.querySelector('[data-page="addLead"]'));
+  }
+
+  async function deleteLead(id) {
+    if (!confirm("Are you sure you want to delete this lead?")) return;
+    const { error } = await supabaseClient.from("leads").delete().eq("id", id);
+    if (error) { alert("Error deleting lead: " + error.message); return; }
+    await loadLeads();
+    alert("Lead deleted successfully!");
+  }
 
   /*
   ========================================
@@ -1585,37 +1579,25 @@
 
         try {
 
-          const {
-            data,
-            error
-          } =
-          await supabaseClient
-            .from("leads")
-            .insert([
-              {
-                full_name:
-                  fullName,
+          const editId = document.getElementById("leadForm").dataset.editId;
+          const leadPayload = {
+            full_name: fullName,
+            mobile_number: mobile,
+            city: city || null,
+            lead_source: source,
+            status: status,
+            next_follow_up: followUp,
+            notes: notes || null
+          };
 
-                mobile_number:
-                  mobile,
+          let data;
+          let error;
 
-                city:
-                  city || null,
-
-                lead_source:
-                  source,
-
-                status:
-                  status,
-
-                next_follow_up:
-                  followUp,
-
-                notes:
-                  notes || null
-              }
-            ])
-            .select();
+          if (editId) {
+            ({ data, error } = await supabaseClient.from("leads").update(leadPayload).eq("id", editId).select());
+          } else {
+            ({ data, error } = await supabaseClient.from("leads").insert([leadPayload]).select());
+          }
 
 
           if (error) {
@@ -1649,10 +1631,9 @@
           );
 
 
-          document
-            .getElementById("leadForm")
-            .reset();
-
+          document.getElementById("leadForm").reset();
+          delete document.getElementById("leadForm").dataset.editId;
+          document.getElementById("saveLeadButton").innerText = "Save Lead";
 
           await loadLeads();
 
