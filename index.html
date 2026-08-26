@@ -363,6 +363,13 @@
     .btn-call { background:#0891b2; color:white; padding:8px 12px; }
     .btn-whatsapp { background:#16a34a; color:white; padding:8px 12px; }
     .btn-view { background:#7c3aed; color:white; padding:8px 12px; }
+    .pipeline-board { display:flex; gap:16px; overflow-x:auto; padding-bottom:12px; }
+    .pipeline-column { min-width:260px; flex:1; background:#f8fafc; border:1px solid var(--border); border-radius:12px; padding:12px; }
+    .pipeline-column h3 { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:12px; }
+    .pipeline-count { font-size:13px; padding:3px 9px; border-radius:14px; background:#e5e7eb; }
+    .pipeline-card { background:white; border:1px solid var(--border); border-radius:10px; padding:12px; margin-bottom:10px; cursor:pointer; }
+    .pipeline-card:hover { transform:translateY(-1px); box-shadow:0 4px 12px rgba(0,0,0,.08); }
+    .pipeline-card small { display:block; margin-top:6px; opacity:.78; }
     .timeline { position:relative; margin-top:10px; }
     .timeline-item { border-left:3px solid #7c3aed; padding:0 0 18px 18px; margin-left:8px; }
     .timeline-date { font-size:12px; opacity:.7; margin-top:4px; }
@@ -1401,6 +1408,49 @@
 
   /*
   ========================================
+  LEAD STATUS PIPELINE / KANBAN BOARD
+  ========================================
+  */
+  async function loadPipeline() {
+    const board = document.getElementById("pipelineBoard");
+    if (!board) return;
+
+    const { data: leads, error } = await supabaseClient
+      .from("leads")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      board.innerHTML = `<div class="empty">Unable to load pipeline: ${escapeHtml(error.message)}</div>`;
+      return;
+    }
+
+    const stages = [
+      { key: "New", label: "🆕 New" },
+      { key: "Contacted", label: "📞 Contacted" },
+      { key: "Follow-up", label: "📅 Follow-up" },
+      { key: "Interested", label: "🔥 Interested" },
+      { key: "Converted", label: "✅ Converted" }
+    ];
+
+    board.innerHTML = stages.map(stage => {
+      const items = (leads || []).filter(lead => lead.status === stage.key);
+      return `<div class="pipeline-column">
+        <h3><span>${stage.label}</span><span class="pipeline-count">${items.length}</span></h3>
+        ${items.length ? items.map(lead => `
+          <div class="pipeline-card" onclick="viewLead(${Number(lead.id)})">
+            <strong>${escapeHtml(lead.full_name || "-")}</strong>
+            <small>📞 ${escapeHtml(lead.mobile_number || "-")}</small>
+            <small>📍 ${escapeHtml(lead.city || "-")}</small>
+            <small>📅 ${lead.next_follow_up ? formatDate(lead.next_follow_up) : "No follow-up"}</small>
+          </div>
+        `).join("") : `<div class="empty">No leads</div>`}
+      </div>`;
+    }).join("");
+  }
+
+  /*
+  ========================================
   LEAD ACTIVITY TIMELINE
   ========================================
   */
@@ -2091,6 +2141,7 @@
     function() {
 
       loadLeads();
+      loadPipeline();
       loadTasks();
 
     }
@@ -2099,7 +2150,20 @@
 </script>
 
 </body>
-</html>      <!-- LEAD PROFILE -->
+</html>      <!-- PIPELINE -->
+      <section id="pipelinePage" class="page hidden">
+        <div class="card">
+          <div class="card-header">
+            <h2>Lead Pipeline</h2>
+            <button class="btn-primary" onclick="loadPipeline()">Refresh</button>
+          </div>
+          <div class="pipeline-board" id="pipelineBoard">
+            <div class="empty">Loading pipeline...</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- LEAD PROFILE -->
       <section id="leadProfilePage" class="page hidden">
         <div class="card">
           <div class="card-header">
