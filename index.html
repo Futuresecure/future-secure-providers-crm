@@ -37,7 +37,7 @@ button{border:0;border-radius:8px;padding:10px 14px;cursor:pointer}.btn-primary{
 .table-wrapper{overflow:auto}table{width:100%;border-collapse:collapse;min-width:700px}th,td{padding:13px;text-align:left;border-bottom:1px solid var(--border);font-size:14px}th{color:var(--muted);font-size:12px;text-transform:uppercase}
 .empty{text-align:center;color:var(--muted);padding:30px}.status{display:inline-block;padding:5px 10px;border-radius:20px;background:#e5f6ef;color:#087f5b;font-size:12px}
 .actions{display:flex;gap:7px;flex-wrap:wrap}.search-input{width:260px;max-width:100%}
-.pipeline-board{display:flex;gap:16px;overflow-x:auto;padding-bottom:10px}.pipeline-column{min-width:260px;flex:1;background:#f8fafc;border:1px solid var(--border);border-radius:12px;padding:12px}.pipeline-column h3{display:flex;justify-content:space-between;gap:8px;margin-bottom:12px}.pipeline-count{background:#e5e7eb;padding:3px 9px;border-radius:14px;font-size:13px}.pipeline-card{background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px;cursor:pointer}.pipeline-card:hover{box-shadow:0 4px 12px rgba(0,0,0,.08);transform:translateY(-1px)}.pipeline-card small{display:block;margin-top:6px;color:var(--muted)}
+.pipeline-board{display:flex;gap:16px;overflow-x:auto;padding-bottom:10px}.pipeline-column{min-width:260px;flex:1;background:#f8fafc;border:1px solid var(--border);border-radius:12px;padding:12px}.pipeline-column.drag-over{background:#eef7f6;border-color:var(--primary)}.pipeline-card.dragging{opacity:.45}.pipeline-column h3{display:flex;justify-content:space-between;gap:8px;margin-bottom:12px}.pipeline-count{background:#e5e7eb;padding:3px 9px;border-radius:14px;font-size:13px}.pipeline-card{background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px;cursor:pointer}.pipeline-card:hover{box-shadow:0 4px 12px rgba(0,0,0,.08);transform:translateY(-1px)}.pipeline-card small{display:block;margin-top:6px;color:var(--muted)}
 .profile-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:18px}.detail-box{background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px}.detail-box label{display:block;color:var(--muted);font-size:12px;margin-bottom:8px}.detail-box strong{font-size:17px}
 .timeline-item{border-left:3px solid #7c3aed;padding:0 0 18px 18px;margin:8px}.timeline-date{font-size:12px;color:var(--muted);margin-top:5px}
 @media(max-width:900px){.sidebar{width:72px;padding:20px 8px}.brand{font-size:0;padding:10px}.brand span,.menu-label{display:none}.nav-item{font-size:0;text-align:center}.nav-item::first-letter{font-size:20px}.header{padding:0 16px}.content{padding:16px}}
@@ -168,9 +168,25 @@ const board=document.getElementById("pipelineBoard");board.innerHTML='<div class
 const {data,error}=await supabaseClient.from("leads").select("*").order("created_at",{ascending:false});
 if(error){board.innerHTML=`<div class="empty">${escapeHtml(error.message)}</div>`;return}
 const stages=[["New","🆕 New"],["Contacted","📞 Contacted"],["Follow-up","📅 Follow-up"],["Interested","🔥 Interested"],["Converted","✅ Converted"]];
-board.innerHTML=stages.map(([key,label])=>{const items=(data||[]).filter(x=>x.status===key);return `<div class="pipeline-column"><h3><span>${label}</span><span class="pipeline-count">${items.length}</span></h3>${items.length?items.map(x=>`<div class="pipeline-card" onclick="viewLead(${Number(x.id)},'pipeline')"><strong>${escapeHtml(x.full_name||"-")}</strong><small>📞 ${escapeHtml(x.mobile_number||"-")}</small><small>📍 ${escapeHtml(x.city||"-")}</small><small>📅 ${x.next_follow_up?formatDate(x.next_follow_up):"No follow-up"}</small></div>`).join(""):'<div class="empty">No leads</div>'}</div>`}).join("")
+board.innerHTML=stages.map(([key,label])=>{const items=(data||[]).filter(x=>x.status===key);return `<div class="pipeline-column" data-status="${key}" ondragover="pipelineDragOver(event)" ondragleave="pipelineDragLeave(event)" ondrop="pipelineDrop(event,'${key}')"><h3><span>${label}</span><span class="pipeline-count">${items.length}</span></h3>${items.length?items.map(x=>`<div class="pipeline-card" draggable="true" ondragstart="pipelineDragStart(event,${Number(x.id)})" ondragend="pipelineDragEnd(event)" onclick="viewLead(${Number(x.id)},'pipeline')"><strong>${escapeHtml(x.full_name||"-")}</strong><small>📞 ${escapeHtml(x.mobile_number||"-")}</small><small>📍 ${escapeHtml(x.city||"-")}</small><small>📅 ${x.next_follow_up?formatDate(x.next_follow_up):"No follow-up"}</small></div>`).join(""):'<div class="empty">No leads</div>'}</div>`}).join("")
 }
 
+let draggedLeadId=null;
+function pipelineDragStart(event,id){draggedLeadId=id;event.currentTarget.classList.add("dragging");event.dataTransfer.effectAllowed="move";event.dataTransfer.setData("text/plain",String(id))}
+function pipelineDragEnd(event){event.currentTarget.classList.remove("dragging");document.querySelectorAll(".pipeline-column").forEach(x=>x.classList.remove("drag-over"));draggedLeadId=null}
+function pipelineDragOver(event){event.preventDefault();event.currentTarget.classList.add("drag-over");event.dataTransfer.dropEffect="move"}
+function pipelineDragLeave(event){event.currentTarget.classList.remove("drag-over")}
+async function pipelineDrop(event,newStatus){
+event.preventDefault();event.currentTarget.classList.remove("drag-over");
+const id=draggedLeadId||Number(event.dataTransfer.getData("text/plain"));
+if(!id)return;
+const {data:lead,error:getError}=await supabaseClient.from("leads").select("id,status").eq("id",id).single();
+if(getError)return alert("Error loading lead: "+getError.message);
+if(lead.status===newStatus){draggedLeadId=null;return}
+const {error}=await supabaseClient.from("leads").update({status:newStatus}).eq("id",id);
+if(error)return alert("Error updating pipeline: "+error.message);
+draggedLeadId=null;await loadLeads();await loadPipeline();
+}
 async function viewLead(id,fromPage){
 if(fromPage)previousPage=fromPage;
 const {data:lead,error}=await supabaseClient.from("leads").select("*").eq("id",id).single();if(error||!lead)return alert(error?.message||"Lead not found");
