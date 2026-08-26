@@ -144,6 +144,18 @@ window.scrollTo({top:0,behavior:"smooth"});
 function backToPrevious(){showPage(previousPage,document.querySelector(`[data-page="${previousPage}"]`));if(previousPage==="pipeline")loadPipeline();else loadLeads()}
 function escapeHtml(v){return String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;")}
 function formatDate(v){if(!v)return"-";const d=new Date(v);return isNaN(d)?"-":d.toLocaleString("en-IN",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"})}
+function localDateTimeToISOString(value){
+  if(!value)return null;
+  const d=new Date(value);
+  return isNaN(d) ? null : d.toISOString();
+}
+function isoToLocalDateTime(value){
+  if(!value)return "";
+  const d=new Date(value);
+  if(isNaN(d))return "";
+  const pad=n=>String(n).padStart(2,"0");
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
 function showMessage(text,type){const m=formMessage;m.textContent=text;m.className="message "+type;setTimeout(()=>m.className="message",4000)}
 function openNewLead(){leadForm.reset();delete leadForm.dataset.editId;leadFormTitle.textContent="Add New Lead";saveLeadButton.textContent="Save Lead";showPage("addLead",document.querySelector('[data-page="addLead"]'))}
 
@@ -158,7 +170,7 @@ function renderLeads(rows){leadsTable.innerHTML=rows.map(x=>`<tr><td>${escapeHtm
 async function searchLeads(v){const q=(v||"").trim();if(!q)return loadLeads();const safe=q.replace(/[%(),]/g,"");const {data,error}=await supabaseClient.from("leads").select("*").or(`full_name.ilike.%${safe}%,mobile_number.ilike.%${safe}%`).order("created_at",{ascending:false});if(!error)renderLeads(data||[])}
 
 leadForm.addEventListener("submit",async e=>{
-e.preventDefault();const payload={full_name:leadName.value.trim(),mobile_number:leadPhone.value.trim(),city:leadCity.value.trim()||null,lead_source:leadSource.value,status:leadStatus.value,next_follow_up:leadFollowUp.value||null,notes:leadNotes.value.trim()||null};
+e.preventDefault();const payload={full_name:leadName.value.trim(),mobile_number:leadPhone.value.trim(),city:leadCity.value.trim()||null,lead_source:leadSource.value,status:leadStatus.value,next_follow_up:localDateTimeToISOString(leadFollowUp.value),notes:leadNotes.value.trim()||null};
 if(!payload.full_name||!payload.mobile_number)return showMessage("Please enter customer name and mobile number.","error");
 const editId=leadForm.dataset.editId;
 const {data:duplicates,error:duplicateError}=await supabaseClient.from("leads").select("id,full_name,mobile_number").eq("mobile_number",payload.mobile_number);
@@ -171,7 +183,7 @@ saveLeadButton.disabled=false;
 if(result.error){showMessage("Error saving lead: "+result.error.message,"error");saveLeadButton.textContent=editId?"Update Lead":"Save Lead";return}
 showMessage(editId?"Lead updated successfully!":"Lead saved successfully!","success");leadForm.reset();delete leadForm.dataset.editId;saveLeadButton.textContent="Save Lead";await loadLeads();await loadPipeline();setTimeout(()=>showPage("leads",document.querySelector('[data-page="leads"]')),600)
 });
-async function editLead(id){const {data,error}=await supabaseClient.from("leads").select("*").eq("id",id).single();if(error)return alert(error.message);leadName.value=data.full_name||"";leadPhone.value=data.mobile_number||"";leadCity.value=data.city||"";leadSource.value=data.lead_source||"Manual";leadStatus.value=data.status||"New";leadFollowUp.value=data.next_follow_up?new Date(data.next_follow_up).toISOString().slice(0,16):"";leadNotes.value=data.notes||"";leadForm.dataset.editId=id;leadFormTitle.textContent="Update Lead";saveLeadButton.textContent="Update Lead";showPage("addLead",document.querySelector('[data-page="addLead"]'))}
+async function editLead(id){const {data,error}=await supabaseClient.from("leads").select("*").eq("id",id).single();if(error)return alert(error.message);leadName.value=data.full_name||"";leadPhone.value=data.mobile_number||"";leadCity.value=data.city||"";leadSource.value=data.lead_source||"Manual";leadStatus.value=data.status||"New";leadFollowUp.value=isoToLocalDateTime(data.next_follow_up);leadNotes.value=data.notes||"";leadForm.dataset.editId=id;leadFormTitle.textContent="Update Lead";saveLeadButton.textContent="Update Lead";showPage("addLead",document.querySelector('[data-page="addLead"]'))}
 async function deleteLead(id){if(!confirm("Delete this lead?"))return;const {error}=await supabaseClient.from("leads").delete().eq("id",id);if(error)return alert(error.message);await loadLeads();await loadPipeline()}
 
 async function loadPipeline(){
@@ -242,7 +254,7 @@ async function saveFollowup(){
   const result=document.getElementById("followupResult").value;
   const note=document.getElementById("followupNote").value.trim();
   const next=document.getElementById("nextFollowup").value;
-  const nextValue=next ? new Date(next).toISOString() : null;
+  const nextValue=localDateTimeToISOString(next);
 
   const stamp=new Date().toLocaleString("en-IN");
   const activity=`[Follow-up completed | ${stamp}] Result: ${result||"-"}${note?` | Note: ${note}`:""}`;
