@@ -169,6 +169,20 @@ function renderRecent(rows){recentLeads.innerHTML=rows.slice(0,5).map(x=>`<tr on
 function renderLeads(rows){leadsTable.innerHTML=rows.map(x=>`<tr><td>${escapeHtml(x.full_name)}</td><td>${escapeHtml(x.mobile_number)}</td><td>${escapeHtml(x.city||"-")}</td><td>${escapeHtml(x.lead_source||"-")}</td><td><span class="status">${escapeHtml(x.status||"New")}</span></td><td>${formatDate(x.next_follow_up)}</td><td><div class="actions"><button class="btn-secondary" onclick="viewLead(${Number(x.id)})">View</button><button class="btn-edit" onclick="editLead(${Number(x.id)})">Edit</button><button class="btn-danger" onclick="deleteLead(${Number(x.id)})">Delete</button></div></td></tr>`).join("")||`<tr><td colspan="7" class="empty">No leads found</td></tr>`}
 async function searchLeads(v){const q=(v||"").trim();if(!q)return loadLeads();const safe=q.replace(/[%(),]/g,"");const {data,error}=await supabaseClient.from("leads").select("*").or(`full_name.ilike.%${safe}%,mobile_number.ilike.%${safe}%`).order("created_at",{ascending:false});if(!error)renderLeads(data||[])}
 
+async function addLeadActivity(leadId,activityType,description){
+  if(!leadId)return;
+  const {error}=await supabaseClient.from("lead_activities").insert([{
+    lead_id:leadId,activity_type:activityType,description:description||null
+  }]);
+  if(error)console.error("Activity log error:",error.message);
+}
+async function loadLeadActivities(leadId){
+  const box=document.getElementById("leadActivityTimeline");
+  if(!box)return;
+  const {data,error}=await supabaseClient.from("lead_activities").select("*").eq("lead_id",leadId).order("created_at",{ascending:false});
+  if(error){box.innerHTML=`<div class="empty">Unable to load activity history</div>`;return}
+  box.innerHTML=(data||[]).map(a=>`<div class="detail-box" style="margin-bottom:8px"><strong>${escapeHtml(a.activity_type||"Activity")}</strong><div style="margin-top:4px">${escapeHtml(a.description||"-")}</div><small style="display:block;margin-top:6px;color:var(--muted)">${formatDate(a.created_at)}</small></div>`).join("")||'<div class="empty">No activity history yet</div>';
+}
 leadForm.addEventListener("submit",async e=>{
 e.preventDefault();const payload={full_name:leadName.value.trim(),mobile_number:leadPhone.value.trim(),city:leadCity.value.trim()||null,lead_source:leadSource.value,status:leadStatus.value,next_follow_up:localDateTimeToISOString(leadFollowUp.value),notes:leadNotes.value.trim()||null};
 if(!payload.full_name||!payload.mobile_number)return showMessage("Please enter customer name and mobile number.","error");
@@ -178,9 +192,12 @@ if(duplicateError)return showMessage("Error checking duplicate mobile: "+duplica
 const duplicate=(duplicates||[]).find(x=>String(x.id)!==String(editId||""));
 if(duplicate)return showMessage(`Duplicate mobile number! ${duplicate.full_name} already exists with ${duplicate.mobile_number}.`,"error");
 saveLeadButton.disabled=true;saveLeadButton.textContent=editId?"Updating...":"Saving...";
-let result=editId?await supabaseClient.from("leads").update(payload).eq("id",editId):await supabaseClient.from("leads").insert([payload]);
+let result=editId?await supabaseClient.from("leads").update(payload).eq("id",editId).select().single():await supabaseClient.from("leads").insert([payload]).select().single();
 saveLeadButton.disabled=false;
 if(result.error){showMessage("Error saving lead: "+result.error.message,"error");saveLeadButton.textContent=editId?"Update Lead":"Save Lead";return}
+const savedLeadId=editId||result.data?.id;
+if(editId)await addLeadActivity(savedLeadId,"Lead Updated","Lead details were updated.");
+else await addLeadActivity(savedLeadId,"Lead Created","Lead was added to CRM.");
 showMessage(editId?"Lead updated successfully!":"Lead saved successfully!","success");leadForm.reset();delete leadForm.dataset.editId;saveLeadButton.textContent="Save Lead";await loadLeads();await loadPipeline();setTimeout(()=>showPage("leads",document.querySelector('[data-page="leads"]')),600)
 });
 async function editLead(id){const {data,error}=await supabaseClient.from("leads").select("*").eq("id",id).single();if(error)return alert(error.message);leadName.value=data.full_name||"";leadPhone.value=data.mobile_number||"";leadCity.value=data.city||"";leadSource.value=data.lead_source||"Manual";leadStatus.value=data.status||"New";leadFollowUp.value=isoToLocalDateTime(data.next_follow_up);leadNotes.value=data.notes||"";leadForm.dataset.editId=id;leadFormTitle.textContent="Update Lead";saveLeadButton.textContent="Update Lead";showPage("addLead",document.querySelector('[data-page="addLead"]'))}
@@ -206,8 +223,10 @@ if(!id)return;
 const {data:lead,error:getError}=await supabaseClient.from("leads").select("id,status").eq("id",id).single();
 if(getError)return alert("Error loading lead: "+getError.message);
 if(lead.status===newStatus){draggedLeadId=null;return}
+const oldStatus=lead.status||"New";
 const {error}=await supabaseClient.from("leads").update({status:newStatus}).eq("id",id);
 if(error)return alert("Error updating pipeline: "+error.message);
+await addLeadActivity(id,"Pipeline Status Changed",`Status changed from ${oldStatus} to ${newStatus}.`);
 draggedLeadId=null;await loadLeads();await loadPipeline();
 }
 async function viewLead(id,fromPage){
@@ -216,16 +235,21 @@ const {data:lead,error}=await supabaseClient.from("leads").select("*").eq("id",i
 const phone=String(lead.mobile_number||"").replace(/\D/g,"");
 leadProfileContent.innerHTML=`<div class="card" id="quickStatusCard"><h3 style="margin-bottom:10px">Quick Status Update</h3><div class="actions"><select id="quickStatusSelect" style="max-width:220px"><option>New</option><option>Contacted</option><option>Follow-up</option><option>Interested</option><option>Converted</option><option>Not Interested</option></select><button class="btn-primary" onclick="quickUpdateStatus(${Number(lead.id)})">Update Status</button></div></div><div class="profile-grid"><div class="detail-box"><label>Full Name</label><strong>${escapeHtml(lead.full_name)}</strong></div><div class="detail-box"><label>Mobile Number</label><strong>${escapeHtml(lead.mobile_number)}</strong></div><div class="detail-box"><label>Current Status</label><strong>${escapeHtml(lead.status||"New")}</strong></div></div>
 <div class="profile-grid"><div class="detail-box"><label>City</label><strong>${escapeHtml(lead.city||"-")}</strong></div><div class="detail-box"><label>Lead Source</label><strong>${escapeHtml(lead.lead_source||"-")}</strong></div><div class="detail-box"><label>Next Follow-up</label><strong>${formatDate(lead.next_follow_up)}</strong></div><div class="detail-box"><label>Created</label><strong>${formatDate(lead.created_at)}</strong></div></div>
-<div class="card"><h3 style="margin-bottom:10px">Notes & Follow-up Activity</h3><div>${escapeHtml(lead.notes||"No activity added").replace(/\n/g,"<br>")}</div></div>
+<div class="card"><h3 style="margin-bottom:10px">Notes</h3><div>${escapeHtml(lead.notes||"No notes added").replace(/\n/g,"<br>")}</div></div><div class="card"><h3 style="margin-bottom:10px">Activity History</h3><div id="leadActivityTimeline"><div class="empty">Loading activity history...</div></div></div>
 <div class="actions"><button class="btn-call" onclick="window.location.href='tel:${phone}'">Call</button><button class="btn-wa" onclick="window.open('https://wa.me/91${phone}','_blank')">WhatsApp</button><button class="btn-edit" onclick="editLead(${Number(lead.id)})">Edit Lead</button></div>`;
 const quick=document.getElementById("quickStatusSelect");if(quick)quick.value=lead.status||"New";
-showPage("leadProfile",null)
+showPage("leadProfile",null);
+await loadLeadActivities(id);
 }
 
 async function quickUpdateStatus(id){
 const status=document.getElementById("quickStatusSelect").value;
+const {data:current,error:currentError}=await supabaseClient.from("leads").select("status").eq("id",id).single();
+if(currentError)return alert("Unable to read current status: "+currentError.message);
+const oldStatus=current.status||"New";
 const {error}=await supabaseClient.from("leads").update({status}).eq("id",id);
 if(error)return alert("Error updating status: "+error.message);
+if(oldStatus!==status)await addLeadActivity(id,"Quick Status Changed",`Status changed from ${oldStatus} to ${status}.`);
 await loadLeads();await loadPipeline();
 await viewLead(id,previousPage);
 }
@@ -265,6 +289,9 @@ async function saveFollowup(){
 
   const {error:updateError}=await supabaseClient.from("leads").update(update).eq("id",followupLeadId);
   if(updateError)return alert("Error completing follow-up: "+updateError.message);
+  const followupDescription=`Result: ${result||"-"}${note?` | Note: ${note}`:""}${nextValue?` | Next follow-up: ${formatDate(nextValue)}`:" | No next follow-up scheduled."}`;
+  await addLeadActivity(followupLeadId,"Follow-up Completed",followupDescription);
+  if(nextValue)await addLeadActivity(followupLeadId,"Next Follow-up Scheduled",`Next follow-up scheduled for ${formatDate(nextValue)}.`);
 
   closeFollowupModal();
   await loadLeads();
