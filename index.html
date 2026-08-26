@@ -932,21 +932,38 @@
       </section>
 
       <!-- REPORTS -->
-
       <section id="reportsPage" class="page hidden">
-
-        <div class="card">
-
-          <h2>Reports</h2>
-
-          <div class="placeholder">
-            Reports module will be added next.
-          </div>
-
+        <div class="stats">
+          <div class="stat-card"><h3>Conversion Rate</h3><div class="number" id="reportConversionRate">0%</div></div>
+          <div class="stat-card"><h3>Today's Leads</h3><div class="number" id="reportTodayLeads">0</div></div>
+          <div class="stat-card"><h3>This Week</h3><div class="number" id="reportWeekLeads">0</div></div>
+          <div class="stat-card"><h3>This Month</h3><div class="number" id="reportMonthLeads">0</div></div>
         </div>
 
-      </section>
+        <div class="card">
+          <div class="card-header"><h2>Status-wise Leads</h2></div>
+          <div class="table-wrapper"><table>
+            <thead><tr><th>Status</th><th>Leads</th></tr></thead>
+            <tbody id="statusReportTable"><tr><td colspan="2" class="empty">Loading...</td></tr></tbody>
+          </table></div>
+        </div>
 
+        <div class="card">
+          <div class="card-header"><h2>Lead Source Performance</h2></div>
+          <div class="table-wrapper"><table>
+            <thead><tr><th>Source</th><th>Total Leads</th><th>Converted</th></tr></thead>
+            <tbody id="sourceReportTable"><tr><td colspan="3" class="empty">Loading...</td></tr></tbody>
+          </table></div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><h2>Follow-up & Task Summary</h2></div>
+          <div class="table-wrapper"><table>
+            <thead><tr><th>Metric</th><th>Count</th></tr></thead>
+            <tbody id="activityReportTable"><tr><td colspan="2" class="empty">Loading...</td></tr></tbody>
+          </table></div>
+        </div>
+      </section>
 
       <!-- SETTINGS -->
 
@@ -1254,6 +1271,7 @@
       renderRecentLeads(leads);
 
       renderFollowups(leads);
+      renderReports(leads);
 
     }
     catch (error) {
@@ -1775,6 +1793,9 @@
 
     allTasks = data || [];
     updateTodayTasksCount();
+    const { data: reportLeads } = await supabaseClient
+      .from("leads").select("*").order("created_at", { ascending: false });
+    renderReports(reportLeads || []);
     filterTasks("all");
   }
 
@@ -1871,6 +1892,66 @@
     const { error } = await supabaseClient.from("tasks").delete().eq("id", id);
     if (error) { alert("Unable to delete task: " + error.message); return; }
     await loadTasks();
+  }
+
+  /*
+  ========================================
+  REPORTS & ANALYTICS
+  ========================================
+  */
+  function renderReports(leads) {
+    const rows = leads || [];
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const tomorrow = new Date(todayStart); tomorrow.setDate(tomorrow.getDate() + 1);
+    const weekStart = new Date(todayStart);
+    const day = weekStart.getDay();
+    weekStart.setDate(weekStart.getDate() - (day === 0 ? 6 : day - 1));
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const created = lead => lead.created_at ? new Date(lead.created_at) : null;
+    const today = rows.filter(l => { const d=created(l); return d && d>=todayStart && d<tomorrow; }).length;
+    const week = rows.filter(l => { const d=created(l); return d && d>=weekStart; }).length;
+    const month = rows.filter(l => { const d=created(l); return d && d>=monthStart; }).length;
+    const converted = rows.filter(l => l.status === "Converted").length;
+    const rate = rows.length ? ((converted / rows.length) * 100).toFixed(1) : "0";
+
+    document.getElementById("reportConversionRate").innerText = rate + "%";
+    document.getElementById("reportTodayLeads").innerText = today;
+    document.getElementById("reportWeekLeads").innerText = week;
+    document.getElementById("reportMonthLeads").innerText = month;
+
+    const statuses = ["New","Contacted","Follow-up","Interested","Converted","Not Interested"];
+    document.getElementById("statusReportTable").innerHTML = statuses.map(status => {
+      const count = rows.filter(l => l.status === status).length;
+      return `<tr><td>${escapeHtml(status)}</td><td><strong>${count}</strong></td></tr>`;
+    }).join("");
+
+    const sourceMap = {};
+    rows.forEach(l => {
+      const source = l.lead_source || "Unknown";
+      if (!sourceMap[source]) sourceMap[source] = {total:0, converted:0};
+      sourceMap[source].total++;
+      if (l.status === "Converted") sourceMap[source].converted++;
+    });
+    const entries = Object.entries(sourceMap);
+    document.getElementById("sourceReportTable").innerHTML = entries.length
+      ? entries.map(([source,v]) => `<tr><td>${escapeHtml(source)}</td><td><strong>${v.total}</strong></td><td>${v.converted}</td></tr>`).join("")
+      : `<tr><td colspan="3" class="empty">No source data available</td></tr>`;
+
+    const followups = rows.filter(l => l.next_follow_up);
+    const overdue = typeof getFollowupType === "function" ? followups.filter(l => getFollowupType(l.next_follow_up)==="overdue").length : 0;
+    const todayFollowups = typeof getFollowupType === "function" ? followups.filter(l => getFollowupType(l.next_follow_up)==="today").length : 0;
+    const tasks = typeof allTasks !== "undefined" ? allTasks : [];
+    const pending = tasks.filter(t => t.status !== "Completed").length;
+    const completed = tasks.filter(t => t.status === "Completed").length;
+
+    document.getElementById("activityReportTable").innerHTML = `
+      <tr><td>Scheduled Follow-ups</td><td><strong>${followups.length}</strong></td></tr>
+      <tr><td>Today's Follow-ups</td><td><strong>${todayFollowups}</strong></td></tr>
+      <tr><td>Overdue Follow-ups</td><td><strong>${overdue}</strong></td></tr>
+      <tr><td>Pending Tasks</td><td><strong>${pending}</strong></td></tr>
+      <tr><td>Completed Tasks</td><td><strong>${completed}</strong></td></tr>`;
   }
 
   /*
