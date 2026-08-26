@@ -149,7 +149,12 @@ async function searchLeads(v){const q=(v||"").trim();if(!q)return loadLeads();co
 leadForm.addEventListener("submit",async e=>{
 e.preventDefault();const payload={full_name:leadName.value.trim(),mobile_number:leadPhone.value.trim(),city:leadCity.value.trim()||null,lead_source:leadSource.value,status:leadStatus.value,next_follow_up:leadFollowUp.value||null,notes:leadNotes.value.trim()||null};
 if(!payload.full_name||!payload.mobile_number)return showMessage("Please enter customer name and mobile number.","error");
-const editId=leadForm.dataset.editId;saveLeadButton.disabled=true;saveLeadButton.textContent=editId?"Updating...":"Saving...";
+const editId=leadForm.dataset.editId;
+const {data:duplicates,error:duplicateError}=await supabaseClient.from("leads").select("id,full_name,mobile_number").eq("mobile_number",payload.mobile_number);
+if(duplicateError)return showMessage("Error checking duplicate mobile: "+duplicateError.message,"error");
+const duplicate=(duplicates||[]).find(x=>String(x.id)!==String(editId||""));
+if(duplicate)return showMessage(`Duplicate mobile number! ${duplicate.full_name} already exists with ${duplicate.mobile_number}.`,"error");
+saveLeadButton.disabled=true;saveLeadButton.textContent=editId?"Updating...":"Saving...";
 let result=editId?await supabaseClient.from("leads").update(payload).eq("id",editId):await supabaseClient.from("leads").insert([payload]);
 saveLeadButton.disabled=false;
 if(result.error){showMessage("Error saving lead: "+result.error.message,"error");saveLeadButton.textContent=editId?"Update Lead":"Save Lead";return}
