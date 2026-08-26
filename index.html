@@ -91,7 +91,18 @@ button{border:0;border-radius:8px;padding:10px 14px;cursor:pointer}.btn-primary{
 
 <section id="followupsPage" class="page hidden"><div class="stats"><div class="stat-card"><h3>Today</h3><div class="number" id="todayFollowupCount">0</div></div><div class="stat-card"><h3>Tomorrow</h3><div class="number" id="tomorrowFollowupCount">0</div></div><div class="stat-card"><h3>Overdue</h3><div class="number" id="overdueFollowupCount">0</div></div></div><div class="card"><div class="card-header"><h2>Follow-ups</h2><button class="btn-primary" onclick="loadFollowups()">Refresh</button></div><div class="table-wrapper"><table><thead><tr><th>Type</th><th>Name</th><th>Mobile</th><th>Next Follow-up</th><th>Status</th><th>Action</th></tr></thead><tbody id="followupsTable"></tbody></table></div></div></section>
 
-<section id="tasksPage" class="page hidden"><div class="card"><div class="card-header"><h2>Today's Tasks</h2><button class="btn-primary" onclick="alert('Task module requires the Supabase tasks table.')">+ Add Task</button></div><div class="placeholder" id="tasksBox">Loading tasks...</div></div></section>
+<section id="tasksPage" class="page hidden">
+<div class="stats">
+  <div class="stat-card"><h3>Today's Tasks</h3><div class="number" id="todayTaskCount">0</div></div>
+  <div class="stat-card"><h3>Overdue</h3><div class="number" id="overdueTaskCount">0</div></div>
+  <div class="stat-card"><h3>Interested</h3><div class="number" id="interestedTaskCount">0</div></div>
+  <div class="stat-card"><h3>Total Active</h3><div class="number" id="totalTaskCount">0</div></div>
+</div>
+<div class="card"><div class="card-header"><h2>Today's Tasks</h2><button class="btn-primary" onclick="loadTasks()">Refresh</button></div>
+<div class="table-wrapper"><table>
+<thead><tr><th>Priority</th><th>Name</th><th>Mobile</th><th>Task</th><th>Follow-up Time</th><th>Status</th><th>Action</th></tr></thead>
+<tbody id="tasksList"></tbody>
+</table></div></div></section>
 
 <section id="reportsPage" class="page hidden">
 <div class="stats"><div class="stat-card"><h3>Conversion Rate</h3><div class="number" id="reportConversionRate">0%</div></div><div class="stat-card"><h3>Today's Leads</h3><div class="number" id="reportTodayLeads">0</div></div><div class="stat-card"><h3>This Week</h3><div class="number" id="reportWeekLeads">0</div></div><div class="stat-card"><h3>This Month</h3><div class="number" id="reportMonthLeads">0</div></div></div>
@@ -247,10 +258,30 @@ async function saveFollowup(){
   await loadLeads();
   await loadPipeline();
   await loadFollowups();
+  await loadTasks();
   alert(nextValue?"Follow-up saved and next follow-up scheduled.":"Follow-up saved successfully.");
 }
 function renderReports(rows){const now=new Date(),today=new Date(now.getFullYear(),now.getMonth(),now.getDate()),tomorrow=new Date(today);tomorrow.setDate(tomorrow.getDate()+1);const week=new Date(today);week.setDate(week.getDate()-((week.getDay()+6)%7));const month=new Date(now.getFullYear(),now.getMonth(),1);const d=x=>x.created_at?new Date(x.created_at):null;const conv=rows.filter(x=>x.status==="Converted").length;reportConversionRate.textContent=(rows.length?(conv/rows.length*100).toFixed(1):0)+"%";reportTodayLeads.textContent=rows.filter(x=>{const z=d(x);return z&&z>=today&&z<tomorrow}).length;reportWeekLeads.textContent=rows.filter(x=>{const z=d(x);return z&&z>=week}).length;reportMonthLeads.textContent=rows.filter(x=>{const z=d(x);return z&&z>=month}).length;const statuses=["New","Contacted","Follow-up","Interested","Converted","Not Interested"];statusReportTable.innerHTML=statuses.map(s=>`<tr><td>${s}</td><td><strong>${rows.filter(x=>x.status===s).length}</strong></td></tr>`).join("")}
-async function loadTasks(){const box=tasksBox;const {data,error}=await supabaseClient.from("tasks").select("*").order("due_at",{ascending:true});if(error){box.textContent="Task module needs a Supabase table named tasks. Leads CRM continues to work normally.";return}box.innerHTML=(data||[]).length?`<div class="table-wrapper"><table><tbody>${data.map(x=>`<tr><td>${escapeHtml(x.title)}</td><td>${formatDate(x.due_at)}</td><td>${escapeHtml(x.status||"Pending")}</td></tr>`).join("")}</tbody></table></div>`:"No tasks found."}
+async function loadTasks(){
+const {data,error}=await supabaseClient.from("leads").select("*").order("next_follow_up",{ascending:true});
+if(error){tasksList.innerHTML=`<tr><td colspan="7" class="empty">${escapeHtml(error.message)}</td></tr>`;return}
+const all=data||[], rows=all.filter(x=>x.next_follow_up), now=new Date();
+const startToday=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+const startTomorrow=new Date(startToday);startTomorrow.setDate(startTomorrow.getDate()+1);
+const overdue=rows.filter(x=>new Date(x.next_follow_up)<now);
+const todayRows=rows.filter(x=>{const d=new Date(x.next_follow_up);return d>=startToday&&d<startTomorrow});
+const interested=all.filter(x=>String(x.status||"").toLowerCase()==="interested");
+const active=[...new Map([...overdue,...todayRows].map(x=>[x.id,x])).values()];
+todayTaskCount.textContent=todayRows.length;
+overdueTaskCount.textContent=overdue.length;
+interestedTaskCount.textContent=interested.length;
+totalTaskCount.textContent=active.length;
+const taskRows=[
+...overdue.map(x=>({...x,_priority:"Overdue",_task:"Complete overdue follow-up"})),
+...todayRows.filter(x=>new Date(x.next_follow_up)>=now).map(x=>({...x,_priority:"Today",_task:"Scheduled follow-up"}))
+].sort((a,b)=>new Date(a.next_follow_up)-new Date(b.next_follow_up));
+tasksList.innerHTML=taskRows.map(x=>`<tr><td><span class="status">${x._priority==="Overdue"?"⚠️ Overdue":"📅 Today"}</span></td><td>${escapeHtml(x.full_name||"-")}</td><td>${escapeHtml(x.mobile_number||"-")}</td><td>${x._task}</td><td>${formatDate(x.next_follow_up)}</td><td>${escapeHtml(x.status||"New")}</td><td><div class="actions"><button class="btn-primary" onclick="completeFollowup(${Number(x.id)})">Complete</button><button class="btn-secondary" onclick="viewLead(${Number(x.id)},'tasks')">View</button></div></td></tr>`).join("")||`<tr><td colspan="7" class="empty">No tasks for today 🎉</td></tr>`;
+}
 document.addEventListener("DOMContentLoaded",()=>{loadLeads();loadPipeline()});
 </script>
 
