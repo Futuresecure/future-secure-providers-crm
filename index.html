@@ -362,6 +362,7 @@
     .btn-complete { background:#15803d; color:white; padding:8px 12px; }
     .btn-call { background:#0891b2; color:white; padding:8px 12px; }
     .btn-whatsapp { background:#16a34a; color:white; padding:8px 12px; }
+    .btn-view { background:#7c3aed; color:white; padding:8px 12px; }
     .btn-edit { background:#2563eb; color:white; padding:8px 12px; }
     .btn-delete { background:#dc2626; color:white; padding:8px 12px; }
     .search-input { width:260px; max-width:100%; }
@@ -1350,6 +1351,7 @@
         <td><span class="status">${escapeHtml(lead.status)}</span></td>
         <td>${formatDate(lead.next_follow_up)}</td>
         <td><div class="action-buttons">
+          <button class="btn-view" onclick="viewLead(${Number(lead.id)})">View</button>
           <button class="btn-edit" onclick="editLead(${Number(lead.id)})">Edit</button>
           <button class="btn-delete" onclick="deleteLead(${Number(lead.id)})">Delete</button>
         </div></td>
@@ -1391,6 +1393,64 @@
     if (error) { alert("Error deleting lead: " + error.message); return; }
     await loadLeads();
     alert("Lead deleted successfully!");
+  }
+
+  /*
+  ========================================
+  LEAD DETAIL / CUSTOMER PROFILE
+  ========================================
+  */
+
+  async function viewLead(id) {
+    const { data: lead, error } = await supabaseClient
+      .from("leads")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (error || !lead) {
+      alert("Unable to load lead: " + (error ? error.message : "Lead not found"));
+      return;
+    }
+
+    const phone = String(lead.mobile_number || "").replace(/\D/g, "");
+    const followup = lead.next_follow_up ? formatDate(lead.next_follow_up) : "Not scheduled";
+    const safe = value => escapeHtml(value || "-");
+
+    document.getElementById("leadProfileContent").innerHTML = `
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:24px;">
+        <div class="stat-card"><h3>Full Name</h3><div style="font-size:20px;font-weight:700;">${safe(lead.full_name)}</div></div>
+        <div class="stat-card"><h3>Mobile Number</h3><div style="font-size:18px;font-weight:700;">${safe(lead.mobile_number)}</div></div>
+        <div class="stat-card"><h3>Current Status</h3><div style="font-size:18px;font-weight:700;">${safe(lead.status)}</div></div>
+      </div>
+
+      <div class="card" style="box-shadow:none;border:1px solid var(--border);margin-bottom:18px;">
+        <h3 style="margin-bottom:14px;">Customer Details</h3>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;">
+          <div><strong>City</strong><br>${safe(lead.city)}</div>
+          <div><strong>Lead Source</strong><br>${safe(lead.lead_source)}</div>
+          <div><strong>Next Follow-up</strong><br>${safe(followup)}</div>
+          <div><strong>Created</strong><br>${safe(formatDate(lead.created_at))}</div>
+        </div>
+      </div>
+
+      <div class="card" style="box-shadow:none;border:1px solid var(--border);margin-bottom:18px;">
+        <h3 style="margin-bottom:10px;">Notes</h3>
+        <div>${safe(lead.notes || "No notes added")}</div>
+      </div>
+
+      <div class="card" style="box-shadow:none;border:1px solid var(--border);">
+        <h3 style="margin-bottom:14px;">Quick Actions</h3>
+        <div class="action-buttons">
+          <a class="btn-call" href="tel:${phone}">Call</a>
+          <a class="btn-whatsapp" target="_blank" href="https://wa.me/${phone}">WhatsApp</a>
+          <button class="btn-edit" onclick="editLead(${Number(lead.id)})">Edit Lead</button>
+          <button class="btn-delete" onclick="deleteLead(${Number(lead.id)})">Delete Lead</button>
+        </div>
+      </div>
+    `;
+
+    showPage("leadProfile", null);
   }
 
   /*
@@ -1973,4 +2033,15 @@
 </script>
 
 </body>
-</html>
+</html>      <!-- LEAD PROFILE -->
+      <section id="leadProfilePage" class="page hidden">
+        <div class="card">
+          <div class="card-header">
+            <h2>Lead Profile</h2>
+            <button class="btn-secondary" onclick="showPage('leads', document.querySelector('[data-page=leads]'))">← Back to Leads</button>
+          </div>
+          <div id="leadProfileContent" class="empty">Select a lead to view profile.</div>
+        </div>
+      </section>
+
+
