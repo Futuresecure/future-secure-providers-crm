@@ -1153,16 +1153,41 @@
     .getElementById("leadForm")
     .addEventListener(
       "submit",
-      async function(event){
+      async function(event) {
+    event.preventDefault();
 
-        event.preventDefault();
+    const fullName = document.getElementById('leadName').value;
+    const mobile = document.getElementById('leadPhone').value;
+    const city = document.getElementById('leadCity').value;
+    const source = document.getElementById('leadSource').value;
+    const status = document.getElementById('leadStatus').value;
+    const followUp = document.getElementById('leadFollowUp').value;
+    const notes = document.getElementById('leadNotes').value;
 
-        alert(
-          "Lead form ready! Database table integration is the next step."
-        );
+    const { data, error } = await supabase
+        .from('leads')
+        .insert([
+            {
+                full_name: fullName,
+                mobile_number: mobile,
+                city: city,
+                lead_source: source,
+                status: status,
+                next_follow_up: followUp || null,
+                notes: notes || null
+            }
+        ]);
 
-      }
-    );
+    if (error) {
+        console.error(error);
+        alert("Lead save failed: " + error.message);
+        return;
+    }
+
+    alert("Lead saved successfully!");
+
+    document.getElementById('leadForm').reset();
+}
 
 
   /* ==============================
