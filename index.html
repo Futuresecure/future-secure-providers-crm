@@ -550,7 +550,7 @@ leadProfileContent.innerHTML=`<div class="card" id="quickStatusCard"><h3 style="
   <button class="btn-primary" onclick="completeFollowup(${Number(lead.id)})">Complete Follow-up</button>
   <button class="btn-secondary" onclick="rescheduleFollowup(${Number(lead.id)})">Reschedule</button>
   <button class="btn-danger" onclick="noResponseFollowup(${Number(lead.id)})">No Response</button>
-</div>
+</div>`;
 const quick=document.getElementById("quickStatusSelect");if(quick)quick.value=lead.status||"New";
 showPage("leadProfile",null);
 await loadLeadActivities(id);
