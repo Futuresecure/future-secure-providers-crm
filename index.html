@@ -716,57 +716,38 @@ async function saveTask(){
   if(payload.lead_id)await addLeadActivity(payload.lead_id,"Task Created",`Task: ${title}${payload.due_date?` | Due: ${formatDate(payload.due_date)}`:""}`);
   closeTaskModal();await loadTasks();alert("Task saved successfully.");
 }
-async function completeTask(id){
+async function completeTask(id) {
+    const task = currentTasks.find(t => Number(t.id) === Number(id));
 
-  const task = currentTasks.find(
-    t => Number(t.id) === Number(id)
-  );
+    if (!task) {
+        return alert("Task not found");
+    }
 
-  if(!task){
-    return alert("Task not found");
-  }
+    // Task ID and task details temporarily store
+    window.pendingCompleteTaskId = id;
+    window.pendingCompleteTask = task;
 
-  const { error } = await supabaseClient
-    .from("tasks")
-    .update({
-      status: "Completed",
-      completed_at: new Date().toISOString()
-    })
-    .eq("id", id);
+    // If linked lead exists, open follow-up popup first
+    if (task.lead_id) {
+        openFollowupModal(task.lead_id, id);
+        return;
+    }
 
-  if(error){
-    return alert(
-      "Error completing task: " + error.message
-    );
-  }
+    // Only tasks without a linked lead can be completed directly
+    const { error } = await supabaseClient
+        .from("tasks")
+        .update({
+            status: "Completed",
+            completed_at: new Date().toISOString()
+        })
+        .eq("id", id);
 
-  // Add activity to linked lead
-  if(task.lead_id){
+    if (error) {
+        return alert("Error completing task: " + error.message);
+    }
 
-    await addLeadActivity(
-      task.lead_id,
-      "Task Completed",
-      `Task completed: ${task.title || "-"}`
-    );
-
-  }
-
-  // Refresh task list
-  await loadTasks();
-
-  // Open follow-up popup for the linked lead
-  if(task.lead_id){
-
-    completeFollowup(
-      Number(task.lead_id)
-    );
-
-  } else {
-
-    alert("Task completed successfully.");
-
-  }
-
+    await loadTasks();
+    await loadSmartDashboard();
 }
 async function deleteTask(id){
   const task=currentTasks.find(t=>Number(t.id)===Number(id));
