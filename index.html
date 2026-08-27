@@ -599,7 +599,21 @@ function closeFollowupModal(){
   document.getElementById("followupModal").classList.remove("show");
   followupLeadId=null;
 }
+function rescheduleFollowup(id){
+    followupLeadId = id;
+    document.getElementById("followupModal").classList.add("show");
+    document.getElementById("followupResult").value = "Reschedule";
+    document.getElementById("followupNote").value = "";
+    document.getElementById("nextFollowup").value = "";
+}
 
+function noResponseFollowup(id){
+    followupLeadId = id;
+    document.getElementById("followupModal").classList.add("show");
+    document.getElementById("followupResult").value = "No Answer";
+    document.getElementById("followupNote").value = "";
+    document.getElementById("nextFollowup").value = "";
+}
 async function saveFollowup(){
 
   if(!followupLeadId) return;
