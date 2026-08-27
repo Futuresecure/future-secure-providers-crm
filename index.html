@@ -461,34 +461,156 @@ function closeFollowupModal(){
 }
 
 async function saveFollowup(){
-  if(!followupLeadId)return;
-  const {data:lead,error}=await supabaseClient.from("leads").select("*").eq("id",followupLeadId).single();
-  if(error||!lead)return alert(error?.message||"Lead not found");
 
-  const result=document.getElementById("followupResult").value;
-  const note=document.getElementById("followupNote").value.trim();
-  const next=document.getElementById("nextFollowup").value;
-  const nextValue=localDateTimeToISOString(next);
+  if(!followupLeadId) return;
 
-  const stamp=new Date().toLocaleString("en-IN");
-  const activity=`[Follow-up completed | ${stamp}] Result: ${result||"-"}${note?` | Note: ${note}`:""}`;
-  const notes=[lead.notes,activity].filter(Boolean).join("\n");
+  const { data: lead, error } = await supabaseClient
+    .from("leads")
+    .select("*")
+    .eq("id", followupLeadId)
+    .single();
 
-  const update={next_follow_up:nextValue,notes};
-  if(lead.status==="New"||lead.status==="Contacted")update.status="Follow-up";
+  if(error || !lead){
+    return alert(error?.message || "Lead not found");
+  }
 
-  const {error:updateError}=await supabaseClient.from("leads").update(update).eq("id",followupLeadId);
-  if(updateError)return alert("Error completing follow-up: "+updateError.message);
-  const followupDescription=`Result: ${result||"-"}${note?` | Note: ${note}`:""}${nextValue?` | Next follow-up: ${formatDate(nextValue)}`:" | No next follow-up scheduled."}`;
-  await addLeadActivity(followupLeadId,"Follow-up Completed",followupDescription);
-  if(nextValue)await addLeadActivity(followupLeadId,"Next Follow-up Scheduled",`Next follow-up scheduled for ${formatDate(nextValue)}.`);
+  const result = document.getElementById("followupResult").value;
 
+  const note = document
+    .getElementById("followupNote")
+    .value
+    .trim();
+
+  const next = document
+    .getElementById("nextFollowup")
+    .value;
+
+  const nextValue = localDateTimeToISOString(next);
+
+  // Save follow-up history
+  const stamp = new Date().toLocaleString("en-IN");
+
+  const activity =
+    `[Follow-up completed | ${stamp}] ` +
+    `Result: ${result || "-"}` +
+    `${note ? ` | Note: ${note}` : ""}`;
+
+  const notes = [lead.notes, activity]
+    .filter(Boolean)
+    .join("\n");
+
+  const update = {
+    next_follow_up: nextValue,
+    notes: notes
+  };
+
+  if(
+    lead.status === "New" ||
+    lead.status === "Contacted"
+  ){
+    update.status = "Follow-up";
+  }
+
+  // Update lead
+  const { error: updateError } = await supabaseClient
+    .from("leads")
+    .update(update)
+    .eq("id", followupLeadId);
+
+  if(updateError){
+    return alert(
+      "Error completing follow-up: " +
+      updateError.message
+    );
+  }
+
+  // Add activity
+  const followupDescription =
+    `Result: ${result || "-"}` +
+    `${note ? ` | Note: ${note}` : ""}` +
+    `${
+      nextValue
+        ? ` | Next follow-up: ${formatDate(nextValue)}`
+        : " | No next follow-up scheduled."
+    }`;
+
+  await addLeadActivity(
+    followupLeadId,
+    "Follow-up Completed",
+    followupDescription
+  );
+
+  // Create next task automatically
+  if(nextValue){
+
+    const taskPayload = {
+      title: `Follow-up: ${lead.full_name || "Customer"}`,
+
+      description:
+        `Previous Result: ${result || "-"}` +
+        `${note ? ` | Note: ${note}` : ""}`,
+
+      lead_id: Number(followupLeadId),
+
+      due_date: nextValue,
+
+      priority:
+        result === "Interested"
+          ? "High"
+          : "Medium",
+
+      status: "Pending"
+    };
+
+    const { error: taskError } = await supabaseClient
+      .from("tasks")
+      .insert([taskPayload]);
+
+    if(taskError){
+
+      console.error(
+        "Next task creation error:",
+        taskError
+      );
+
+      alert(
+        "Follow-up saved, but next task could not be created: " +
+        taskError.message
+      );
+
+    } else {
+
+      await addLeadActivity(
+        followupLeadId,
+        "Next Follow-up Task Created",
+        `Task scheduled for ${formatDate(nextValue)}`
+      );
+
+    }
+  }
+
+  // Close popup
   closeFollowupModal();
+
+  // Refresh all CRM sections
   await loadLeads();
   await loadPipeline();
   await loadFollowups();
   await loadTasks();
-  alert(nextValue?"Follow-up saved and next follow-up scheduled.":"Follow-up saved successfully.");
+
+  if(nextValue){
+
+    alert(
+      "Follow-up saved successfully.\n\n" +
+      "Next follow-up task created for:\n" +
+      formatDate(nextValue)
+    );
+
+  } else {
+
+    alert("Follow-up saved successfully.");
+
+  }
 }
 function renderReports(rows){
 const now=new Date(),today=new Date(now.getFullYear(),now.getMonth(),now.getDate()),tomorrow=new Date(today);tomorrow.setDate(tomorrow.getDate()+1);
