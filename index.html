@@ -629,7 +629,24 @@ async function saveFollowup(){
 
     }
   }
+// Complete the original task only after follow-up is successfully saved
+if (window.pendingCompleteTaskId) {
 
+    const { error: completeError } = await supabaseClient
+        .from("tasks")
+        .update({
+            status: "Completed",
+            completed_at: new Date().toISOString()
+        })
+        .eq("id", window.pendingCompleteTaskId);
+
+    if (completeError) {
+        return alert("Follow-up saved, but task could not be completed: " + completeError.message);
+    }
+
+    window.pendingCompleteTaskId = null;
+    window.pendingCompleteTask = null;
+}
   // Close popup
   closeFollowupModal();
 
