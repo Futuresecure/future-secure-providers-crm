@@ -543,7 +543,14 @@ const phone=String(lead.mobile_number||"").replace(/\D/g,"");
 leadProfileContent.innerHTML=`<div class="card" id="quickStatusCard"><h3 style="margin-bottom:10px">Quick Status Update</h3><div class="actions"><select id="quickStatusSelect" style="max-width:220px"><option>New</option><option>Contacted</option><option>Follow-up</option><option>Interested</option><option>Converted</option><option>Not Interested</option></select><button class="btn-primary" onclick="quickUpdateStatus(${Number(lead.id)})">Update Status</button></div></div><div class="profile-grid"><div class="detail-box"><label>Full Name</label><strong>${escapeHtml(lead.full_name)}</strong></div><div class="detail-box"><label>Mobile Number</label><strong>${escapeHtml(lead.mobile_number)}</strong></div><div class="detail-box"><label>Current Status</label><strong>${escapeHtml(lead.status||"New")}</strong></div></div>
 <div class="profile-grid"><div class="detail-box"><label>City</label><strong>${escapeHtml(lead.city||"-")}</strong></div><div class="detail-box"><label>Lead Source</label><strong>${escapeHtml(lead.lead_source||"-")}</strong></div><div class="detail-box"><label>Next Follow-up</label><strong>${formatDate(lead.next_follow_up)}</strong></div><div class="detail-box"><label>Created</label><strong>${formatDate(lead.created_at)}</strong></div></div>
 <div class="card"><h3 style="margin-bottom:10px">Notes</h3><div>${escapeHtml(lead.notes||"No notes added").replace(/\n/g,"<br>")}</div></div><div class="card"><h3 style="margin-bottom:10px">Activity History</h3><div id="leadActivityTimeline"><div class="empty">Loading activity history...</div></div></div>
-<div class="actions"><button class="btn-call" onclick="logCall(${Number(lead.id)},'${phone}')">Call</button><button class="btn-wa" onclick="logWhatsApp(${Number(lead.id)},'${phone}')">WhatsApp</button><button class="btn-edit" onclick="editLead(${Number(lead.id)})">Edit Lead</button></div>`;
+<div class="actions">
+  <button class="btn-call" onclick="logCall(${Number(lead.id)},'${phone}')">Call</button>
+  <button class="btn-wa" onclick="logWhatsApp(${Number(lead.id)},'${phone}')">WhatsApp</button>
+  <button class="btn-edit" onclick="editLead(${Number(lead.id)})">Edit Lead</button>
+  <button class="btn-primary" onclick="completeFollowup(${Number(lead.id)})">Complete Follow-up</button>
+  <button class="btn-secondary" onclick="rescheduleFollowup(${Number(lead.id)})">Reschedule</button>
+  <button class="btn-danger" onclick="noResponseFollowup(${Number(lead.id)})">No Response</button>
+</div>
 const quick=document.getElementById("quickStatusSelect");if(quick)quick.value=lead.status||"New";
 showPage("leadProfile",null);
 await loadLeadActivities(id);
