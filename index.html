@@ -554,11 +554,56 @@ async function saveTask(){
   closeTaskModal();await loadTasks();alert("Task saved successfully.");
 }
 async function completeTask(id){
-  const task=currentTasks.find(t=>Number(t.id)===Number(id));
-  const {error}=await supabaseClient.from("tasks").update({status:"Completed",completed_at:new Date().toISOString()}).eq("id",id);
-  if(error)return alert("Error completing task: "+error.message);
-  if(task?.lead_id)await addLeadActivity(task.lead_id,"Task Completed",`Task completed: ${task.title||"-"}.`);
+
+  const task = currentTasks.find(
+    t => Number(t.id) === Number(id)
+  );
+
+  if(!task){
+    return alert("Task not found");
+  }
+
+  const { error } = await supabaseClient
+    .from("tasks")
+    .update({
+      status: "Completed",
+      completed_at: new Date().toISOString()
+    })
+    .eq("id", id);
+
+  if(error){
+    return alert(
+      "Error completing task: " + error.message
+    );
+  }
+
+  // Add activity to linked lead
+  if(task.lead_id){
+
+    await addLeadActivity(
+      task.lead_id,
+      "Task Completed",
+      `Task completed: ${task.title || "-"}`
+    );
+
+  }
+
+  // Refresh task list
   await loadTasks();
+
+  // Open follow-up popup for the linked lead
+  if(task.lead_id){
+
+    completeFollowup(
+      Number(task.lead_id)
+    );
+
+  } else {
+
+    alert("Task completed successfully.");
+
+  }
+
 }
 async function deleteTask(id){
   const task=currentTasks.find(t=>Number(t.id)===Number(id));
