@@ -42,6 +42,7 @@ button{border:0;border-radius:8px;padding:10px 14px;cursor:pointer}.btn-primary{
 .timeline-item{border-left:3px solid #7c3aed;padding:0 0 18px 18px;margin:8px}.timeline-date{font-size:12px;color:var(--muted);margin-top:5px}
 @media(max-width:900px){.sidebar{width:72px;padding:20px 8px}.brand{font-size:0;padding:10px}.brand span,.menu-label{display:none}.nav-item{font-size:0;text-align:center}.nav-item::first-letter{font-size:20px}.header{padding:0 16px}.content{padding:16px}}
 @media(max-width:650px){.app{display:block}.sidebar{width:100%;min-height:auto;display:flex;flex-direction:row;overflow:auto;padding:8px}.brand,.menu-label,.sidebar-bottom{display:none}.nav-item{white-space:nowrap;font-size:13px;margin:0}.nav-item::first-letter{font-size:inherit}.form-grid{grid-template-columns:1fr}.header{height:auto;padding:16px}.admin{display:none}.content{padding:12px}}
+.filter-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.filter-grid label{display:block;margin-bottom:6px;font-weight:600}.filter-grid select,.filter-grid input{width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;background:#fff}.filter-result{margin-top:14px;color:var(--muted)}@media(max-width:900px){.filter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:560px){.filter-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -87,7 +88,18 @@ button{border:0;border-radius:8px;padding:10px 14px;cursor:pointer}.btn-primary{
 </div><button class="btn-primary save-button" id="saveLeadButton">Save Lead</button><div id="formMessage" class="message"></div></form>
 </div></section>
 
-<section id="leadsPage" class="page hidden"><div class="card"><div class="card-header"><h2>All Leads</h2><div class="actions"><input class="search-input" id="leadSearch" placeholder="Search name or mobile..." oninput="searchLeads(this.value)"><button class="btn-primary" onclick="openNewLead()">+ Add New Lead</button></div></div><div class="table-wrapper"><table><thead><tr><th>Name</th><th>Mobile</th><th>City</th><th>Source</th><th>Status</th><th>Follow-up</th><th>Actions</th></tr></thead><tbody id="leadsTable"></tbody></table></div></div></section>
+<section id="leadsPage" class="page hidden">
+<div class="card">
+<div class="card-header"><h2>Advanced Filters</h2><button class="btn-secondary" type="button" onclick="clearLeadFilters()">Clear Filters</button></div>
+<div class="filter-grid">
+<div><label>Status</label><select id="filterStatus" onchange="applyLeadFilters()"><option value="">All Status</option><option>New</option><option>Contacted</option><option>Follow-up</option><option>Interested</option><option>Converted</option><option>Not Interested</option></select></div>
+<div><label>City</label><select id="filterCity" onchange="applyLeadFilters()"><option value="">All Cities</option></select></div>
+<div><label>Lead Source</label><select id="filterSource" onchange="applyLeadFilters()"><option value="">All Sources</option></select></div>
+<div><label>Follow-up Date</label><input type="date" id="filterFollowupDate" onchange="applyLeadFilters()"></div>
+</div>
+<div class="filter-result">Showing <strong id="filteredLeadCount">0</strong> leads</div>
+</div>
+<div class="card"><div class="card-header"><h2>All Leads</h2><div class="actions"><input class="search-input" id="leadSearch" placeholder="Search name or mobile..." oninput="searchLeads(this.value)"><button class="btn-primary" onclick="openNewLead()">+ Add New Lead</button></div></div><div class="table-wrapper"><table><thead><tr><th>Name</th><th>Mobile</th><th>City</th><th>Source</th><th>Status</th><th>Follow-up</th><th>Actions</th></tr></thead><tbody id="leadsTable"></tbody></table></div></div></section>
 
 <section id="followupsPage" class="page hidden"><div class="stats"><div class="stat-card"><h3>Today</h3><div class="number" id="todayFollowupCount">0</div></div><div class="stat-card"><h3>Tomorrow</h3><div class="number" id="tomorrowFollowupCount">0</div></div><div class="stat-card"><h3>Overdue</h3><div class="number" id="overdueFollowupCount">0</div></div></div><div class="card"><div class="card-header"><h2>Follow-ups</h2><button class="btn-primary" onclick="loadFollowups()">Refresh</button></div><div class="table-wrapper"><table><thead><tr><th>Type</th><th>Name</th><th>Mobile</th><th>Next Follow-up</th><th>Status</th><th>Action</th></tr></thead><tbody id="followupsTable"></tbody></table></div></div></section>
 
@@ -162,50 +174,31 @@ function isoToLocalDateTime(value){
 function showMessage(text,type){const m=formMessage;m.textContent=text;m.className="message "+type;setTimeout(()=>m.className="message",4000)}
 function openNewLead(){leadForm.reset();delete leadForm.dataset.editId;leadFormTitle.textContent="Add New Lead";saveLeadButton.textContent="Save Lead";showPage("addLead",document.querySelector('[data-page="addLead"]'))}
 
+let allLeadsCache=[];
+function getLocalDateKey(value){if(!value)return "";const d=new Date(value);if(isNaN(d))return "";const p=n=>String(n).padStart(2,"0");return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;}
+function populateLeadFilters(){
+ const city=document.getElementById("filterCity"),source=document.getElementById("filterSource");if(!city||!source)return;
+ const cv=city.value,sv=source.value;
+ const cities=[...new Set(allLeadsCache.map(x=>(x.city||"").trim()).filter(Boolean))].sort();
+ const sources=[...new Set(allLeadsCache.map(x=>(x.lead_source||"").trim()).filter(Boolean))].sort();
+ city.innerHTML='<option value="">All Cities</option>'+cities.map(x=>`<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join("");
+ source.innerHTML='<option value="">All Sources</option>'+sources.map(x=>`<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join("");
+ city.value=cv;source.value=sv;
+}
+function renderLeads(rows){
+ leadsTable.innerHTML=(rows||[]).map(x=>`<tr><td>${escapeHtml(x.full_name||"-")}</td><td>${escapeHtml(x.mobile_number||"-")}</td><td>${escapeHtml(x.city||"-")}</td><td>${escapeHtml(x.lead_source||"-")}</td><td>${escapeHtml(x.status||"New")}</td><td>${formatDate(x.next_follow_up)}</td><td><div class="actions"><button class="btn-secondary" onclick="viewLead(${Number(x.id)},'leads')">View</button><button class="btn-secondary" onclick="editLead(${Number(x.id)})">Edit</button><button class="btn-danger" onclick="deleteLead(${Number(x.id)})">Delete</button></div></td></tr>`).join("")||'<tr><td colspan="7" class="empty">No matching leads found</td></tr>';
+}
+function applyLeadFilters(){
+ const status=document.getElementById("filterStatus")?.value||"",city=document.getElementById("filterCity")?.value||"",source=document.getElementById("filterSource")?.value||"",date=document.getElementById("filterFollowupDate")?.value||"";
+ const rows=allLeadsCache.filter(x=>(!status||(x.status||"New")===status)&&(!city||(x.city||"").trim()===city)&&(!source||(x.lead_source||"").trim()===source)&&(!date||getLocalDateKey(x.next_follow_up)===date));
+ filteredLeadCount.textContent=rows.length;renderLeads(rows);
+}
+function clearLeadFilters(){filterStatus.value="";filterCity.value="";filterSource.value="";filterFollowupDate.value="";applyLeadFilters();}
 async function loadLeads(){
-const {data,error}=await supabaseClient.from("leads").select("*").order("created_at",{ascending:false});
-if(error){leadsTable.innerHTML=`<tr><td colspan="7" class="empty">${escapeHtml(error.message)}</td></tr>`;return}
-const rows=data||[];renderLeads(rows);renderRecent(rows);updateDashboard(rows);renderReports(rows);loadFollowups(rows)
+ const {data,error}=await supabaseClient.from("leads").select("*").order("created_at",{ascending:false});
+ if(error){leadsTable.innerHTML=`<tr><td colspan="7" class="empty">${escapeHtml(error.message)}</td></tr>`;return}
+ allLeadsCache=data||[];populateLeadFilters();applyLeadFilters();
 }
-function updateDashboard(rows){totalLeads.textContent=rows.length;newLeads.textContent=rows.filter(x=>x.status==="New").length;followupCount.textContent=rows.filter(x=>x.next_follow_up).length;convertedCount.textContent=rows.filter(x=>x.status==="Converted").length}
-function renderRecent(rows){recentLeads.innerHTML=rows.slice(0,5).map(x=>`<tr onclick="viewLead(${Number(x.id)})" style="cursor:pointer"><td>${escapeHtml(x.full_name)}</td><td>${escapeHtml(x.mobile_number)}</td><td>${escapeHtml(x.city||"-")}</td><td><span class="status">${escapeHtml(x.status||"New")}</span></td></tr>`).join("")||`<tr><td colspan="4" class="empty">No leads found</td></tr>`}
-function renderLeads(rows){leadsTable.innerHTML=rows.map(x=>`<tr><td>${escapeHtml(x.full_name)}</td><td>${escapeHtml(x.mobile_number)}</td><td>${escapeHtml(x.city||"-")}</td><td>${escapeHtml(x.lead_source||"-")}</td><td><span class="status">${escapeHtml(x.status||"New")}</span></td><td>${formatDate(x.next_follow_up)}</td><td><div class="actions"><button class="btn-secondary" onclick="viewLead(${Number(x.id)})">View</button><button class="btn-edit" onclick="editLead(${Number(x.id)})">Edit</button><button class="btn-danger" onclick="deleteLead(${Number(x.id)})">Delete</button></div></td></tr>`).join("")||`<tr><td colspan="7" class="empty">No leads found</td></tr>`}
-async function searchLeads(v){const q=(v||"").trim();if(!q)return loadLeads();const safe=q.replace(/[%(),]/g,"");const {data,error}=await supabaseClient.from("leads").select("*").or(`full_name.ilike.%${safe}%,mobile_number.ilike.%${safe}%`).order("created_at",{ascending:false});if(!error)renderLeads(data||[])}
-
-async function addLeadActivity(leadId,activityType,description){
-  if(!leadId)return;
-  const {error}=await supabaseClient.from("lead_activities").insert([{
-    lead_id:leadId,activity_type:activityType,description:description||null
-  }]);
-  if(error)console.error("Activity log error:",error.message);
-}
-async function loadLeadActivities(leadId){
-  const box=document.getElementById("leadActivityTimeline");
-  if(!box)return;
-  const {data,error}=await supabaseClient.from("lead_activities").select("*").eq("lead_id",leadId).order("created_at",{ascending:false});
-  if(error){box.innerHTML=`<div class="empty">Unable to load activity history</div>`;return}
-  box.innerHTML=(data||[]).map(a=>`<div class="detail-box" style="margin-bottom:8px"><strong>${escapeHtml(a.activity_type||"Activity")}</strong><div style="margin-top:4px">${escapeHtml(a.description||"-")}</div><small style="display:block;margin-top:6px;color:var(--muted)">${formatDate(a.created_at)}</small></div>`).join("")||'<div class="empty">No activity history yet</div>';
-}
-leadForm.addEventListener("submit",async e=>{
-e.preventDefault();const payload={full_name:leadName.value.trim(),mobile_number:leadPhone.value.trim(),city:leadCity.value.trim()||null,lead_source:leadSource.value,status:leadStatus.value,next_follow_up:localDateTimeToISOString(leadFollowUp.value),notes:leadNotes.value.trim()||null};
-if(!payload.full_name||!payload.mobile_number)return showMessage("Please enter customer name and mobile number.","error");
-const editId=leadForm.dataset.editId;
-const {data:duplicates,error:duplicateError}=await supabaseClient.from("leads").select("id,full_name,mobile_number").eq("mobile_number",payload.mobile_number);
-if(duplicateError)return showMessage("Error checking duplicate mobile: "+duplicateError.message,"error");
-const duplicate=(duplicates||[]).find(x=>String(x.id)!==String(editId||""));
-if(duplicate)return showMessage(`Duplicate mobile number! ${duplicate.full_name} already exists with ${duplicate.mobile_number}.`,"error");
-saveLeadButton.disabled=true;saveLeadButton.textContent=editId?"Updating...":"Saving...";
-let result=editId?await supabaseClient.from("leads").update(payload).eq("id",editId).select().single():await supabaseClient.from("leads").insert([payload]).select().single();
-saveLeadButton.disabled=false;
-if(result.error){showMessage("Error saving lead: "+result.error.message,"error");saveLeadButton.textContent=editId?"Update Lead":"Save Lead";return}
-const savedLeadId=editId||result.data?.id;
-if(editId)await addLeadActivity(savedLeadId,"Lead Updated","Lead details were updated.");
-else await addLeadActivity(savedLeadId,"Lead Created","Lead was added to CRM.");
-showMessage(editId?"Lead updated successfully!":"Lead saved successfully!","success");leadForm.reset();delete leadForm.dataset.editId;saveLeadButton.textContent="Save Lead";await loadLeads();await loadPipeline();setTimeout(()=>showPage("leads",document.querySelector('[data-page="leads"]')),600)
-});
-async function editLead(id){const {data,error}=await supabaseClient.from("leads").select("*").eq("id",id).single();if(error)return alert(error.message);leadName.value=data.full_name||"";leadPhone.value=data.mobile_number||"";leadCity.value=data.city||"";leadSource.value=data.lead_source||"Manual";leadStatus.value=data.status||"New";leadFollowUp.value=isoToLocalDateTime(data.next_follow_up);leadNotes.value=data.notes||"";leadForm.dataset.editId=id;leadFormTitle.textContent="Update Lead";saveLeadButton.textContent="Update Lead";showPage("addLead",document.querySelector('[data-page="addLead"]'))}
-async function deleteLead(id){if(!confirm("Delete this lead?"))return;const {error}=await supabaseClient.from("leads").delete().eq("id",id);if(error)return alert(error.message);await loadLeads();await loadPipeline()}
-
 async function loadPipeline(){
 const board=document.getElementById("pipelineBoard");board.innerHTML='<div class="empty">Loading pipeline...</div>';
 const {data,error}=await supabaseClient.from("leads").select("*").order("created_at",{ascending:false});
