@@ -453,7 +453,17 @@ function applyLeadFilters() {
 
     renderLeads(rows);
 }
-function clearLeadFilters(){filterStatus.value="";filterCity.value="";filterSource.value="";filterFollowupDate.value="";applyLeadFilters();}
+function clearLeadFilters(){
+  filterStatus.value="";
+  filterCity.value="";
+  filterSource.value="";
+  filterFollowupDate.value="";
+  
+  const s=document.getElementById("leadSearch");
+  if(s)s.value="";
+  
+  applyLeadFilters();
+}
 async function loadLeads(){
 const {data,error}=await supabaseClient.from("leads").select("*").order("created_at",{ascending:false});
 if(error){leadsTable.innerHTML=`<tr><td colspan="7" class="empty">${escapeHtml(error.message)}</td></tr>`;return}
