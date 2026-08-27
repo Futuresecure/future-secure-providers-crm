@@ -111,6 +111,7 @@ button{border:0;border-radius:8px;padding:10px 14px;cursor:pointer}.btn-primary{
 <section id="reportsPage" class="page hidden">
 <div class="stats"><div class="stat-card"><h3>Conversion Rate</h3><div class="number" id="reportConversionRate">0%</div></div><div class="stat-card"><h3>Today's Leads</h3><div class="number" id="reportTodayLeads">0</div></div><div class="stat-card"><h3>This Week</h3><div class="number" id="reportWeekLeads">0</div></div><div class="stat-card"><h3>This Month</h3><div class="number" id="reportMonthLeads">0</div></div></div>
 <div class="card"><h2>Status-wise Leads</h2><div class="table-wrapper"><table><thead><tr><th>Status</th><th>Leads</th></tr></thead><tbody id="statusReportTable"></tbody></table></div></div>
+<div class="card"><h2>Lead Source Performance</h2><div class="table-wrapper"><table><thead><tr><th>Lead Source</th><th>Total Leads</th><th>Converted</th><th>Conversion Rate</th></tr></thead><tbody id="sourceReportTable"></tbody></table></div></div>
 </section>
 
 <!-- IMPORTANT: PIPELINE IS INSIDE .content, BEFORE CLOSING MAIN -->
@@ -309,7 +310,26 @@ async function saveFollowup(){
   await loadTasks();
   alert(nextValue?"Follow-up saved and next follow-up scheduled.":"Follow-up saved successfully.");
 }
-function renderReports(rows){const now=new Date(),today=new Date(now.getFullYear(),now.getMonth(),now.getDate()),tomorrow=new Date(today);tomorrow.setDate(tomorrow.getDate()+1);const week=new Date(today);week.setDate(week.getDate()-((week.getDay()+6)%7));const month=new Date(now.getFullYear(),now.getMonth(),1);const d=x=>x.created_at?new Date(x.created_at):null;const conv=rows.filter(x=>x.status==="Converted").length;reportConversionRate.textContent=(rows.length?(conv/rows.length*100).toFixed(1):0)+"%";reportTodayLeads.textContent=rows.filter(x=>{const z=d(x);return z&&z>=today&&z<tomorrow}).length;reportWeekLeads.textContent=rows.filter(x=>{const z=d(x);return z&&z>=week}).length;reportMonthLeads.textContent=rows.filter(x=>{const z=d(x);return z&&z>=month}).length;const statuses=["New","Contacted","Follow-up","Interested","Converted","Not Interested"];statusReportTable.innerHTML=statuses.map(s=>`<tr><td>${s}</td><td><strong>${rows.filter(x=>x.status===s).length}</strong></td></tr>`).join("")}
+function renderReports(rows){
+const now=new Date(),today=new Date(now.getFullYear(),now.getMonth(),now.getDate()),tomorrow=new Date(today);tomorrow.setDate(tomorrow.getDate()+1);
+const week=new Date(today);week.setDate(week.getDate()-((week.getDay()+6)%7));
+const month=new Date(now.getFullYear(),now.getMonth(),1);
+const d=x=>x.created_at?new Date(x.created_at):null;
+const conv=rows.filter(x=>x.status==="Converted").length;
+reportConversionRate.textContent=(rows.length?(conv/rows.length*100).toFixed(1):0)+"%";
+reportTodayLeads.textContent=rows.filter(x=>{const z=d(x);return z&&z>=today&&z<tomorrow}).length;
+reportWeekLeads.textContent=rows.filter(x=>{const z=d(x);return z&&z>=week}).length;
+reportMonthLeads.textContent=rows.filter(x=>{const z=d(x);return z&&z>=month}).length;
+const statuses=["New","Contacted","Follow-up","Interested","Converted","Not Interested"];
+statusReportTable.innerHTML=statuses.map(st=>`<tr><td>${st}</td><td><strong>${rows.filter(x=>x.status===st).length}</strong></td></tr>`).join("");
+const sources=[...new Set(rows.map(x=>(x.lead_source||"Unknown").trim()||"Unknown"))].sort((a,b)=>a.localeCompare(b));
+sourceReportTable.innerHTML=sources.map(source=>{
+ const sourceRows=rows.filter(x=>((x.lead_source||"Unknown").trim()||"Unknown")===source);
+ const converted=sourceRows.filter(x=>x.status==="Converted").length;
+ const rate=sourceRows.length?(converted/sourceRows.length*100).toFixed(1):"0.0";
+ return `<tr><td><strong>${escapeHtml(source)}</strong></td><td>${sourceRows.length}</td><td>${converted}</td><td>${rate}%</td></tr>`;
+}).join("")||'<tr><td colspan="4" class="empty">No lead source data available</td></tr>';
+}
 let currentTasks=[];
 async function loadTasks(){
   const {data,error}=await supabaseClient.from("tasks").select("*, leads(full_name,mobile_number)").order("status",{ascending:true}).order("due_date",{ascending:true});
