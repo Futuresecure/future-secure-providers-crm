@@ -41,126 +41,12 @@ button{border:0;border-radius:8px;padding:10px 14px;cursor:pointer}.btn-primary{
 .profile-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:18px}.detail-box{background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px}.detail-box label{display:block;color:var(--muted);font-size:12px;margin-bottom:8px}.detail-box strong{font-size:17px}
 .timeline-item{border-left:3px solid #7c3aed;padding:0 0 18px 18px;margin:8px}.timeline-date{font-size:12px;color:var(--muted);margin-top:5px}
 @media(max-width:900px){.sidebar{width:72px;padding:20px 8px}.brand{font-size:0;padding:10px}.brand span,.menu-label{display:none}.nav-item{font-size:0;text-align:center}.nav-item::first-letter{font-size:20px}.header{padding:0 16px}.content{padding:16px}}
-.mobile-menu-btn,
-.mobile-overlay{
-  display:none;
-}
-
-@media(max-width:650px){
-
-  .app{
-    display:block;
-  }
-
-  .sidebar{
-    position:fixed;
-    top:0;
-    left:0;
-    width:280px;
-    height:100vh;
-    min-height:100vh;
-    display:flex;
-    flex-direction:column;
-    overflow-y:auto;
-    padding:20px 14px;
-    z-index:1001;
-    transform:translateX(-100%);
-    transition:transform .25s ease;
-  }
-
-  .sidebar.mobile-open{
-    transform:translateX(0);
-  }
-
-  .brand{
-    display:block;
-    font-size:22px;
-    padding:10px;
-  }
-
-  .brand span,
-  .menu-label,
-  .sidebar-bottom{
-    display:block;
-  }
-
-  .nav-item{
-    white-space:normal;
-    font-size:14px;
-    margin:3px 0;
-    text-align:left;
-  }
-
-  .nav-item::first-letter{
-    font-size:inherit;
-  }
-
-  .mobile-menu-btn{
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    width:42px;
-    height:42px;
-    border:0;
-    border-radius:10px;
-    font-size:24px;
-    cursor:pointer;
-    background:#fff;
-    box-shadow:0 2px 8px rgba(0,0,0,.12);
-    margin-right:12px;
-  }
-
-  .mobile-overlay{
-    position:fixed;
-    inset:0;
-    background:rgba(0,0,0,.45);
-    z-index:1000;
-  }
-
-  .mobile-overlay.show{
-    display:block;
-  }
-
-  .header{
-    height:auto;
-    min-height:70px;
-    padding:14px 16px;
-    display:flex;
-    align-items:center;
-  }
-
-  .header > div:first-child{
-    display:flex;
-    align-items:center;
-    flex:1;
-  }
-
-  .header h1{
-    font-size:22px;
-  }
-
-  .header p{
-    font-size:12px;
-  }
-
-  .admin{
-    display:none;
-  }
-
-  .content{
-    padding:12px;
-  }
-
-  .form-grid{
-    grid-template-columns:1fr;
-  }
-}
+@media(max-width:650px){.app{display:block}.sidebar{width:100%;min-height:auto;display:flex;flex-direction:row;overflow:auto;padding:8px}.brand,.menu-label,.sidebar-bottom{display:none}.nav-item{white-space:nowrap;font-size:13px;margin:0}.nav-item::first-letter{font-size:inherit}.form-grid{grid-template-columns:1fr}.header{height:auto;padding:16px}.admin{display:none}.content{padding:12px}}
 .filter-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.filter-grid label{display:block;margin-bottom:6px;font-weight:600}.filter-grid select,.filter-grid input{width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;background:#fff}.filter-result{margin-top:14px;color:var(--muted)}@media(max-width:900px){.filter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:560px){.filter-grid{grid-template-columns:1fr}}
 .import-export-actions{display:flex;gap:12px;flex-wrap:wrap;margin:16px 0}.file-label{display:inline-flex;align-items:center;cursor:pointer}.file-label input{display:none}.import-help{padding:14px;border:1px solid var(--border);border-radius:8px;background:#fafafa;line-height:1.7}.import-result{margin-top:14px;font-weight:600}.muted{color:var(--muted)}
 </style>
 </head>
 <body>
-<div class="mobile-overlay" id="mobileOverlay" onclick="closeMobileMenu()"></div>
 <div class="app">
 <aside class="sidebar">
 <div class="brand">Future Secure<br>Providers<span>CRM SYSTEM</span></div>
@@ -177,7 +63,7 @@ button{border:0;border-radius:8px;padding:10px 14px;cursor:pointer}.btn-primary{
 </aside>
 
 <main class="main">
-<header class="header"><button class="mobile-menu-btn" type="button" onclick="toggleMobileMenu()">☰</button><div><h1 id="pageTitle">Dashboard</h1><p id="pageSubtitle">Welcome to Future Secure Providers CRM</p></div><div class="admin"><strong>Administrator</strong><span>Future Secure Providers</span></div></header>
+<header class="header"><div><h1 id="pageTitle">Dashboard</h1><p id="pageSubtitle">Welcome to Future Secure Providers CRM</p></div><div class="admin"><strong>Administrator</strong><span>Future Secure Providers</span></div></header>
 <div class="content">
 <div class="stats">
 
@@ -1416,50 +1302,6 @@ async function loadSmartDashboard() {
 .priority-high{font-weight:700}.priority-medium{font-weight:600}.priority-low{font-weight:500}
 .task-completed{text-decoration:line-through;opacity:.65}
 </style>
-function toggleMobileMenu(){
-  const sidebar=document.querySelector('.sidebar');
-  const overlay=document.getElementById('mobileOverlay');
 
-  sidebar.classList.toggle('mobile-open');
-  overlay.classList.toggle('show');
-}
-
-function closeMobileMenu(){
-  const sidebar=document.querySelector('.sidebar');
-  const overlay=document.getElementById('mobileOverlay');
-
-  sidebar.classList.remove('mobile-open');
-  overlay.classList.remove('show');
-}
-
-document.querySelectorAll('.nav-item').forEach(item=>{
-  item.addEventListener('click',()=>{
-    if(window.innerWidth<=650){
-      closeMobileMenu();
-    }
-  });
-});
-<script>
-function toggleSidebar() {
-    document.querySelector('.sidebar').classList.toggle('active');
-    document.querySelector('.mobile-overlay').classList.toggle('active');
-}
-
-function closeSidebar() {
-    document.querySelector('.sidebar').classList.remove('active');
-    document.querySelector('.mobile-overlay').classList.remove('active');
-}
-</script>
-<script>
-function toggleMobileMenu() {
-    document.querySelector('.sidebar').classList.toggle('active');
-    document.querySelector('.mobile-overlay').classList.toggle('active');
-}
-
-function closeMobileMenu() {
-    document.querySelector('.sidebar').classList.remove('active');
-    document.querySelector('.mobile-overlay').classList.remove('active');
-}
-</script>
 </body>
 </html>
