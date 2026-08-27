@@ -543,7 +543,7 @@ const phone=String(lead.mobile_number||"").replace(/\D/g,"");
 leadProfileContent.innerHTML=`<div class="card" id="quickStatusCard"><h3 style="margin-bottom:10px">Quick Status Update</h3><div class="actions"><select id="quickStatusSelect" style="max-width:220px"><option>New</option><option>Contacted</option><option>Follow-up</option><option>Interested</option><option>Converted</option><option>Not Interested</option></select><button class="btn-primary" onclick="quickUpdateStatus(${Number(lead.id)})">Update Status</button></div></div><div class="profile-grid"><div class="detail-box"><label>Full Name</label><strong>${escapeHtml(lead.full_name)}</strong></div><div class="detail-box"><label>Mobile Number</label><strong>${escapeHtml(lead.mobile_number)}</strong></div><div class="detail-box"><label>Current Status</label><strong>${escapeHtml(lead.status||"New")}</strong></div></div>
 <div class="profile-grid"><div class="detail-box"><label>City</label><strong>${escapeHtml(lead.city||"-")}</strong></div><div class="detail-box"><label>Lead Source</label><strong>${escapeHtml(lead.lead_source||"-")}</strong></div><div class="detail-box"><label>Next Follow-up</label><strong>${formatDate(lead.next_follow_up)}</strong></div><div class="detail-box"><label>Created</label><strong>${formatDate(lead.created_at)}</strong></div></div>
 <div class="card"><h3 style="margin-bottom:10px">Notes</h3><div>${escapeHtml(lead.notes||"No notes added").replace(/\n/g,"<br>")}</div></div><div class="card"><h3 style="margin-bottom:10px">Activity History</h3><div id="leadActivityTimeline"><div class="empty">Loading activity history...</div></div></div>
-<div class="actions"><button class="btn-call" onclick="window.location.href='tel:${phone}'">Call</button><button class="btn-wa" onclick="window.open('https://wa.me/91${phone}','_blank')">WhatsApp</button><button class="btn-edit" onclick="editLead(${Number(lead.id)})">Edit Lead</button></div>`;
+<div class="actions"><button class="btn-call" onclick="logCall(${Number(lead.id)},'${phone}')">Call</button><button class="btn-wa" onclick="logWhatsApp(${Number(lead.id)},'${phone}')">WhatsApp</button><button class="btn-edit" onclick="editLead(${Number(lead.id)})">Edit Lead</button></div>`;
 const quick=document.getElementById("quickStatusSelect");if(quick)quick.value=lead.status||"New";
 showPage("leadProfile",null);
 await loadLeadActivities(id);
@@ -560,7 +560,40 @@ if(oldStatus!==status)await addLeadActivity(id,"Quick Status Changed",`Status ch
 await loadLeads();await loadPipeline();
 await viewLead(id,previousPage);
 }
+async function logCall(leadId,mobile){
+  await addLeadActivity(
+    leadId,
+    "Call Initiated",
+    `Call initiated to ${mobile}`
+  );
+  window.location.href=`tel:${mobile}`;
+}
 
+async function logWhatsApp(leadId,mobile){
+  await addLeadActivity(
+    leadId,
+    "WhatsApp Opened",
+    `WhatsApp opened for ${mobile}`
+  );
+  window.open(`https://wa.me/91${mobile}`,"_blank");
+}
+async function logCall(leadId,mobile){
+  await addLeadActivity(
+    leadId,
+    "Call Initiated",
+    `Call initiated to ${mobile}`
+  );
+  window.location.href=`tel:${mobile}`;
+}
+
+async function logWhatsApp(leadId,mobile){
+  await addLeadActivity(
+    leadId,
+    "WhatsApp Opened",
+    `WhatsApp opened for ${mobile}`
+  );
+  window.open(`https://wa.me/${mobile}`,"_blank");
+}
 async function loadFollowups(preloaded){let rows=preloaded;if(!rows){const {data,error}=await supabaseClient.from("leads").select("*").not("next_follow_up","is",null).order("next_follow_up",{ascending:true});if(error){followupsTable.innerHTML=`<tr><td colspan="6" class="empty">${escapeHtml(error.message)}</td></tr>`;return}rows=data||[]}rows=rows.filter(x=>x.next_follow_up);const now=new Date(),today=new Date(now.getFullYear(),now.getMonth(),now.getDate()),tomorrow=new Date(today),dayAfter=new Date(today);tomorrow.setDate(tomorrow.getDate()+1);dayAfter.setDate(dayAfter.getDate()+2);const type=x=>{const d=new Date(x.next_follow_up);if(d<now)return"Overdue";if(d>=today&&d<tomorrow)return"Today";if(d>=tomorrow&&d<dayAfter)return"Tomorrow";return"Upcoming"};todayFollowupCount.textContent=rows.filter(x=>type(x)==="Today").length;tomorrowFollowupCount.textContent=rows.filter(x=>type(x)==="Tomorrow").length;overdueFollowupCount.textContent=rows.filter(x=>type(x)==="Overdue").length;followupsTable.innerHTML=rows.map(x=>`<tr><td><span class="status">${type(x)}</span></td><td>${escapeHtml(x.full_name)}</td><td>${escapeHtml(x.mobile_number)}</td><td>${formatDate(x.next_follow_up)}</td><td>${escapeHtml(x.status||"New")}</td><td><div class="actions"><button class="btn-primary" onclick="completeFollowup(${Number(x.id)})">Complete</button><button class="btn-secondary" onclick="viewLead(${Number(x.id)},'followups')">View</button></div></td></tr>`).join("")||`<tr><td colspan="6" class="empty">No follow-ups scheduled</td></tr>`}
 let followupLeadId=null;
 
