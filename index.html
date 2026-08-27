@@ -1450,5 +1450,16 @@ function closeSidebar() {
     document.querySelector('.mobile-overlay').classList.remove('active');
 }
 </script>
+<script>
+function toggleMobileMenu() {
+    document.querySelector('.sidebar').classList.toggle('active');
+    document.querySelector('.mobile-overlay').classList.toggle('active');
+}
+
+function closeMobileMenu() {
+    document.querySelector('.sidebar').classList.remove('active');
+    document.querySelector('.mobile-overlay').classList.remove('active');
+}
+</script>
 </body>
 </html>
