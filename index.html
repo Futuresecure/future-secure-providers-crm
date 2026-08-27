@@ -43,6 +43,7 @@ button{border:0;border-radius:8px;padding:10px 14px;cursor:pointer}.btn-primary{
 @media(max-width:900px){.sidebar{width:72px;padding:20px 8px}.brand{font-size:0;padding:10px}.brand span,.menu-label{display:none}.nav-item{font-size:0;text-align:center}.nav-item::first-letter{font-size:20px}.header{padding:0 16px}.content{padding:16px}}
 @media(max-width:650px){.app{display:block}.sidebar{width:100%;min-height:auto;display:flex;flex-direction:row;overflow:auto;padding:8px}.brand,.menu-label,.sidebar-bottom{display:none}.nav-item{white-space:nowrap;font-size:13px;margin:0}.nav-item::first-letter{font-size:inherit}.form-grid{grid-template-columns:1fr}.header{height:auto;padding:16px}.admin{display:none}.content{padding:12px}}
 .filter-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.filter-grid label{display:block;margin-bottom:6px;font-weight:600}.filter-grid select,.filter-grid input{width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;background:#fff}.filter-result{margin-top:14px;color:var(--muted)}@media(max-width:900px){.filter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:560px){.filter-grid{grid-template-columns:1fr}}
+.import-export-actions{display:flex;gap:12px;flex-wrap:wrap;margin:16px 0}.file-label{display:inline-flex;align-items:center;cursor:pointer}.file-label input{display:none}.import-help{padding:14px;border:1px solid var(--border);border-radius:8px;background:#fafafa;line-height:1.7}.import-result{margin-top:14px;font-weight:600}.muted{color:var(--muted)}
 </style>
 </head>
 <body>
@@ -120,7 +121,21 @@ button{border:0;border-radius:8px;padding:10px 14px;cursor:pointer}.btn-primary{
 <!-- IMPORTANT: PROFILE IS ALSO INSIDE .content -->
 <section id="leadProfilePage" class="page hidden"><div class="card"><div class="card-header"><h2>Lead Profile</h2><button class="btn-secondary" onclick="backToPrevious()">← Back</button></div><div id="leadProfileContent" class="empty">Select a lead to view profile.</div></div></section>
 
-<section id="settingsPage" class="page hidden"><div class="card"><h2>Settings</h2><div class="placeholder">CRM settings will be added here.</div></div></section>
+<section id="settingsPage" class="page hidden">
+<div class="card">
+  <h2>Import / Export Leads</h2>
+  <p class="muted">Export all leads as CSV or import multiple leads from a CSV file.</p>
+  <div class="import-export-actions">
+    <button class="btn-primary" type="button" onclick="exportLeadsCSV()">⬇ Export Leads CSV</button>
+    <label class="btn-secondary file-label">⬆ Import CSV<input type="file" id="leadImportFile" accept=".csv,text/csv" onchange="handleLeadCSVImport(event)"></label>
+  </div>
+  <div class="import-help">
+    <strong>CSV columns:</strong> full_name, mobile_number, city, lead_source, status, next_follow_up, notes
+    <br><small>Only <strong>full_name</strong> and <strong>mobile_number</strong> are required. Duplicate mobile numbers will be skipped.</small>
+  </div>
+  <div id="importResult" class="import-result"></div>
+</div>
+</section>
 
 </div></main></div>
 
@@ -164,6 +179,69 @@ function isoToLocalDateTime(value){
 function showMessage(text,type){const m=formMessage;m.textContent=text;m.className="message "+type;setTimeout(()=>m.className="message",4000)}
 function openNewLead(){leadForm.reset();delete leadForm.dataset.editId;leadFormTitle.textContent="Add New Lead";saveLeadButton.textContent="Save Lead";showPage("addLead",document.querySelector('[data-page="addLead"]'))}
 
+function csvEscape(value){
+ const text=String(value??"");
+ return `"${text.replace(/"/g,'""')}"`;
+}
+function exportLeadsCSV(){
+ const rows=allLeadsCache||[];
+ if(!rows.length){alert("No leads available to export.");return}
+ const headers=["id","full_name","mobile_number","city","lead_source","status","next_follow_up","notes","created_at"];
+ const csv=[headers.join(","),...rows.map(x=>headers.map(h=>csvEscape(x[h]??"")).join(","))].join("\n");
+ const blob=new Blob([csv],{type:"text/csv;charset=utf-8;"});
+ const url=URL.createObjectURL(blob),a=document.createElement("a");
+ a.href=url;a.download=`future-secure-providers-leads-${new Date().toISOString().slice(0,10)}.csv`;a.click();URL.revokeObjectURL(url);
+}
+function parseCSV(text){
+ const rows=[];let row=[],cell="",quoted=false;
+ for(let i=0;i<text.length;i++){
+  const c=text[i],n=text[i+1];
+  if(c==='"'){if(quoted&&n==='"'){cell+='"';i++}else quoted=!quoted}
+  else if(c===","&&!quoted){row.push(cell.trim());cell=""}
+  else if((c==="\n"||c==="\r")&&!quoted){
+   if(c==="\r"&&n==="\n")i++;
+   row.push(cell.trim());cell="";
+   if(row.some(v=>v!==""))rows.push(row);row=[];
+  }else cell+=c;
+ }
+ row.push(cell.trim());if(row.some(v=>v!==""))rows.push(row);
+ if(!rows.length)return [];
+ const headers=rows[0].map(h=>h.replace(/^\uFEFF/,"").trim().toLowerCase());
+ return rows.slice(1).map(r=>Object.fromEntries(headers.map((h,i)=>[h,r[i]??""])));
+}
+async function handleLeadCSVImport(event){
+ const file=event.target.files?.[0];const result=document.getElementById("importResult");
+ if(!file)return;
+ result.textContent="Reading CSV...";
+ try{
+  const text=await file.text(),items=parseCSV(text);
+  if(!items.length)throw new Error("No lead rows found in CSV.");
+  const {data:existing,error}=await supabaseClient.from("leads").select("mobile_number");
+  if(error)throw error;
+  const existingMobiles=new Set((existing||[]).map(x=>String(x.mobile_number||"").trim()));
+  let added=0,skipped=0,invalid=0;
+  for(const item of items){
+   const name=(item.full_name||item.name||"").trim();
+   const mobile=(item.mobile_number||item.mobile||item.phone||"").trim();
+   if(!name||!mobile){invalid++;continue}
+   if(existingMobiles.has(mobile)){skipped++;continue}
+   const payload={
+    full_name:name,mobile_number:mobile,city:(item.city||"").trim()||null,
+    lead_source:(item.lead_source||"CSV Import").trim()||"CSV Import",
+    status:(item.status||"New").trim()||"New",
+    next_follow_up:(item.next_follow_up||"").trim()||null,
+    notes:(item.notes||"").trim()||null
+   };
+   const {data,error:insertError}=await supabaseClient.from("leads").insert([payload]).select().single();
+   if(insertError){invalid++;continue}
+   existingMobiles.add(mobile);added++;
+   await addLeadActivity(data.id,"Lead Imported","Lead was imported from CSV.");
+  }
+  await loadLeads();await loadPipeline();
+  result.textContent=`Import complete: ${added} added, ${skipped} duplicate skipped, ${invalid} invalid/failed.`;
+ }catch(err){result.textContent="Import failed: "+(err.message||err)}
+ finally{event.target.value=""}
+}
 let allLeadsCache=[];
 function getLocalDateKey(value){if(!value)return "";const d=new Date(value);if(isNaN(d))return "";const p=n=>String(n).padStart(2,"0");return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;}
 function populateLeadFilters(){const city=document.getElementById("filterCity"),source=document.getElementById("filterSource");if(!city||!source)return;const cv=city.value,sv=source.value;const cities=[...new Set(allLeadsCache.map(x=>(x.city||"").trim()).filter(Boolean))].sort();const sources=[...new Set(allLeadsCache.map(x=>(x.lead_source||"").trim()).filter(Boolean))].sort();city.innerHTML='<option value="">All Cities</option>'+cities.map(x=>`<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join("");source.innerHTML='<option value="">All Sources</option>'+sources.map(x=>`<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join("");city.value=cv;source.value=sv;}
