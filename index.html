@@ -65,7 +65,47 @@ button{border:0;border-radius:8px;padding:10px 14px;cursor:pointer}.btn-primary{
 <main class="main">
 <header class="header"><div><h1 id="pageTitle">Dashboard</h1><p id="pageSubtitle">Welcome to Future Secure Providers CRM</p></div><div class="admin"><strong>Administrator</strong><span>Future Secure Providers</span></div></header>
 <div class="content">
+<div class="stats">
 
+  <div class="stat-card">
+    <h3>Today's Follow-ups</h3>
+    <div class="number" id="todayFollowupsCount">0</div>
+  </div>
+
+  <div class="stat-card">
+    <h3>Pending Tasks</h3>
+    <div class="number" id="pendingTasksCount">0</div>
+  </div>
+
+  <div class="stat-card">
+    <h3>Overdue</h3>
+    <div class="number" id="overdueCount">0</div>
+  </div>
+
+</div>
+
+<div class="card">
+
+  <div class="card-header">
+    <h2>🔥 Priority Actions</h2>
+
+    <button
+      class="btn-secondary"
+      onclick="loadSmartDashboard()"
+    >
+      Refresh
+    </button>
+  </div>
+
+  <div id="priorityActions">
+
+    <div class="empty">
+      Loading...
+    </div>
+
+  </div>
+
+</div>
 <section id="dashboardPage" class="page">
 <div class="stats">
 <div class="stat-card"><h3>Total Leads</h3><div class="number" id="totalLeads">0</div></div>
@@ -73,6 +113,7 @@ button{border:0;border-radius:8px;padding:10px 14px;cursor:pointer}.btn-primary{
 <div class="stat-card"><h3>Follow-ups</h3><div class="number" id="followupCount">0</div></div>
 <div class="stat-card"><h3>Converted</h3><div class="number" id="convertedCount">0</div></div>
 </div>
+
 <div class="card"><div class="card-header"><h2>Recent Leads</h2><button class="btn-secondary" onclick="showPage('leads',document.querySelector('[data-page=leads]'));loadLeads()">View All</button></div><div class="table-wrapper"><table><thead><tr><th>Name</th><th>Mobile</th><th>City</th><th>Status</th></tr></thead><tbody id="recentLeads"></tbody></table></div></div>
 </section>
 
@@ -735,7 +776,361 @@ async function deleteTask(id){
   if(task?.lead_id)await addLeadActivity(task.lead_id,"Task Deleted",`Task deleted: ${task.title||"-"}.`);
   await loadTasks();
 }
-document.addEventListener("DOMContentLoaded",()=>{loadLeads();loadPipeline()});
+document.addEventListener("DOMContentLoaded", () => {
+    loadLeads();
+    loadPipeline();
+    loadSmartDashboard();
+});
+async function loadSmartDashboard() {
+
+  const leadsResult = await supabaseClient
+    .from("leads")
+    .select("*");
+
+  const tasksResult = await supabaseClient
+    .from("tasks")
+    .select("*")
+    .order("due_date", {
+      ascending: true
+    });
+
+
+  const leads =
+    leadsResult.data || [];
+
+  const tasks =
+    tasksResult.data || [];
+
+
+  const now = new Date();
+
+  const today = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate()
+  );
+
+  const tomorrow = new Date(today);
+
+  tomorrow.setDate(
+    tomorrow.getDate() + 1
+  );
+
+
+  function isToday(value) {
+
+    if (!value) return false;
+
+    const date =
+      new Date(value);
+
+    return (
+      date >= today &&
+      date < tomorrow
+    );
+
+  }
+
+
+  function isOverdue(value) {
+
+    if (!value) return false;
+
+    return new Date(value) < today;
+
+  }
+
+
+  const todayFollowups =
+    leads.filter(function(lead) {
+
+      return isToday(
+        lead.next_follow_up
+      );
+
+    });
+
+
+  const overdueFollowups =
+    leads.filter(function(lead) {
+
+      return isOverdue(
+        lead.next_follow_up
+      );
+
+    });
+
+
+  const pendingTasks =
+    tasks.filter(function(task) {
+
+      return task.status !==
+        "Completed";
+
+    });
+
+
+  const overdueTasks =
+    pendingTasks.filter(function(task) {
+
+      return isOverdue(
+        task.due_date
+      );
+
+    });
+
+
+  document.getElementById(
+    "todayFollowupsCount"
+  ).textContent =
+    todayFollowups.length;
+
+
+  document.getElementById(
+    "pendingTasksCount"
+  ).textContent =
+    pendingTasks.length;
+
+
+  document.getElementById(
+    "overdueCount"
+  ).textContent =
+    overdueFollowups.length +
+    overdueTasks.length;
+
+
+  const actions = [];
+
+
+  overdueFollowups.forEach(function(lead) {
+
+    actions.push({
+
+      type: "followup",
+
+      priority: 1,
+
+      title:
+        lead.full_name ||
+        "Unnamed Lead",
+
+      subtitle:
+        "⚠️ Overdue Follow-up • " +
+        formatDate(
+          lead.next_follow_up
+        ),
+
+      leadId: lead.id
+
+    });
+
+  });
+
+
+  overdueTasks.forEach(function(task) {
+
+    actions.push({
+
+      type: "task",
+
+      priority: 2,
+
+      title:
+        task.title ||
+        "Task",
+
+      subtitle:
+        "⚠️ Overdue Task • " +
+        formatDate(
+          task.due_date
+        ),
+
+      taskId: task.id
+
+    });
+
+  });
+
+
+  todayFollowups.forEach(function(lead) {
+
+    actions.push({
+
+      type: "followup",
+
+      priority: 3,
+
+      title:
+        lead.full_name ||
+        "Unnamed Lead",
+
+      subtitle:
+        "📞 Follow-up Today • " +
+        formatDate(
+          lead.next_follow_up
+        ),
+
+      leadId: lead.id
+
+    });
+
+  });
+
+
+  pendingTasks
+    .filter(function(task) {
+
+      return isToday(
+        task.due_date
+      );
+
+    })
+    .forEach(function(task) {
+
+      actions.push({
+
+        type: "task",
+
+        priority: 4,
+
+        title:
+          task.title ||
+          "Task",
+
+        subtitle:
+          "📋 Task Today • " +
+          formatDate(
+            task.due_date
+          ),
+
+        taskId: task.id
+
+      });
+
+    });
+
+
+  actions.sort(function(a, b) {
+
+    return a.priority - b.priority;
+
+  });
+
+
+  const container =
+    document.getElementById(
+      "priorityActions"
+    );
+
+
+  if (!actions.length) {
+
+    container.innerHTML = `
+
+      <div class="empty">
+
+        🎉 No urgent actions.
+        You are all caught up!
+
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+
+  container.innerHTML =
+    actions
+      .slice(0, 10)
+      .map(function(item) {
+
+        let button = "";
+
+
+        if (
+          item.type ===
+          "followup"
+        ) {
+
+          button = `
+
+            <button
+              class="btn-primary"
+              onclick="
+                completeFollowup(
+                  ${Number(item.leadId)}
+                )
+              "
+            >
+              Follow-up
+            </button>
+
+          `;
+
+        } else {
+
+          button = `
+
+            <button
+              class="btn-primary"
+              onclick="
+                completeTask(
+                  ${Number(item.taskId)}
+                )
+              "
+            >
+              Complete
+            </button>
+
+          `;
+
+        }
+
+
+        return `
+
+          <div
+            style="
+              display:flex;
+              justify-content:space-between;
+              align-items:center;
+              gap:15px;
+              padding:14px 0;
+              border-bottom:1px solid #eee;
+            "
+          >
+
+            <div>
+
+              <strong>
+                ${escapeHtml(item.title)}
+              </strong>
+
+              <div
+                class="muted"
+                style="margin-top:4px"
+              >
+
+                ${escapeHtml(
+                  item.subtitle
+                )}
+
+              </div>
+
+            </div>
+
+            ${button}
+
+          </div>
+
+        `;
+
+      })
+      .join("");
+
+}
 </script>
 
 <div id="followupModal" class="followup-modal">
