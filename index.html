@@ -143,6 +143,14 @@ button{border:0;border-radius:8px;padding:10px 14px;cursor:pointer}.btn-primary{
   </div>
   <div id="backupResult" class="import-result"></div>
 </div>
+<div class="card">
+  <h2>Restore CRM Backup</h2>
+  <p class="muted">Select a Future Secure Providers CRM backup JSON file. Existing records are preserved; matching IDs are skipped to avoid accidental overwrite.</p>
+  <div class="import-export-actions">
+    <label class="btn-secondary file-label">📂 Select Backup File<input type="file" id="backupRestoreFile" accept=".json,application/json" onchange="handleBackupRestore(event)"></label>
+  </div>
+  <div id="restoreResult" class="import-result"></div>
+</div>
 </section>
 
 </div></main></div>
@@ -187,6 +195,62 @@ function isoToLocalDateTime(value){
 function showMessage(text,type){const m=formMessage;m.textContent=text;m.className="message "+type;setTimeout(()=>m.className="message",4000)}
 function openNewLead(){leadForm.reset();delete leadForm.dataset.editId;leadFormTitle.textContent="Add New Lead";saveLeadButton.textContent="Save Lead";showPage("addLead",document.querySelector('[data-page="addLead"]'))}
 
+async function handleBackupRestore(event){
+ const file=event.target.files?.[0],result=document.getElementById("restoreResult");
+ if(!file)return;
+ result.textContent="Reading backup...";
+ try{
+  const text=await file.text();
+  const backup=JSON.parse(text);
+  if(!backup?.data || !Array.isArray(backup.data.leads) || !Array.isArray(backup.data.tasks) || !Array.isArray(backup.data.lead_activities)){
+   throw new Error("This is not a valid Future Secure Providers CRM backup file.");
+  }
+  const leadCount=backup.data.leads.length,taskCount=backup.data.tasks.length,activityCount=backup.data.lead_activities.length;
+  if(!confirm(`Restore this backup?\n\nLeads: ${leadCount}\nTasks: ${taskCount}\nActivities: ${activityCount}\n\nExisting records will be preserved. Matching IDs will be skipped.`)){
+   result.textContent="Restore cancelled.";return;
+  }
+  result.textContent="Restoring leads...";
+  const existingLeads=(await supabaseClient.from("leads").select("id")).data||[];
+  const leadIds=new Set(existingLeads.map(x=>String(x.id)));
+  const leadsToInsert=backup.data.leads.filter(x=>x.id==null||!leadIds.has(String(x.id)));
+  let leadsAdded=0,tasksAdded=0,activitiesAdded=0,skippedLeads=leadCount-leadsToInsert.length,skippedTasks=0,skippedActivities=0;
+
+  // Preserve IDs only when possible; otherwise insert without id so Supabase generates one.
+  for(const row of leadsToInsert){
+   const payload={...row};
+   delete payload.id;
+   const {error}=await supabaseClient.from("leads").insert([payload]);
+   if(error)throw new Error("Lead restore failed: "+error.message);
+   leadsAdded++;
+  }
+
+  result.textContent="Restoring tasks...";
+  const existingTasks=(await supabaseClient.from("tasks").select("id")).data||[];
+  const taskIds=new Set(existingTasks.map(x=>String(x.id)));
+  for(const row of backup.data.tasks){
+   if(row.id!=null&&taskIds.has(String(row.id))){skippedTasks++;continue}
+   const payload={...row};delete payload.id;
+   const {error}=await supabaseClient.from("tasks").insert([payload]);
+   if(error){skippedTasks++;continue}
+   tasksAdded++;
+  }
+
+  result.textContent="Restoring activity history...";
+  const existingActivities=(await supabaseClient.from("lead_activities").select("id")).data||[];
+  const activityIds=new Set(existingActivities.map(x=>String(x.id)));
+  for(const row of backup.data.lead_activities){
+   if(row.id!=null&&activityIds.has(String(row.id))){skippedActivities++;continue}
+   const payload={...row};delete payload.id;
+   const {error}=await supabaseClient.from("lead_activities").insert([payload]);
+   if(error){skippedActivities++;continue}
+   activitiesAdded++;
+  }
+
+  await loadLeads();await loadPipeline();await loadTasks();
+  result.textContent=`Restore complete: ${leadsAdded} leads, ${tasksAdded} tasks, ${activitiesAdded} activities added. Skipped: ${skippedLeads} leads, ${skippedTasks} tasks, ${skippedActivities} activities.`;
+ }catch(err){result.textContent="Restore failed: "+(err.message||err)}
+ finally{event.target.value=""}
+}
 async function createCRMBackup(){
  const result=document.getElementById("backupResult");
  result.textContent="Creating backup...";
