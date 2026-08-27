@@ -388,7 +388,71 @@ async function handleLeadCSVImport(event){
 let allLeadsCache=[];
 function getLocalDateKey(value){if(!value)return "";const d=new Date(value);if(isNaN(d))return "";const p=n=>String(n).padStart(2,"0");return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;}
 function populateLeadFilters(){const city=document.getElementById("filterCity"),source=document.getElementById("filterSource");if(!city||!source)return;const cv=city.value,sv=source.value;const cities=[...new Set(allLeadsCache.map(x=>(x.city||"").trim()).filter(Boolean))].sort();const sources=[...new Set(allLeadsCache.map(x=>(x.lead_source||"").trim()).filter(Boolean))].sort();city.innerHTML='<option value="">All Cities</option>'+cities.map(x=>`<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join("");source.innerHTML='<option value="">All Sources</option>'+sources.map(x=>`<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join("");city.value=cv;source.value=sv;}
-function applyLeadFilters(){const status=document.getElementById("filterStatus")?.value||"",city=document.getElementById("filterCity")?.value||"",source=document.getElementById("filterSource")?.value||"",date=document.getElementById("filterFollowupDate")?.value||"";const rows=allLeadsCache.filter(x=>(!status||(x.status||"New")===status)&&(!city||(x.city||"").trim()===city)&&(!source||(x.lead_source||"").trim()===source)&&(!date||getLocalDateKey(x.next_follow_up)===date));const count=document.getElementById("filteredLeadCount");if(count)count.textContent=rows.length;renderLeads(rows);}
+function applyLeadFilters() {
+
+    const search = (
+        document.getElementById("leadSearch")?.value || ""
+    ).trim().toLowerCase();
+
+    const status =
+        document.getElementById("filterStatus")?.value || "";
+
+    const city =
+        document.getElementById("filterCity")?.value || "";
+
+    const source =
+        document.getElementById("filterSource")?.value || "";
+
+    const date =
+        document.getElementById("filterFollowupDate")?.value || "";
+
+    const rows = allLeadsCache.filter(x => {
+
+        const name = (x.full_name || "").toLowerCase();
+
+        const mobile = String(
+            x.mobile_number || ""
+        ).toLowerCase();
+
+        const matchesSearch =
+            !search ||
+            name.includes(search) ||
+            mobile.includes(search);
+
+        const matchesStatus =
+            !status ||
+            (x.status || "New") === status;
+
+        const matchesCity =
+            !city ||
+            (x.city || "").trim() === city;
+
+        const matchesSource =
+            !source ||
+            (x.lead_source || "").trim() === source;
+
+        const matchesDate =
+            !date ||
+            getLocalDateKey(x.next_follow_up) === date;
+
+        return (
+            matchesSearch &&
+            matchesStatus &&
+            matchesCity &&
+            matchesSource &&
+            matchesDate
+        );
+    });
+
+    const count =
+        document.getElementById("filteredLeadCount");
+
+    if (count) {
+        count.textContent = rows.length;
+    }
+
+    renderLeads(rows);
+}
 function clearLeadFilters(){filterStatus.value="";filterCity.value="";filterSource.value="";filterFollowupDate.value="";applyLeadFilters();}
 async function loadLeads(){
 const {data,error}=await supabaseClient.from("leads").select("*").order("created_at",{ascending:false});
@@ -398,7 +462,9 @@ const rows=data||[];allLeadsCache=rows;populateLeadFilters();applyLeadFilters();
 function updateDashboard(rows){totalLeads.textContent=rows.length;newLeads.textContent=rows.filter(x=>x.status==="New").length;followupCount.textContent=rows.filter(x=>x.next_follow_up).length;convertedCount.textContent=rows.filter(x=>x.status==="Converted").length}
 function renderRecent(rows){recentLeads.innerHTML=rows.slice(0,5).map(x=>`<tr onclick="viewLead(${Number(x.id)})" style="cursor:pointer"><td>${escapeHtml(x.full_name)}</td><td>${escapeHtml(x.mobile_number)}</td><td>${escapeHtml(x.city||"-")}</td><td><span class="status">${escapeHtml(x.status||"New")}</span></td></tr>`).join("")||`<tr><td colspan="4" class="empty">No leads found</td></tr>`}
 function renderLeads(rows){leadsTable.innerHTML=rows.map(x=>`<tr><td>${escapeHtml(x.full_name)}</td><td>${escapeHtml(x.mobile_number)}</td><td>${escapeHtml(x.city||"-")}</td><td>${escapeHtml(x.lead_source||"-")}</td><td><span class="status">${escapeHtml(x.status||"New")}</span></td><td>${formatDate(x.next_follow_up)}</td><td><div class="actions"><button class="btn-secondary" onclick="viewLead(${Number(x.id)})">View</button><button class="btn-edit" onclick="editLead(${Number(x.id)})">Edit</button><button class="btn-danger" onclick="deleteLead(${Number(x.id)})">Delete</button></div></td></tr>`).join("")||`<tr><td colspan="7" class="empty">No leads found</td></tr>`}
-async function searchLeads(v){const q=(v||"").trim();if(!q)return loadLeads();const safe=q.replace(/[%(),]/g,"");const {data,error}=await supabaseClient.from("leads").select("*").or(`full_name.ilike.%${safe}%,mobile_number.ilike.%${safe}%`).order("created_at",{ascending:false});if(!error)renderLeads(data||[])}
+function searchLeads(v) {
+    applyLeadFilters();
+}
 
 async function addLeadActivity(leadId,activityType,description){
   if(!leadId)return;
