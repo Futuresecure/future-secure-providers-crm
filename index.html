@@ -135,6 +135,14 @@ button{border:0;border-radius:8px;padding:10px 14px;cursor:pointer}.btn-primary{
   </div>
   <div id="importResult" class="import-result"></div>
 </div>
+<div class="card">
+  <h2>Backup CRM Data</h2>
+  <p class="muted">Create a complete backup of Leads, Tasks and Activity History as a JSON file.</p>
+  <div class="import-export-actions">
+    <button class="btn-primary" type="button" onclick="createCRMBackup()">💾 Create Backup</button>
+  </div>
+  <div id="backupResult" class="import-result"></div>
+</div>
 </section>
 
 </div></main></div>
@@ -179,6 +187,36 @@ function isoToLocalDateTime(value){
 function showMessage(text,type){const m=formMessage;m.textContent=text;m.className="message "+type;setTimeout(()=>m.className="message",4000)}
 function openNewLead(){leadForm.reset();delete leadForm.dataset.editId;leadFormTitle.textContent="Add New Lead";saveLeadButton.textContent="Save Lead";showPage("addLead",document.querySelector('[data-page="addLead"]'))}
 
+async function createCRMBackup(){
+ const result=document.getElementById("backupResult");
+ result.textContent="Creating backup...";
+ try{
+  const [leadsRes,tasksRes,activitiesRes]=await Promise.all([
+   supabaseClient.from("leads").select("*").order("id"),
+   supabaseClient.from("tasks").select("*").order("id"),
+   supabaseClient.from("lead_activities").select("*").order("id")
+  ]);
+  if(leadsRes.error)throw leadsRes.error;
+  if(tasksRes.error)throw tasksRes.error;
+  if(activitiesRes.error)throw activitiesRes.error;
+  const backup={
+   app:"Future Secure Providers CRM",
+   backup_created_at:new Date().toISOString(),
+   version:"1.0",
+   data:{
+    leads:leadsRes.data||[],
+    tasks:tasksRes.data||[],
+    lead_activities:activitiesRes.data||[]
+   }
+  };
+  const blob=new Blob([JSON.stringify(backup,null,2)],{type:"application/json"});
+  const url=URL.createObjectURL(blob),a=document.createElement("a");
+  a.href=url;
+  a.download=`future-secure-providers-crm-backup-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();URL.revokeObjectURL(url);
+  result.textContent=`Backup created successfully: ${(backup.data.leads||[]).length} leads, ${(backup.data.tasks||[]).length} tasks, ${(backup.data.lead_activities||[]).length} activities.`;
+ }catch(err){result.textContent="Backup failed: "+(err.message||err)}
+}
 function csvEscape(value){
  const text=String(value??"");
  return `"${text.replace(/"/g,'""')}"`;
