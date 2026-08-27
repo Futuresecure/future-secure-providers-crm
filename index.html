@@ -746,7 +746,7 @@ async function completeTask(id) {
 
     // If linked lead exists, open follow-up popup first
     if (task.lead_id) {
-        openFollowupModal(task.lead_id, id);
+        openFollowupModal(task.lead_id);;
         return;
     }
 
