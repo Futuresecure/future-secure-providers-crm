@@ -517,7 +517,17 @@ function getLeadSourceFromURL(){
 }
 
 leadForm.addEventListener("submit",async e=>{
-e.preventDefault();const editId=leadForm.dataset.editId;const payload={full_name:leadName.value.trim(),mobile_number:leadPhone.value.trim(),city:leadCity.value.trim()||null,lead_source:editId?leadSource.value:getLeadSourceFromURL(),status:leadStatus.value,next_follow_up:localDateTimeToISOString(leadFollowUp.value),notes:leadNotes.value.trim()||null};
+e.preventDefault();
+const editId=leadForm.dataset.editId;
+const detectedSource=getLeadSourceFromURL();
+console.log("FORM SUBMIT DEBUG:");
+console.log("  editId:", editId);
+console.log("  leadSource.value:", leadSource.value);
+console.log("  detectedSource:", detectedSource);
+const sourceToUse=editId?leadSource.value:detectedSource;
+console.log("  sourceToUse:", sourceToUse);
+const payload={full_name:leadName.value.trim(),mobile_number:leadPhone.value.trim(),city:leadCity.value.trim()||null,lead_source:sourceToUse,status:leadStatus.value,next_follow_up:localDateTimeToISOString(leadFollowUp.value),notes:leadNotes.value.trim()||null};
+console.log("PAYLOAD lead_source:", payload.lead_source);
 if(!payload.full_name||!payload.mobile_number)return showMessage("Please enter customer name and mobile number.","error");
 const {data:duplicates,error:duplicateError}=await supabaseClient.from("leads").select("id,full_name,mobile_number").eq("mobile_number",payload.mobile_number);
 if(duplicateError)return showMessage("Error checking duplicate mobile: "+duplicateError.message,"error");
