@@ -6,11 +6,11 @@ const RUNTIME_CACHE = 'fsp-crm-runtime-v1';
 
 // Files to cache for offline app shell
 const ASSETS_TO_CACHE = [
-  '/',
-  '/index.html',
-  '/crm-auto-lead.js',
-  '/manifest.json',
-  '/logo.jpg'
+  './',
+  './crm.html',
+  './crm-auto-lead.js',
+  './manifest.json',
+  './logo.jpg'
 ];
 
 // Install event - cache app shell
