@@ -4,6 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Future Secure Providers CRM</title>
+<meta name="description" content="Lead management and CRM system for Future Secure Providers insurance">
+<meta name="theme-color" content="#247d78">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="FSP CRM">
+<link rel="apple-touch-icon" href="logo.jpg">
+<link rel="icon" type="image/x-icon" href="logo.jpg">
+<link rel="manifest" href="manifest.json">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:Arial,sans-serif}
@@ -53,7 +61,7 @@ button{border:0;border-radius:8px;padding:10px 14px;cursor:pointer}.btn-primary{
 <body>
 <div class="app">
 <aside class="sidebar">
-<div class="brand">Future Secure<br>Providers<span>CRM SYSTEM</span></div>
+<div class="brand"><img src="logo.jpg" alt="Future Secure Providers" style="width:100%;max-width:80px;height:auto;margin-bottom:8px;border-radius:6px;">Future Secure<br>Providers<span>CRM SYSTEM</span></div>
 <div class="menu-label">MAIN MENU</div>
 <div class="nav-item active" data-page="dashboard" onclick="showPage('dashboard',this)">📊 Dashboard</div>
 <div class="nav-item" data-page="leads" onclick="showPage('leads',this);loadLeads()">👥 Leads</div>
@@ -128,7 +136,7 @@ button{border:0;border-radius:8px;padding:10px 14px;cursor:pointer}.btn-primary{
 <div class="form-group"><label>Full Name *</label><input id="leadName" required placeholder="Customer name"></div>
 <div class="form-group"><label>Mobile Number *</label><input id="leadPhone" required placeholder="Mobile number"></div>
 <div class="form-group"><label>City</label><input id="leadCity" placeholder="City"></div>
-<div class="form-group"><label>Lead Source</label><select id="leadSource"><option>Manual</option><option>Website</option><option>Meta Ads</option><option>Facebook</option><option>Instagram</option><option>WhatsApp</option><option>Referral</option><option>Other</option></select></div>
+<div class="form-group"><label>Lead Source</label><select id="leadSource"><option>Manual</option><option>Website</option><option>Facebook</option><option>Instagram</option><option>WhatsApp</option><option>Referral</option><option>Other</option></select></div>
 <div class="form-group"><label>Status</label><select id="leadStatus"><option>New</option><option>Contacted</option><option>Follow-up</option><option>Interested</option><option>Converted</option><option>Not Interested</option></select></div>
 <div class="form-group"><label>Next Follow-up</label><input type="datetime-local" id="leadFollowUp"></div>
 <div class="form-group full"><label>Notes</label><textarea id="leadNotes" placeholder="Enter customer details or notes..."></textarea></div>
@@ -495,32 +503,10 @@ async function loadLeadActivities(leadId){
   if(error){box.innerHTML=`<div class="empty">Unable to load activity history</div>`;return}
   box.innerHTML=(data||[]).map(a=>`<div class="detail-box" style="margin-bottom:8px"><strong>${escapeHtml(a.activity_type||"Activity")}</strong><div style="margin-top:4px">${escapeHtml(a.description||"-")}</div><small style="display:block;margin-top:6px;color:var(--muted)">${formatDate(a.created_at)}</small></div>`).join("")||'<div class="empty">No activity history yet</div>';
 }
-// Get lead source from URL query parameter (for website quote forms)
-function getLeadSourceFromURL(){
-  const params=new URLSearchParams(window.location.search);
-  const source=params.get("source");
-  if(source==="MetaAds")return "Meta Ads";
-  return "Website";
-}
-
 leadForm.addEventListener("submit",async e=>{
-e.preventDefault();
-const editId=leadForm.dataset.editId;
-
-// For NEW leads: read URL parameter directly
-let leadSourceValue=leadSource.value;
-if(!editId){
-  const urlParams=new URLSearchParams(window.location.search);
-  const sourceParam=urlParams.get("source");
-  if(sourceParam==="MetaAds"){
-    leadSourceValue="Meta Ads";
-  }else{
-    leadSourceValue="Website";
-  }
-}
-
-const payload={full_name:leadName.value.trim(),mobile_number:leadPhone.value.trim(),city:leadCity.value.trim()||null,lead_source:leadSourceValue,status:leadStatus.value,next_follow_up:localDateTimeToISOString(leadFollowUp.value),notes:leadNotes.value.trim()||null};
+e.preventDefault();const payload={full_name:leadName.value.trim(),mobile_number:leadPhone.value.trim(),city:leadCity.value.trim()||null,lead_source:leadSource.value,status:leadStatus.value,next_follow_up:localDateTimeToISOString(leadFollowUp.value),notes:leadNotes.value.trim()||null};
 if(!payload.full_name||!payload.mobile_number)return showMessage("Please enter customer name and mobile number.","error");
+const editId=leadForm.dataset.editId;
 const {data:duplicates,error:duplicateError}=await supabaseClient.from("leads").select("id,full_name,mobile_number").eq("mobile_number",payload.mobile_number);
 if(duplicateError)return showMessage("Error checking duplicate mobile: "+duplicateError.message,"error");
 const duplicate=(duplicates||[]).find(x=>String(x.id)!==String(editId||""));
@@ -1335,5 +1321,23 @@ function toggleSidebar(){const sidebar=document.querySelector('.sidebar');const 
 function closeSidebar(){const sidebar=document.querySelector('.sidebar');const overlay=document.querySelector('.sidebar-overlay');sidebar.classList.remove('show');overlay.classList.remove('show')}
 document.querySelectorAll('.nav-item').forEach(item=>{item.addEventListener('click',()=>{if(window.innerWidth<=768){closeSidebar()}})})
 </script>
+
+<!-- PWA Service Worker Registration -->
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('service-worker.js')
+      .then(registration=>{
+        console.log('[PWA] Service Worker registered successfully:', registration);
+      })
+      .catch(error=>{
+        console.log('[PWA] Service Worker registration failed:', error);
+      });
+  });
+}else{
+  console.log('[PWA] Service Worker not supported in this browser');
+}
+</script>
+
 </body>
 </html>
