@@ -111,7 +111,16 @@ button{border:0;border-radius:8px;padding:10px 14px;cursor:pointer}.btn-primary{
   </div>
 
 </div>
-<section id="dashboardPage" class="page"></section>
+<section id="dashboardPage" class="page">
+<div class="stats">
+<div class="stat-card"><h3>Total Leads</h3><div class="number" id="totalLeads">0</div></div>
+<div class="stat-card"><h3>New Leads</h3><div class="number" id="newLeads">0</div></div>
+<div class="stat-card"><h3>Follow-ups</h3><div class="number" id="followupCount">0</div></div>
+<div class="stat-card"><h3>Converted</h3><div class="number" id="convertedCount">0</div></div>
+</div>
+
+<div class="card"><div class="card-header"><h2>Recent Leads</h2><button class="btn-secondary" onclick="showPage('leads',document.querySelector('[data-page=leads]'));loadLeads()">View All</button></div><div class="table-wrapper"><table><thead><tr><th>Name</th><th>Mobile</th><th>City</th><th>Status</th></tr></thead><tbody id="recentLeads"></tbody></table></div></div>
+</section>
 
 <section id="addLeadPage" class="page hidden"><div class="card">
 <div class="card-header"><h2 id="leadFormTitle">Add New Lead</h2></div>
@@ -119,7 +128,7 @@ button{border:0;border-radius:8px;padding:10px 14px;cursor:pointer}.btn-primary{
 <div class="form-group"><label>Full Name *</label><input id="leadName" required placeholder="Customer name"></div>
 <div class="form-group"><label>Mobile Number *</label><input id="leadPhone" required placeholder="Mobile number"></div>
 <div class="form-group"><label>City</label><input id="leadCity" placeholder="City"></div>
-<div class="form-group"><label>Lead Source</label><select id="leadSource"><option>Manual</option><option>Website</option><option>Facebook</option><option>Instagram</option><option>WhatsApp</option><option>Referral</option><option>Other</option></select></div>
+<div class="form-group"><label>Lead Source</label><select id="leadSource"><option>Manual</option><option>Website</option><option>Meta Ads</option><option>Facebook</option><option>Instagram</option><option>WhatsApp</option><option>Referral</option><option>Other</option></select></div>
 <div class="form-group"><label>Status</label><select id="leadStatus"><option>New</option><option>Contacted</option><option>Follow-up</option><option>Interested</option><option>Converted</option><option>Not Interested</option></select></div>
 <div class="form-group"><label>Next Follow-up</label><input type="datetime-local" id="leadFollowUp"></div>
 <div class="form-group full"><label>Notes</label><textarea id="leadNotes" placeholder="Enter customer details or notes..."></textarea></div>
@@ -463,7 +472,7 @@ function clearLeadFilters(){
 async function loadLeads(){
 const {data,error}=await supabaseClient.from("leads").select("*").order("created_at",{ascending:false});
 if(error){leadsTable.innerHTML=`<tr><td colspan="7" class="empty">${escapeHtml(error.message)}</td></tr>`;return}
-const rows=data||[];allLeadsCache=rows;populateLeadFilters();applyLeadFilters();renderReports(rows);loadFollowups(rows)
+const rows=data||[];allLeadsCache=rows;populateLeadFilters();applyLeadFilters();renderRecent(rows);updateDashboard(rows);renderReports(rows);loadFollowups(rows)
 }
 function updateDashboard(rows){totalLeads.textContent=rows.length;newLeads.textContent=rows.filter(x=>x.status==="New").length;followupCount.textContent=rows.filter(x=>x.next_follow_up).length;convertedCount.textContent=rows.filter(x=>x.status==="Converted").length}
 function renderRecent(rows){recentLeads.innerHTML=rows.slice(0,5).map(x=>`<tr onclick="viewLead(${Number(x.id)})" style="cursor:pointer"><td>${escapeHtml(x.full_name)}</td><td>${escapeHtml(x.mobile_number)}</td><td>${escapeHtml(x.city||"-")}</td><td><span class="status">${escapeHtml(x.status||"New")}</span></td></tr>`).join("")||`<tr><td colspan="4" class="empty">No leads found</td></tr>`}
@@ -486,10 +495,32 @@ async function loadLeadActivities(leadId){
   if(error){box.innerHTML=`<div class="empty">Unable to load activity history</div>`;return}
   box.innerHTML=(data||[]).map(a=>`<div class="detail-box" style="margin-bottom:8px"><strong>${escapeHtml(a.activity_type||"Activity")}</strong><div style="margin-top:4px">${escapeHtml(a.description||"-")}</div><small style="display:block;margin-top:6px;color:var(--muted)">${formatDate(a.created_at)}</small></div>`).join("")||'<div class="empty">No activity history yet</div>';
 }
+// Get lead source from URL query parameter (for website quote forms)
+function getLeadSourceFromURL(){
+  const params=new URLSearchParams(window.location.search);
+  const source=params.get("source");
+  if(source==="MetaAds")return "Meta Ads";
+  return "Website";
+}
+
 leadForm.addEventListener("submit",async e=>{
-e.preventDefault();const payload={full_name:leadName.value.trim(),mobile_number:leadPhone.value.trim(),city:leadCity.value.trim()||null,lead_source:leadSource.value,status:leadStatus.value,next_follow_up:localDateTimeToISOString(leadFollowUp.value),notes:leadNotes.value.trim()||null};
-if(!payload.full_name||!payload.mobile_number)return showMessage("Please enter customer name and mobile number.","error");
+e.preventDefault();
 const editId=leadForm.dataset.editId;
+
+// For NEW leads: read URL parameter directly
+let leadSourceValue=leadSource.value;
+if(!editId){
+  const urlParams=new URLSearchParams(window.location.search);
+  const sourceParam=urlParams.get("source");
+  if(sourceParam==="MetaAds"){
+    leadSourceValue="Meta Ads";
+  }else{
+    leadSourceValue="Website";
+  }
+}
+
+const payload={full_name:leadName.value.trim(),mobile_number:leadPhone.value.trim(),city:leadCity.value.trim()||null,lead_source:leadSourceValue,status:leadStatus.value,next_follow_up:localDateTimeToISOString(leadFollowUp.value),notes:leadNotes.value.trim()||null};
+if(!payload.full_name||!payload.mobile_number)return showMessage("Please enter customer name and mobile number.","error");
 const {data:duplicates,error:duplicateError}=await supabaseClient.from("leads").select("id,full_name,mobile_number").eq("mobile_number",payload.mobile_number);
 if(duplicateError)return showMessage("Error checking duplicate mobile: "+duplicateError.message,"error");
 const duplicate=(duplicates||[]).find(x=>String(x.id)!==String(editId||""));
