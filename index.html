@@ -9,9 +9,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="FSP CRM">
-<link rel="apple-touch-icon" href="logo.jpg">
-<link rel="icon" type="image/x-icon" href="logo.jpg">
-<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="./logo.jpg">
+<link rel="icon" type="image/x-icon" href="./logo.jpg">
+<link rel="manifest" href="./manifest.json">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:Arial,sans-serif}
@@ -1326,7 +1326,7 @@ document.querySelectorAll('.nav-item').forEach(item=>{item.addEventListener('cli
 <script>
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('service-worker.js')
+    navigator.serviceWorker.register('./service-worker.js')
       .then(registration=>{
         console.log('[PWA] Service Worker registered successfully:', registration);
       })
