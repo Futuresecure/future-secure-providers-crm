@@ -4,6 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Future Secure Providers CRM</title>
+<meta name="description" content="Lead management and CRM system for Future Secure Providers insurance">
+<meta name="theme-color" content="#247d78">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="FSP CRM">
+<link rel="apple-touch-icon" href="./logo.jpg">
+<link rel="icon" type="image/x-icon" href="./logo.jpg">
+<link rel="manifest" href="./manifest.json">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:Arial,sans-serif}
@@ -53,7 +61,7 @@ button{border:0;border-radius:8px;padding:10px 14px;cursor:pointer}.btn-primary{
 <body>
 <div class="app">
 <aside class="sidebar">
-<div class="brand">Future Secure<br>Providers<span>CRM SYSTEM</span></div>
+<div class="brand"><img src="./logo.jpg" alt="Future Secure Providers" style="width:100%;max-width:80px;height:auto;margin-bottom:8px;border-radius:6px;">Future Secure<br>Providers<span>CRM SYSTEM</span></div>
 <div class="menu-label">MAIN MENU</div>
 <div class="nav-item active" data-page="dashboard" onclick="showPage('dashboard',this)">📊 Dashboard</div>
 <div class="nav-item" data-page="leads" onclick="showPage('leads',this);loadLeads()">👥 Leads</div>
@@ -1335,5 +1343,23 @@ function toggleSidebar(){const sidebar=document.querySelector('.sidebar');const 
 function closeSidebar(){const sidebar=document.querySelector('.sidebar');const overlay=document.querySelector('.sidebar-overlay');sidebar.classList.remove('show');overlay.classList.remove('show')}
 document.querySelectorAll('.nav-item').forEach(item=>{item.addEventListener('click',()=>{if(window.innerWidth<=768){closeSidebar()}})})
 </script>
+
+<!-- PWA Service Worker Registration -->
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('./service-worker.js')
+      .then(registration=>{
+        console.log('[PWA] Service Worker registered successfully:', registration);
+      })
+      .catch(error=>{
+        console.log('[PWA] Service Worker registration failed:', error);
+      });
+  });
+}else{
+  console.log('[PWA] Service Worker not supported in this browser');
+}
+</script>
+
 </body>
 </html>
