@@ -11,6 +11,30 @@
   "icons": [
     {
       "src": "./logo.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "./logo.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "maskable"
+    },
+    {
+      "src": "./logo.jpg",
+      "sizes": "256x256",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "./logo.jpg",
+      "sizes": "256x256",
+      "type": "image/jpeg",
+      "purpose": "maskable"
+    },
+    {
+      "src": "./logo.jpg",
       "sizes": "512x512",
       "type": "image/jpeg",
       "purpose": "any"
