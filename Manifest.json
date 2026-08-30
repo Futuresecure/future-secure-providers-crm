@@ -2,21 +2,21 @@
   "name": "Future Secure Providers CRM",
   "short_name": "FSP CRM",
   "description": "Lead management and CRM system for Future Secure Providers insurance",
-  "start_url": "/",
-  "scope": "/",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",
   "background_color": "#f4f6f9",
   "theme_color": "#247d78",
   "icons": [
     {
-      "src": "/logo.jpg",
+      "src": "./logo.jpg",
       "sizes": "512x512",
       "type": "image/jpeg",
       "purpose": "any"
     },
     {
-      "src": "/logo.jpg",
+      "src": "./logo.jpg",
       "sizes": "512x512",
       "type": "image/jpeg",
       "purpose": "maskable"
@@ -25,13 +25,13 @@
   "categories": ["business", "productivity"],
   "screenshots": [
     {
-      "src": "/logo.jpg",
+      "src": "./logo.jpg",
       "type": "image/jpeg",
       "sizes": "540x720",
       "form_factor": "narrow"
     },
     {
-      "src": "/logo.jpg",
+      "src": "./logo.jpg",
       "type": "image/jpeg",
       "sizes": "1280x720",
       "form_factor": "wide"
@@ -45,7 +45,7 @@
       "url": "/?page=dashboard",
       "icons": [
         {
-          "src": "/logo.jpg",
+          "src": "./logo.jpg",
           "sizes": "192x192",
           "type": "image/jpeg"
         }
@@ -58,7 +58,7 @@
       "url": "/?page=leads",
       "icons": [
         {
-          "src": "/logo.jpg",
+          "src": "./logo.jpg",
           "sizes": "192x192",
           "type": "image/jpeg"
         }
