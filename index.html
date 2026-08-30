@@ -463,7 +463,7 @@ function clearLeadFilters(){
 async function loadLeads(){
 const {data,error}=await supabaseClient.from("leads").select("*").order("created_at",{ascending:false});
 if(error){leadsTable.innerHTML=`<tr><td colspan="7" class="empty">${escapeHtml(error.message)}</td></tr>`;return}
-const rows=data||[];allLeadsCache=rows;populateLeadFilters();applyLeadFilters();renderRecent(rows);updateDashboard(rows);renderReports(rows);loadFollowups(rows)
+const rows=data||[];allLeadsCache=rows;populateLeadFilters();applyLeadFilters();updateDashboard(rows);renderReports(rows);loadFollowups(rows)
 }
 function updateDashboard(rows){totalLeads.textContent=rows.length;newLeads.textContent=rows.filter(x=>x.status==="New").length;followupCount.textContent=rows.filter(x=>x.next_follow_up).length;convertedCount.textContent=rows.filter(x=>x.status==="Converted").length}
 function renderRecent(rows){recentLeads.innerHTML=rows.slice(0,5).map(x=>`<tr onclick="viewLead(${Number(x.id)})" style="cursor:pointer"><td>${escapeHtml(x.full_name)}</td><td>${escapeHtml(x.mobile_number)}</td><td>${escapeHtml(x.city||"-")}</td><td><span class="status">${escapeHtml(x.status||"New")}</span></td></tr>`).join("")||`<tr><td colspan="4" class="empty">No leads found</td></tr>`}
