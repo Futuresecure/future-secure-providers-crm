@@ -56,6 +56,7 @@ button{border:0;border-radius:8px;padding:10px 14px;cursor:pointer}.btn-primary{
 @media(max-width:650px){.header{padding:12px;height:auto}.content{padding:12px}.form-grid{grid-template-columns:1fr}.stats{grid-template-columns:1fr}.search-input{width:100%;max-width:100%}.admin{font-size:11px}.header h1{font-size:18px}}
 .filter-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.filter-grid label{display:block;margin-bottom:6px;font-weight:600}.filter-grid select,.filter-grid input{width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;background:#fff}.filter-result{margin-top:14px;color:var(--muted)}@media(max-width:900px){.filter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:768px){.filter-grid{grid-template-columns:1fr}}@media(max-width:560px){.filter-grid{grid-template-columns:1fr}}
 .import-export-actions{display:flex;gap:12px;flex-wrap:wrap;margin:16px 0}.file-label{display:inline-flex;align-items:center;cursor:pointer}.file-label input{display:none}.import-help{padding:14px;border:1px solid var(--border);border-radius:8px;background:#fafafa;line-height:1.7}.import-result{margin-top:14px;font-weight:600}.muted{color:var(--muted)}
+.calendar-controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.calendar-month-year{font-size:16px;font-weight:700;min-width:140px;text-align:center}.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:20px}.calendar-day-header{padding:12px;text-align:center;font-weight:700;background:#f0f0f0;border-radius:6px}.calendar-cell{border:1px solid var(--border);border-radius:8px;min-height:100px;padding:8px;background:var(--card);overflow:hidden;position:relative}.calendar-cell.other-month{background:#fafafa;color:var(--muted)}.calendar-cell.today{border:2px solid var(--primary);background:#f0f8f7}.calendar-cell-date{font-weight:700;margin-bottom:4px;font-size:14px}.calendar-cell-appointments{font-size:12px}.appointment-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:4px;margin-bottom:2px}.appointment-dot.scheduled{background:#4ade80}.appointment-dot.completed{background:#3b82f6}.appointment-dot.cancelled{background:#ef4444}.appointment-badge{display:inline-block;padding:2px 6px;border-radius:4px;font-size:11px;white-space:nowrap;margin-right:3px;margin-bottom:2px}.appointment-badge.scheduled{background:#d1fae5;color:#065f46}.appointment-badge.completed{background:#dbeafe;color:#0c4a6e}.appointment-badge.cancelled{background:#fee2e2;color:#7f1d1d}.appointment-modal-body{padding:14px 0}.appointment-modal-body div{margin-bottom:12px}.appointment-modal-body strong{display:block;color:var(--muted);font-size:12px;margin-bottom:4px}@media(max-width:900px){.calendar-cell{min-height:80px}.calendar-cell-date{font-size:12px}.calendar-cell-appointments{font-size:10px}}@media(max-width:768px){.calendar-grid{gap:4px}.calendar-cell{min-height:70px;padding:6px}.calendar-day-header{padding:8px;font-size:12px}.calendar-controls{flex-direction:column;width:100%}.calendar-month-year{width:100%}}
 </style>
 </head>
 <body>
@@ -69,6 +70,7 @@ button{border:0;border-radius:8px;padding:10px 14px;cursor:pointer}.btn-primary{
 <div class="menu-label">MANAGEMENT</div>
 <div class="nav-item" data-page="followups" onclick="showPage('followups',this);loadFollowups()">📞 Follow-ups</div>
 <div class="nav-item" data-page="tasks" onclick="showPage('tasks',this);loadTasks()">🗓 Today's Tasks</div>
+<div class="nav-item" data-page="calendar" onclick="showPage('calendar',this);loadCalendar()">📅 Calendar</div>
 <div class="nav-item" data-page="reports" onclick="showPage('reports',this);loadLeads()">📊 Reports</div>
 <div class="nav-item" data-page="pipeline" onclick="showPage('pipeline',this);loadPipeline()">🎯 Pipeline</div>
 <div class="sidebar-bottom"><div class="nav-item" data-page="settings" onclick="showPage('settings',this)">⚙️ Settings</div></div>
@@ -163,6 +165,45 @@ button{border:0;border-radius:8px;padding:10px 14px;cursor:pointer}.btn-primary{
 </div>
 </section>
 
+<section id="calendarPage" class="page hidden">
+<div class="card">
+  <div class="card-header">
+    <h2>Appointment Calendar</h2>
+    <div class="calendar-controls">
+      <button class="btn-secondary" onclick="previousMonth()">← Previous</button>
+      <button class="btn-secondary" onclick="goToToday()">Today</button>
+      <button class="btn-secondary" onclick="nextMonth()">Next →</button>
+      <span class="calendar-month-year" id="calendarMonthYear"></span>
+    </div>
+  </div>
+  
+  <div class="calendar-wrapper">
+    <div class="calendar-grid" id="calendarGrid"></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h2 id="appointmentListTitle">Appointments This Month</h2>
+  </div>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Time</th>
+          <th>Customer Name</th>
+          <th>Mobile</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="appointmentsList"></tbody>
+    </table>
+  </div>
+</div>
+</section>
+
 <section id="reportsPage" class="page hidden">
 <div class="stats"><div class="stat-card"><h3>Conversion Rate</h3><div class="number" id="reportConversionRate">0%</div></div><div class="stat-card"><h3>Today's Leads</h3><div class="number" id="reportTodayLeads">0</div></div><div class="stat-card"><h3>This Week</h3><div class="number" id="reportWeekLeads">0</div></div><div class="stat-card"><h3>This Month</h3><div class="number" id="reportMonthLeads">0</div></div></div>
 <div class="card"><h2>Status-wise Leads</h2><div class="table-wrapper"><table><thead><tr><th>Status</th><th>Leads</th></tr></thead><tbody id="statusReportTable"></tbody></table></div></div>
@@ -219,6 +260,7 @@ const pageInfo={
 dashboard:["Dashboard","Welcome to Future Secure Providers CRM"],
 leads:["Leads","Manage all customer leads"],addLead:["Add New Lead","Create or update a customer lead"],
 followups:["Follow-ups","Manage scheduled follow-ups"],tasks:["Today's Tasks","Manage your daily activities"],
+calendar:["Calendar","View and manage appointments"],
 reports:["Reports","View CRM performance reports"],pipeline:["Lead Pipeline","Track leads by sales stage"],
 leadProfile:["Lead Profile","Customer details and activity"],settings:["Settings","CRM configuration"]};
 
@@ -1338,7 +1380,144 @@ async function loadSmartDashboard() {
 .task-completed{text-decoration:line-through;opacity:.65}
 </style>
 
+<div id="appointmentModal" class="followup-modal">
+  <div class="followup-modal-box">
+    <div class="followup-modal-header">
+      <h3>Appointment Details</h3>
+      <button type="button" class="modal-close" onclick="closeAppointmentModal()">×</button>
+    </div>
+    <div id="appointmentModalContent" class="appointment-modal-body">
+      <!-- Populated by JavaScript -->
+    </div>
+    <div class="followup-modal-actions">
+      <button type="button" class="btn-secondary" onclick="closeAppointmentModal()">Close</button>
+    </div>
+  </div>
+</div>
+
 <script>
+// ===== CALENDAR MODULE (Phase 3A - MOCK DATA ONLY) =====
+let mockAppointments=[
+{id:999,lead_id:29,customer_name:"Rajesh Kumar",mobile_number:"9898765432",appointment_date:"2026-09-05",appointment_time:"14:00",status:"Scheduled"},
+{id:1000,lead_id:29,customer_name:"Priya Sharma",mobile_number:"9898765433",appointment_date:"2026-09-08",appointment_time:"10:30",status:"Scheduled"},
+{id:1001,lead_id:29,customer_name:"Arjun Singh",mobile_number:"9898765434",appointment_date:"2026-09-12",appointment_time:"15:45",status:"Completed"},
+{id:1002,lead_id:29,customer_name:"Neha Patel",mobile_number:"9898765435",appointment_date:"2026-09-15",appointment_time:"11:00",status:"Scheduled"},
+{id:1003,lead_id:29,customer_name:"Vikram Reddy",mobile_number:"9898765436",appointment_date:"2026-09-18",appointment_time:"09:30",status:"Cancelled"},
+{id:1004,lead_id:29,customer_name:"Isha Verma",mobile_number:"9898765437",appointment_date:"2026-09-22",appointment_time:"16:00",status:"Scheduled"},
+];
+
+// Auto-initialize calendar to first month containing appointments
+function initializeCalendarMonth(){
+  if(mockAppointments.length===0)return new Date();
+  const firstApptDate=mockAppointments[0].appointment_date;
+  const [year,month,day]=firstApptDate.split("-");
+  return new Date(parseInt(year),parseInt(month)-1,1);
+}
+
+let currentCalendarMonth=initializeCalendarMonth();
+
+function loadCalendar(){renderCalendar();renderAppointmentsList()}
+function previousMonth(){currentCalendarMonth.setMonth(currentCalendarMonth.getMonth()-1);renderCalendar();renderAppointmentsList()}
+function nextMonth(){currentCalendarMonth.setMonth(currentCalendarMonth.getMonth()+1);renderCalendar();renderAppointmentsList()}
+function goToToday(){currentCalendarMonth=new Date();renderCalendar();renderAppointmentsList()}
+
+function renderCalendar(){
+const year=currentCalendarMonth.getFullYear(),month=currentCalendarMonth.getMonth();
+document.getElementById("calendarMonthYear").textContent=new Date(year,month).toLocaleString("en-IN",{month:"long",year:"numeric"});
+const firstDay=new Date(year,month,1),lastDay=new Date(year,month+1,0),prevLastDay=new Date(year,month,0);
+const firstDayOfWeek=firstDay.getDay(),lastDateOfMonth=lastDay.getDate(),lastDateOfPrevMonth=prevLastDay.getDate(),prevMonthDays=firstDayOfWeek;
+
+let html='<div class="calendar-day-header">Sun</div><div class="calendar-day-header">Mon</div><div class="calendar-day-header">Tue</div><div class="calendar-day-header">Wed</div><div class="calendar-day-header">Thu</div><div class="calendar-day-header">Fri</div><div class="calendar-day-header">Sat</div>';
+
+for(let x=prevMonthDays;x>0;x--){
+const date=lastDateOfPrevMonth-x+1;
+html+=`<div class="calendar-cell other-month"><div class="calendar-cell-date">${date}</div></div>`;
+}
+
+for(let date=1;date<=lastDateOfMonth;date++){
+const dateStr=`${year}-${String(month+1).padStart(2,"0")}-${String(date).padStart(2,"0")}`;
+const dayAppts=mockAppointments.filter(a=>a.appointment_date===dateStr);
+const isToday=new Date().toDateString()===new Date(year,month,date).toDateString();
+html+=`<div class="calendar-cell ${isToday?"today":""}" onclick="handleDateClick('${dateStr}')">
+<div class="calendar-cell-date">${date}</div>
+<div class="calendar-cell-appointments">
+${dayAppts.map(a=>`<span class="appointment-dot ${a.status.toLowerCase()}"></span>`).join("")}
+${dayAppts.length>0?`<div style="margin-top:4px;font-size:10px;">${dayAppts.length} appt${dayAppts.length>1?"s":""}</div>`:""}
+</div>
+</div>`;
+}
+
+const totalCells=prevMonthDays+lastDateOfMonth,nextMonthDays=42-totalCells;
+for(let date=1;date<=nextMonthDays;date++){
+html+=`<div class="calendar-cell other-month"><div class="calendar-cell-date">${date}</div></div>`;
+}
+
+document.getElementById("calendarGrid").innerHTML=html;
+}
+
+function renderAppointmentsList(){
+const year=currentCalendarMonth.getFullYear(),month=String(currentCalendarMonth.getMonth()+1).padStart(2,"0");
+const monthAppts=mockAppointments.filter(a=>a.appointment_date.startsWith(`${year}-${month}`)).sort((a,b)=>new Date(a.appointment_date)-new Date(b.appointment_date));
+
+const html=monthAppts.map(a=>{
+const dateObj=new Date(a.appointment_date);
+const formattedDate=dateObj.toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"});
+const statusClass=a.status.toLowerCase();
+return `<tr onclick="openAppointmentModal(${a.id});" style="cursor:pointer;">
+<td>${escapeHtml(formattedDate)}</td>
+<td>${escapeHtml(a.appointment_time)}</td>
+<td>${escapeHtml(a.customer_name)}</td>
+<td>${escapeHtml(a.mobile_number)}</td>
+<td><span class="appointment-badge ${statusClass}">${escapeHtml(a.status)}</span></td>
+<td><button class="btn-secondary" onclick="event.stopPropagation();openAppointmentModal(${a.id});">View</button></td>
+</tr>`;
+}).join("")||`<tr><td colspan="6" class="empty">No appointments this month</td></tr>`;
+
+document.getElementById("appointmentsList").innerHTML=html;
+}
+
+function handleDateClick(dateStr){
+const appts=mockAppointments.filter(a=>a.appointment_date===dateStr);
+if(appts.length===0){alert("No appointments on this date");return}
+if(appts.length===1){openAppointmentModal(appts[0].id);return}
+alert(`${appts.length} appointments on ${dateStr}. Scroll down to see appointments list.`);
+}
+
+function openAppointmentModal(id){
+const appt=mockAppointments.find(a=>a.id===id);
+if(!appt)return;
+const dateObj=new Date(appt.appointment_date);
+const formattedDate=dateObj.toLocaleDateString("en-IN",{weekday:"long",day:"2-digit",month:"long",year:"numeric"});
+const statusBg={"scheduled":"#d1fae5","completed":"#dbeafe","cancelled":"#fee2e2"}[appt.status.toLowerCase()]||"#f0f0f0";
+const statusColor={"scheduled":"#065f46","completed":"#0c4a6e","cancelled":"#7f1d1d"}[appt.status.toLowerCase()]||"#333";
+
+const html=`
+<div style="margin-bottom:16px;">
+<strong>Date & Time</strong>
+<div>${escapeHtml(formattedDate)}</div>
+<div style="font-size:14px;margin-top:4px;">${escapeHtml(appt.appointment_time)}</div>
+</div>
+<div style="margin-bottom:16px;">
+<strong>Customer Name</strong>
+<div>${escapeHtml(appt.customer_name)}</div>
+</div>
+<div style="margin-bottom:16px;">
+<strong>Mobile Number</strong>
+<div>${escapeHtml(appt.mobile_number)}</div>
+</div>
+<div style="margin-bottom:16px;">
+<strong>Status</strong>
+<div style="display:inline-block;padding:6px 12px;border-radius:6px;background:${statusBg};color:${statusColor};font-weight:600;">${escapeHtml(appt.status)}</div>
+</div>
+`;
+document.getElementById("appointmentModalContent").innerHTML=html;
+document.getElementById("appointmentModal").classList.add("show");
+}
+
+function closeAppointmentModal(){
+document.getElementById("appointmentModal").classList.remove("show");
+}
+
 function toggleSidebar(){const sidebar=document.querySelector('.sidebar');const overlay=document.querySelector('.sidebar-overlay');sidebar.classList.toggle('show');if(sidebar.classList.contains('show')){overlay.classList.add('show')}else{overlay.classList.remove('show')}}
 function closeSidebar(){const sidebar=document.querySelector('.sidebar');const overlay=document.querySelector('.sidebar-overlay');sidebar.classList.remove('show');overlay.classList.remove('show')}
 document.querySelectorAll('.nav-item').forEach(item=>{item.addEventListener('click',()=>{if(window.innerWidth<=768){closeSidebar()}})})
