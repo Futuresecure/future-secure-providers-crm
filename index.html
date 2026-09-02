@@ -285,11 +285,11 @@ async function handleLoginSubmit(event){event.preventDefault();const email=docum
 function showLoginError(message){const errorDiv=document.getElementById("loginErrorMessage");errorDiv.textContent=message;errorDiv.classList.add("show");}
 async function handleLogout(){try{const{error}=await supabaseClient.auth.signOut();if(error)throw error;currentUser=null;clearCRMData();updateHeaderForLoggedOut();showLoginPage();}catch(err){console.error("Sign out error:",err);alert("Error signing out: "+err.message);}}
 function showLoginPage(){const allPages=document.querySelectorAll(".page");allPages.forEach(page=>page.classList.add("hidden"));document.getElementById("loginPage").classList.remove("hidden");document.querySelector(".sidebar").style.display="none";document.querySelector(".sidebar-overlay").style.display="none";document.getElementById("logoutButton").style.display="none";}
-function showCRMUI(){const allPages=document.querySelectorAll(".page");allPages.forEach(page=>page.classList.add("hidden"));document.getElementById("dashboardPage").classList.remove("hidden");document.querySelector(".sidebar").style.display="flex";showPage("dashboard",document.querySelector('[data-page="dashboard"]'));}
+function showCRMUI(){const allPages=document.querySelectorAll(".page");allPages.forEach(page=>page.classList.add("hidden"));document.querySelector(".sidebar").style.display="flex";const savedPage=localStorage.getItem("crm_active_page");const savedSessionUser=localStorage.getItem("crm_session_user");const currentSessionUser=currentUser?.id||"";const shouldRestorePage=savedPage&&savedSessionUser&&savedSessionUser===currentSessionUser;const pageToShow=shouldRestorePage?savedPage:"dashboard";const target=document.getElementById(pageToShow+"Page");if(target)target.classList.remove("hidden");else document.getElementById("dashboardPage").classList.remove("hidden");showPage(pageToShow,document.querySelector('[data-page="'+pageToShow+'"]'));}
 function updateHeaderForAuthenticatedUser(user){document.getElementById("currentUserDisplay").textContent=user.email||"User";document.getElementById("logoutButton").style.display="inline-block";}
 function updateHeaderForLoggedOut(){document.getElementById("currentUserDisplay").textContent="Administrator";document.getElementById("logoutButton").style.display="none";}
 async function loadCRMData(){if(!currentUser){console.warn("No authenticated user found");return;}await loadLeads();await loadPipeline();await loadSmartDashboard();}
-function clearCRMData(){allLeadsCache=[];currentTasks=[];currentLeadActivities=[];document.getElementById("recentLeads").innerHTML="<tr><td colspan='4' class='empty'>No leads</td></tr>";document.getElementById("leadsTable").innerHTML="";document.getElementById("pipelineBoard").innerHTML="<div class='empty'>Loading pipeline...</div>";document.getElementById("priorityActions").innerHTML="<div class='empty'>No priority actions</div>";}
+function clearCRMData(){allLeadsCache=[];currentTasks=[];currentLeadActivities=[];document.getElementById("recentLeads").innerHTML="<tr><td colspan='4' class='empty'>No leads</td></tr>";document.getElementById("leadsTable").innerHTML="";document.getElementById("pipelineBoard").innerHTML="<div class='empty'>Loading pipeline...</div>";document.getElementById("priorityActions").innerHTML="<div class='empty'>No priority actions</div>";localStorage.removeItem("crm_active_page");localStorage.removeItem("crm_session_user");}
 let previousPage="leads";
 
 const pageInfo={
@@ -306,7 +306,7 @@ const target=document.getElementById(page+"Page");if(target)target.classList.rem
 document.querySelectorAll(".nav-item").forEach(x=>x.classList.remove("active"));
 if(element)element.classList.add("active");
 if(pageInfo[page]){pageTitle.textContent=pageInfo[page][0];pageSubtitle.textContent=pageInfo[page][1]}
-if(page!=="leadProfile") previousPage=page;
+if(page!=="leadProfile"){previousPage=page;localStorage.setItem("crm_active_page",page);localStorage.setItem("crm_session_user",currentUser?.id||"");}
 window.scrollTo({top:0,behavior:"smooth"});
 }
 function backToPrevious(){showPage(previousPage,document.querySelector(`[data-page="${previousPage}"]`));if(previousPage==="pipeline")loadPipeline();else loadLeads()}
