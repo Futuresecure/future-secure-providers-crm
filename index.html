@@ -351,6 +351,7 @@ async function handleBackupRestore(event){
   for(const row of leadsToInsert){
    const payload={...row};
    delete payload.id;
+   if(!payload.created_by){payload.created_by=currentUser.id;}
    const {error}=await supabaseClient.from("leads").insert([payload]);
    if(error)throw new Error("Lead restore failed: "+error.message);
    leadsAdded++;
@@ -362,6 +363,7 @@ async function handleBackupRestore(event){
   for(const row of backup.data.tasks){
    if(row.id!=null&&taskIds.has(String(row.id))){skippedTasks++;continue}
    const payload={...row};delete payload.id;
+   if(!payload.created_by){payload.created_by=currentUser.id;}
    const {error}=await supabaseClient.from("tasks").insert([payload]);
    if(error){skippedTasks++;continue}
    tasksAdded++;
@@ -373,6 +375,7 @@ async function handleBackupRestore(event){
   for(const row of backup.data.lead_activities){
    if(row.id!=null&&activityIds.has(String(row.id))){skippedActivities++;continue}
    const payload={...row};delete payload.id;
+   if(!payload.created_by){payload.created_by=currentUser.id;}
    const {error}=await supabaseClient.from("lead_activities").insert([payload]);
    if(error){skippedActivities++;continue}
    activitiesAdded++;
@@ -464,7 +467,8 @@ async function handleLeadCSVImport(event){
     lead_source:(item.lead_source||"CSV Import").trim()||"CSV Import",
     status:(item.status||"New").trim()||"New",
     next_follow_up:(item.next_follow_up||"").trim()||null,
-    notes:(item.notes||"").trim()||null
+    notes:(item.notes||"").trim()||null,
+    created_by:currentUser.id
    };
    const {data,error:insertError}=await supabaseClient.from("leads").insert([payload]).select().single();
    if(insertError){invalid++;continue}
@@ -570,7 +574,7 @@ function searchLeads(v) {
 async function addLeadActivity(leadId,activityType,description){
   if(!leadId)return;
   const {error}=await supabaseClient.from("lead_activities").insert([{
-    lead_id:leadId,activity_type:activityType,description:description||null
+    lead_id:leadId,activity_type:activityType,description:description||null,created_by:currentUser.id
   }]);
   if(error)console.error("Activity log error:",error.message);
 }
@@ -612,7 +616,7 @@ if(duplicateError)return showMessage("Error checking duplicate mobile: "+duplica
 const duplicate=(duplicates||[]).find(x=>String(x.id)!==String(editId||""));
 if(duplicate)return showMessage(`Duplicate mobile number! ${duplicate.full_name} already exists with ${duplicate.mobile_number}.`,"error");
 saveLeadButton.disabled=true;saveLeadButton.textContent=editId?"Updating...":"Saving...";
-let result=editId?await supabaseClient.from("leads").update(payload).eq("id",editId).select().single():await supabaseClient.from("leads").insert([payload]).select().single();
+let result;if(editId){result=await supabaseClient.from("leads").update(payload).eq("id",editId).select().single()}else{const insertPayload={...payload,created_by:currentUser.id};result=await supabaseClient.from("leads").insert([insertPayload]).select().single()}
 saveLeadButton.disabled=false;
 if(result.error){showMessage("Error saving lead: "+result.error.message,"error");saveLeadButton.textContent=editId?"Update Lead":"Save Lead";return}
 const savedLeadId=editId||result.data?.id;
@@ -953,7 +957,7 @@ async function openTaskModal(){
 function closeTaskModal(){document.getElementById("taskModal").classList.remove("show")}
 async function saveTask(){
   const title=taskTitle.value.trim();if(!title)return alert("Please enter task title.");
-  const payload={title,description:taskDescription.value.trim()||null,lead_id:taskLead.value?Number(taskLead.value):null,due_date:localDateTimeToISOString(taskDueDate.value),priority:taskPriority.value,status:"Pending"};
+  const payload={title,description:taskDescription.value.trim()||null,lead_id:taskLead.value?Number(taskLead.value):null,due_date:localDateTimeToISOString(taskDueDate.value),priority:taskPriority.value,status:"Pending",created_by:currentUser.id};
   const {data,error}=await supabaseClient.from("tasks").insert([payload]).select().single();
   if(error)return alert("Error saving task: "+error.message);
   if(payload.lead_id)await addLeadActivity(payload.lead_id,"Task Created",`Task: ${title}${payload.due_date?` | Due: ${formatDate(payload.due_date)}`:""}`);
