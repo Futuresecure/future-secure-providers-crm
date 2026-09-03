@@ -297,9 +297,12 @@ const currentSessionUser=currentUser?.id||"";
 const shouldRestorePage=savedPage&&savedSessionUser&&savedSessionUser===currentSessionUser;
 const pageToShow=shouldRestorePage?savedPage:"dashboard";
 
-if(pageToShow==="leadProfile"&&leadId){
+if(leadId&&pageToShow==="leads"){
 viewLead(leadId,previousPage);
 return;
+}
+if(leadId&&pageToShow!==="leads"){
+localStorage.removeItem("crm_current_lead_id");
 }
 
 const target=document.getElementById(pageToShow+"Page");
