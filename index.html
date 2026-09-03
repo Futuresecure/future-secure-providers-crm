@@ -826,13 +826,13 @@ async function saveFollowup(){
       due_date: nextValue,
 
       priority:
-        result === "Interested"
-          ? "High"
-          : "Medium",
+  result === "Interested"
+    ? "High"
+    : "Medium",
 
-      status: "Pending"
-    };
-
+status: "Pending",
+created_by: currentUser.id
+};
     const { error: taskError } = await supabaseClient
       .from("tasks")
       .insert([taskPayload]);
