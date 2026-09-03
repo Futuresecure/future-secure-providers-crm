@@ -197,6 +197,7 @@ button{border:0;border-radius:8px;padding:10px 14px;cursor:pointer}.btn-primary{
       <button class="btn-secondary" onclick="previousMonth()">← Previous</button>
       <button class="btn-secondary" onclick="goToToday()">Today</button>
       <button class="btn-secondary" onclick="nextMonth()">Next →</button>
+      <button class="btn-primary" onclick="openAppointmentFormModal(null)">+ New Appointment</button>
       <span class="calendar-month-year" id="calendarMonthYear"></span>
     </div>
   </div>
@@ -1435,33 +1436,52 @@ async function loadSmartDashboard() {
   </div>
 </div>
 
+<div id="appointmentFormModal" class="followup-modal hidden">
+  <div class="followup-modal-box">
+    <div class="followup-modal-header">
+      <h3 id="appointmentFormTitle">New Appointment</h3>
+      <button type="button" class="modal-close" onclick="closeAppointmentFormModal()">×</button>
+    </div>
+    <div class="followup-modal-body" id="appointmentFormContent">
+      <!-- Populated by JavaScript -->
+    </div>
+    <div class="followup-modal-actions">
+      <button type="button" class="btn-primary" onclick="saveAppointmentFromForm()">Save Appointment</button>
+      <button type="button" class="btn-danger" id="deleteApptButton" style="display:none;" onclick="deleteAppointmentFromForm()">Delete Appointment</button>
+      <button type="button" class="btn-secondary" onclick="closeAppointmentFormModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ===== CALENDAR MODULE (Phase 3A - MOCK DATA ONLY) =====
-let mockAppointments=[
-{id:999,lead_id:29,customer_name:"Rajesh Kumar",mobile_number:"9898765432",appointment_date:"2026-09-05",appointment_time:"14:00",status:"Scheduled"},
-{id:1000,lead_id:29,customer_name:"Priya Sharma",mobile_number:"9898765433",appointment_date:"2026-09-08",appointment_time:"10:30",status:"Scheduled"},
-{id:1001,lead_id:29,customer_name:"Arjun Singh",mobile_number:"9898765434",appointment_date:"2026-09-12",appointment_time:"15:45",status:"Completed"},
-{id:1002,lead_id:29,customer_name:"Neha Patel",mobile_number:"9898765435",appointment_date:"2026-09-15",appointment_time:"11:00",status:"Scheduled"},
-{id:1003,lead_id:29,customer_name:"Vikram Reddy",mobile_number:"9898765436",appointment_date:"2026-09-18",appointment_time:"09:30",status:"Cancelled"},
-{id:1004,lead_id:29,customer_name:"Isha Verma",mobile_number:"9898765437",appointment_date:"2026-09-22",appointment_time:"16:00",status:"Scheduled"},
-];
+// Global variables for appointments
+let currentAppointments=[];
+let currentCalendarMonth=new Date();
+let currentEditingAppointmentId=null;
 
-// Auto-initialize calendar to first month containing appointments
-function initializeCalendarMonth(){
-  if(mockAppointments.length===0)return new Date();
-  const firstApptDate=mockAppointments[0].appointment_date;
-  const [year,month,day]=firstApptDate.split("-");
-  return new Date(parseInt(year),parseInt(month)-1,1);
+async function loadCalendar(){
+  if(!currentUser){console.warn("No authenticated user");return;}
+  const year=currentCalendarMonth.getFullYear();
+  const month=String(currentCalendarMonth.getMonth()+1).padStart(2,"0");
+  const monthStart=`${year}-${month}-01`;
+  const nextMonthDate=new Date(currentCalendarMonth.getFullYear(),currentCalendarMonth.getMonth()+1,1);
+  const nextYear=nextMonthDate.getFullYear();
+  const nextMonth=String(nextMonthDate.getMonth()+1).padStart(2,"0");
+  const monthEnd=`${nextYear}-${nextMonth}-01`;
+  
+  const {data,error}=await supabaseClient.from("appointments").select("*").gte("appointment_date",monthStart).lt("appointment_date",monthEnd).order("appointment_date",{ascending:true});
+  if(error){console.error("Error loading appointments:",error);currentAppointments=[];}
+  else{currentAppointments=data||[];}
+  
+  renderCalendar(currentAppointments);
+  renderAppointmentsList(currentAppointments);
 }
+function previousMonth(){currentCalendarMonth.setMonth(currentCalendarMonth.getMonth()-1);loadCalendar();}
+function nextMonth(){currentCalendarMonth.setMonth(currentCalendarMonth.getMonth()+1);loadCalendar();}
+function goToToday(){currentCalendarMonth=new Date();loadCalendar();}
 
-let currentCalendarMonth=initializeCalendarMonth();
-
-function loadCalendar(){renderCalendar();renderAppointmentsList()}
-function previousMonth(){currentCalendarMonth.setMonth(currentCalendarMonth.getMonth()-1);renderCalendar();renderAppointmentsList()}
-function nextMonth(){currentCalendarMonth.setMonth(currentCalendarMonth.getMonth()+1);renderCalendar();renderAppointmentsList()}
-function goToToday(){currentCalendarMonth=new Date();renderCalendar();renderAppointmentsList()}
-
-function renderCalendar(){
+function renderCalendar(appointments){
 const year=currentCalendarMonth.getFullYear(),month=currentCalendarMonth.getMonth();
 document.getElementById("calendarMonthYear").textContent=new Date(year,month).toLocaleString("en-IN",{month:"long",year:"numeric"});
 const firstDay=new Date(year,month,1),lastDay=new Date(year,month+1,0),prevLastDay=new Date(year,month,0);
@@ -1476,7 +1496,7 @@ html+=`<div class="calendar-cell other-month"><div class="calendar-cell-date">${
 
 for(let date=1;date<=lastDateOfMonth;date++){
 const dateStr=`${year}-${String(month+1).padStart(2,"0")}-${String(date).padStart(2,"0")}`;
-const dayAppts=mockAppointments.filter(a=>a.appointment_date===dateStr);
+const dayAppts=(appointments||[]).filter(a=>a.appointment_date===dateStr);
 const isToday=new Date().toDateString()===new Date(year,month,date).toDateString();
 html+=`<div class="calendar-cell ${isToday?"today":""}" onclick="handleDateClick('${dateStr}')">
 <div class="calendar-cell-date">${date}</div>
@@ -1495,9 +1515,9 @@ html+=`<div class="calendar-cell other-month"><div class="calendar-cell-date">${
 document.getElementById("calendarGrid").innerHTML=html;
 }
 
-function renderAppointmentsList(){
+function renderAppointmentsList(appointments){
 const year=currentCalendarMonth.getFullYear(),month=String(currentCalendarMonth.getMonth()+1).padStart(2,"0");
-const monthAppts=mockAppointments.filter(a=>a.appointment_date.startsWith(`${year}-${month}`)).sort((a,b)=>new Date(a.appointment_date)-new Date(b.appointment_date));
+const monthAppts=(appointments||[]).filter(a=>a.appointment_date.startsWith(`${year}-${month}`)).sort((a,b)=>new Date(a.appointment_date)-new Date(b.appointment_date));
 
 const html=monthAppts.map(a=>{
 const dateObj=new Date(a.appointment_date);
@@ -1517,15 +1537,16 @@ document.getElementById("appointmentsList").innerHTML=html;
 }
 
 function handleDateClick(dateStr){
-const appts=mockAppointments.filter(a=>a.appointment_date===dateStr);
+const appts=currentAppointments.filter(a=>a.appointment_date===dateStr);
 if(appts.length===0){alert("No appointments on this date");return}
 if(appts.length===1){openAppointmentModal(appts[0].id);return}
 alert(`${appts.length} appointments on ${dateStr}. Scroll down to see appointments list.`);
 }
 
 function openAppointmentModal(id){
-const appt=mockAppointments.find(a=>a.id===id);
+const appt=currentAppointments.find(a=>a.id===id);
 if(!appt)return;
+currentEditingAppointmentId=id;
 const dateObj=new Date(appt.appointment_date);
 const formattedDate=dateObj.toLocaleDateString("en-IN",{weekday:"long",day:"2-digit",month:"long",year:"numeric"});
 const statusBg={"scheduled":"#d1fae5","completed":"#dbeafe","cancelled":"#fee2e2"}[appt.status.toLowerCase()]||"#f0f0f0";
@@ -1549,6 +1570,14 @@ const html=`
 <strong>Status</strong>
 <div style="display:inline-block;padding:6px 12px;border-radius:6px;background:${statusBg};color:${statusColor};font-weight:600;">${escapeHtml(appt.status)}</div>
 </div>
+<div style="margin-bottom:16px;">
+<strong>Notes</strong>
+<div>${escapeHtml(appt.notes||"-")}</div>
+</div>
+<div style="margin-top:20px;display:flex;gap:8px;">
+<button class="btn-primary" onclick="editAppointment(${id})">✏️ Edit</button>
+<button class="btn-danger" onclick="confirmDeleteAppointment(${id})">🗑️ Delete</button>
+</div>
 `;
 document.getElementById("appointmentModalContent").innerHTML=html;
 document.getElementById("appointmentModal").classList.add("show");
@@ -1556,6 +1585,135 @@ document.getElementById("appointmentModal").classList.add("show");
 
 function closeAppointmentModal(){
 document.getElementById("appointmentModal").classList.remove("show");
+currentEditingAppointmentId=null;
+}
+
+async function saveAppointment(formData){
+if(!currentUser){alert("Not authenticated");return;}
+if(!formData.lead_id||!formData.customer_name||!formData.mobile_number||!formData.appointment_date||!formData.appointment_time||!formData.status){
+alert("Please fill all required fields");return;}
+const payload={...formData,created_by:currentUser.id};
+const {data,error}=await supabaseClient.from("appointments").insert([payload]).select().single();
+if(error){alert("Error saving appointment: "+error.message);return;}
+showMessage("Appointment created successfully!","success");
+closeAppointmentModal();
+await loadCalendar();
+}
+
+async function updateAppointment(id,formData){
+if(!currentUser){alert("Not authenticated");return;}
+if(!formData.customer_name||!formData.mobile_number||!formData.appointment_date||!formData.appointment_time){
+alert("Please fill all required fields");return;}
+const updatePayload={customer_name:formData.customer_name,mobile_number:formData.mobile_number,appointment_date:formData.appointment_date,appointment_time:formData.appointment_time,status:formData.status,notes:formData.notes};
+const {error}=await supabaseClient.from("appointments").update(updatePayload).eq("id",id);
+if(error){alert("Error updating appointment: "+error.message);return;}
+showMessage("Appointment updated successfully!","success");
+closeAppointmentModal();
+await loadCalendar();
+}
+
+async function deleteAppointment(id){
+if(!confirm("Are you sure you want to delete this appointment?"))return;
+const {error}=await supabaseClient.from("appointments").delete().eq("id",id);
+if(error){alert("Error deleting appointment: "+error.message);return;}
+showMessage("Appointment deleted successfully!","success");
+closeAppointmentModal();
+await loadCalendar();
+}
+
+function editAppointment(id){
+const appt=currentAppointments.find(a=>a.id===id);
+if(!appt)return;
+openAppointmentFormModal(appt.lead_id,id);
+}
+
+function confirmDeleteAppointment(id){
+deleteAppointment(id);
+}
+
+function openAppointmentFormModal(leadId,appointmentId){
+const appt=appointmentId?currentAppointments.find(a=>a.id===appointmentId):null;
+const title=appt?"Edit Appointment":"New Appointment";
+const isEditMode=!!appt;
+const selectedLeadId=isEditMode?appt.lead_id:leadId;
+
+const leads=allLeadsCache||[];
+const leadsOptions=leads.map(l=>`<option value="${l.id}" ${selectedLeadId===l.id?"selected":""}>${escapeHtml(l.full_name)}</option>`).join("");
+
+const html=`
+<div style="margin-bottom:12px;">
+<label><strong>Lead</strong> <span style="color:red;">*</span></label>
+<select id="apptFormLeadId" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;margin-top:4px;" ${isEditMode?"disabled":""}>
+<option value="">Select a lead</option>
+${leadsOptions}
+</select>
+</div>
+<div style="margin-bottom:12px;">
+<label><strong>Customer Name</strong> <span style="color:red;">*</span></label>
+<input type="text" id="apptFormCustomerName" value="${escapeHtml(appt?.customer_name||"")}" placeholder="Full name" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;margin-top:4px;box-sizing:border-box;">
+</div>
+<div style="margin-bottom:12px;">
+<label><strong>Mobile Number</strong> <span style="color:red;">*</span></label>
+<input type="text" id="apptFormMobile" value="${escapeHtml(appt?.mobile_number||"")}" placeholder="10-digit number" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;margin-top:4px;box-sizing:border-box;">
+</div>
+<div style="margin-bottom:12px;">
+<label><strong>Date</strong> <span style="color:red;">*</span></label>
+<input type="date" id="apptFormDate" value="${appt?.appointment_date||""}" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;margin-top:4px;box-sizing:border-box;">
+</div>
+<div style="margin-bottom:12px;">
+<label><strong>Time</strong> <span style="color:red;">*</span></label>
+<input type="time" id="apptFormTime" value="${appt?.appointment_time||""}" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;margin-top:4px;box-sizing:border-box;">
+</div>
+<div style="margin-bottom:12px;">
+<label><strong>Status</strong> <span style="color:red;">*</span></label>
+<select id="apptFormStatus" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;margin-top:4px;">
+<option value="Scheduled" ${appt?.status==="Scheduled"?"selected":""}>Scheduled</option>
+<option value="Completed" ${appt?.status==="Completed"?"selected":""}>Completed</option>
+<option value="Cancelled" ${appt?.status==="Cancelled"?"selected":""}>Cancelled</option>
+</select>
+</div>
+<div style="margin-bottom:12px;">
+<label><strong>Notes</strong></label>
+<textarea id="apptFormNotes" placeholder="Add notes (optional)" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;margin-top:4px;box-sizing:border-box;height:80px;">${escapeHtml(appt?.notes||"")}</textarea>
+</div>
+`;
+
+document.getElementById("appointmentFormContent").innerHTML=html;
+document.getElementById("appointmentFormTitle").textContent=title;
+document.getElementById("deleteApptButton").style.display=isEditMode?"block":"none";
+document.getElementById("appointmentFormModal").classList.add("show");
+}
+
+function closeAppointmentFormModal(){
+document.getElementById("appointmentFormModal").classList.remove("show");
+currentEditingAppointmentId=null;
+}
+
+async function saveAppointmentFromForm(){
+const leadId=parseInt(document.getElementById("apptFormLeadId").value);
+const customerName=document.getElementById("apptFormCustomerName").value.trim();
+const mobile=document.getElementById("apptFormMobile").value.trim();
+const date=document.getElementById("apptFormDate").value;
+const time=document.getElementById("apptFormTime").value;
+const status=document.getElementById("apptFormStatus").value;
+const notes=document.getElementById("apptFormNotes").value.trim();
+
+if(!leadId){alert("Please select a lead");return;}
+if(!customerName||!mobile||!date||!time||!status){alert("Please fill all required fields");return;}
+
+const formData={lead_id:leadId,customer_name:customerName,mobile_number:mobile,appointment_date:date,appointment_time:time,status:status,notes:notes||null};
+
+if(currentEditingAppointmentId){
+await updateAppointment(currentEditingAppointmentId,formData);
+}else{
+await saveAppointment(formData);
+}
+}
+
+async function deleteAppointmentFromForm(){
+if(!currentEditingAppointmentId)return;
+await deleteAppointment(currentEditingAppointmentId);
+closeAppointmentFormModal();
 }
 
 function toggleSidebar(){const sidebar=document.querySelector('.sidebar');const overlay=document.querySelector('.sidebar-overlay');sidebar.classList.toggle('show');if(sidebar.classList.contains('show')){overlay.classList.add('show')}else{overlay.classList.remove('show')}}
