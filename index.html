@@ -1453,6 +1453,20 @@ async function loadSmartDashboard() {
   </div>
 </div>
 
+<div id="dateScheduleModal" class="followup-modal hidden">
+  <div class="followup-modal-box">
+    <div class="followup-modal-header">
+      <h3 id="dateScheduleTitle">Schedule – Date</h3>
+      <button type="button" class="modal-close" onclick="closeDateScheduleModal()">×</button>
+    </div>
+    <div id="dateScheduleContent" class="appointment-modal-body">
+    </div>
+    <div class="followup-modal-actions">
+      <button type="button" class="btn-secondary" onclick="closeDateScheduleModal()">Close</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ===== CALENDAR MODULE (Phase 3A - MOCK DATA ONLY) =====
 // Global variables for appointments
@@ -1613,10 +1627,8 @@ if(totalItems===1){
   if(followups.length===1){viewLead(followups[0].id,'calendar');return}
 }
 
-// Multiple items - show message to scroll to list
-const date=new Date(dateStr);
-const dateStr_formatted=date.toLocaleDateString("en-IN",{weekday:"long",day:"2-digit",month:"long",year:"numeric"});
-alert(`${totalItems} item${totalItems>1?"s":""} on ${dateStr_formatted}. Scroll down to view in the schedule list.`);
+// Multiple items - open date schedule modal
+openDateScheduleModal(dateStr);
 }
 
 function openAppointmentModal(id){
@@ -1662,6 +1674,71 @@ document.getElementById("appointmentModal").classList.add("show");
 function closeAppointmentModal(){
 document.getElementById("appointmentModal").classList.remove("show");
 currentEditingAppointmentId=null;
+}
+
+function openDateScheduleModal(dateStr){
+const appts=currentAppointments.filter(a=>a.appointment_date===dateStr);
+const followups=currentFollowups.filter(f=>{
+  if(!f.next_follow_up)return false;
+  const fDate=new Date(f.next_follow_up).toISOString().split('T')[0];
+  return fDate===dateStr;
+});
+
+// Combine and sort by time
+const combined=[];
+appts.forEach(a=>combined.push({type:'appointment',data:a}));
+followups.forEach(f=>combined.push({type:'followup',data:f}));
+combined.sort((a,b)=>{
+  const aTime=a.type==='appointment'?a.data.appointment_time:new Date(a.data.next_follow_up).toISOString().split('T')[1].substring(0,5);
+  const bTime=b.type==='appointment'?b.data.appointment_time:new Date(b.data.next_follow_up).toISOString().split('T')[1].substring(0,5);
+  return aTime.localeCompare(bTime);
+});
+
+// Format date title
+const dateObj=new Date(dateStr);
+const dateTitle=dateObj.toLocaleDateString("en-IN",{weekday:"long",day:"2-digit",month:"long",year:"numeric"});
+document.getElementById("dateScheduleTitle").textContent=`Schedule – ${dateTitle}`;
+
+// Build content HTML
+const contentHtml=combined.map(item=>{
+  if(item.type==='appointment'){
+    const a=item.data;
+    return `<div style="margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border);">
+<div style="display:flex;align-items:flex-start;gap:10px;">
+<span style="color:#059669;font-weight:bold;font-size:16px;">🟢</span>
+<div style="flex:1;">
+<div style="font-weight:600;color:var(--text);">${escapeHtml(a.customer_name)}</div>
+<div style="font-size:13px;color:var(--muted);margin-top:4px;">🕐 ${escapeHtml(a.appointment_time)}</div>
+<div style="font-size:13px;color:var(--muted);margin-top:2px;">📞 ${escapeHtml(a.mobile_number)}</div>
+<div style="margin-top:6px;"><span class="appointment-badge ${a.status.toLowerCase()}">${escapeHtml(a.status)}</span></div>
+<button class="btn-secondary" style="margin-top:8px;padding:4px 12px;font-size:12px;" onclick="openAppointmentModal(${a.id});closeDateScheduleModal();">View Appointment</button>
+</div>
+</div>
+</div>`;
+  }else{
+    const f=item.data;
+    const followupTime=new Date(f.next_follow_up).toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit",hour12:false});
+    return `<div style="margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border);">
+<div style="display:flex;align-items:flex-start;gap:10px;">
+<span style="color:#2563eb;font-weight:bold;font-size:16px;">🔵</span>
+<div style="flex:1;">
+<div style="font-weight:600;color:var(--text);">${escapeHtml(f.full_name)}</div>
+<div style="font-size:13px;color:var(--muted);margin-top:4px;">🕐 ${escapeHtml(followupTime)}</div>
+<div style="font-size:13px;color:var(--muted);margin-top:2px;">📞 ${escapeHtml(f.mobile_number)}</div>
+<div style="margin-top:6px;"><span class="appointment-badge">${escapeHtml(f.status||"Pending")}</span></div>
+<button class="btn-secondary" style="margin-top:8px;padding:4px 12px;font-size:12px;" onclick="viewLead(${f.id},'calendar');closeDateScheduleModal();">View Lead</button>
+</div>
+</div>
+</div>`;
+  }
+}).join("");
+
+document.getElementById("dateScheduleContent").innerHTML=contentHtml;
+document.getElementById("dateScheduleModal").classList.add("show");
+}
+
+function closeDateScheduleModal(){
+document.getElementById("dateScheduleModal").classList.remove("show");
 }
 
 async function saveAppointment(formData){
