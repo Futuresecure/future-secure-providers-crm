@@ -1631,6 +1631,23 @@ function confirmDeleteAppointment(id){
 deleteAppointment(id);
 }
 
+function autoFillLeadData(){
+const leadIdInput=document.getElementById("apptFormLeadId");
+if(!leadIdInput)return;
+const leadId=parseInt(leadIdInput.value);
+if(!leadId){
+document.getElementById("apptFormCustomerName").value="";
+document.getElementById("apptFormMobile").value="";
+return;
+}
+const leads=allLeadsCache||[];
+const selectedLead=leads.find(l=>l.id===leadId);
+if(selectedLead){
+document.getElementById("apptFormCustomerName").value=escapeHtml(selectedLead.full_name||"");
+document.getElementById("apptFormMobile").value=escapeHtml(selectedLead.mobile_number||"");
+}
+}
+
 function openAppointmentFormModal(leadId,appointmentId){
 const appt=appointmentId?currentAppointments.find(a=>a.id===appointmentId):null;
 const title=appt?"Edit Appointment":"New Appointment";
@@ -1643,18 +1660,18 @@ const leadsOptions=leads.map(l=>`<option value="${l.id}" ${selectedLeadId===l.id
 const html=`
 <div style="margin-bottom:12px;">
 <label><strong>Lead</strong> <span style="color:red;">*</span></label>
-<select id="apptFormLeadId" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;margin-top:4px;" ${isEditMode?"disabled":""}>
+<select id="apptFormLeadId" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;margin-top:4px;" ${isEditMode?"disabled":""} ${isEditMode?"":"onchange=\"autoFillLeadData()\""}>
 <option value="">Select a lead</option>
 ${leadsOptions}
 </select>
 </div>
 <div style="margin-bottom:12px;">
 <label><strong>Customer Name</strong> <span style="color:red;">*</span></label>
-<input type="text" id="apptFormCustomerName" value="${escapeHtml(appt?.customer_name||"")}" placeholder="Full name" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;margin-top:4px;box-sizing:border-box;">
+<input type="text" id="apptFormCustomerName" value="${escapeHtml(appt?.customer_name||"")}" placeholder="Full name" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;margin-top:4px;box-sizing:border-box;" ${isEditMode?"":"readonly"}>
 </div>
 <div style="margin-bottom:12px;">
 <label><strong>Mobile Number</strong> <span style="color:red;">*</span></label>
-<input type="text" id="apptFormMobile" value="${escapeHtml(appt?.mobile_number||"")}" placeholder="10-digit number" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;margin-top:4px;box-sizing:border-box;">
+<input type="text" id="apptFormMobile" value="${escapeHtml(appt?.mobile_number||"")}" placeholder="10-digit number" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;margin-top:4px;box-sizing:border-box;" ${isEditMode?"":"readonly"}>
 </div>
 <div style="margin-bottom:12px;">
 <label><strong>Date</strong> <span style="color:red;">*</span></label>
@@ -1681,6 +1698,9 @@ ${leadsOptions}
 document.getElementById("appointmentFormContent").innerHTML=html;
 document.getElementById("appointmentFormTitle").textContent=title;
 document.getElementById("deleteApptButton").style.display=isEditMode?"block":"none";
+if(!isEditMode&&selectedLeadId){
+autoFillLeadData();
+}
 document.getElementById("appointmentFormModal").classList.add("show");
 }
 
