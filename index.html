@@ -286,7 +286,27 @@ async function handleLoginSubmit(event){event.preventDefault();const email=docum
 function showLoginError(message){const errorDiv=document.getElementById("loginErrorMessage");errorDiv.textContent=message;errorDiv.classList.add("show");}
 async function handleLogout(){try{const{error}=await supabaseClient.auth.signOut();if(error)throw error;currentUser=null;clearCRMData();updateHeaderForLoggedOut();showLoginPage();}catch(err){console.error("Sign out error:",err);alert("Error signing out: "+err.message);}}
 function showLoginPage(){const allPages=document.querySelectorAll(".page");allPages.forEach(page=>page.classList.add("hidden"));document.getElementById("loginPage").classList.remove("hidden");document.querySelector(".sidebar").style.display="none";document.querySelector(".sidebar-overlay").style.display="none";document.getElementById("logoutButton").style.display="none";}
-function showCRMUI(){const allPages=document.querySelectorAll(".page");allPages.forEach(page=>page.classList.add("hidden"));document.querySelector(".sidebar").style.display="flex";const savedPage=localStorage.getItem("crm_active_page");const savedSessionUser=localStorage.getItem("crm_session_user");const currentSessionUser=currentUser?.id||"";const shouldRestorePage=savedPage&&savedSessionUser&&savedSessionUser===currentSessionUser;const pageToShow=shouldRestorePage?savedPage:"dashboard";const target=document.getElementById(pageToShow+"Page");if(target)target.classList.remove("hidden");else document.getElementById("dashboardPage").classList.remove("hidden");showPage(pageToShow,document.querySelector('[data-page="'+pageToShow+'"]'));}
+function showCRMUI(){
+const allPages=document.querySelectorAll(".page");
+allPages.forEach(page=>page.classList.add("hidden"));
+document.querySelector(".sidebar").style.display="flex";
+const savedPage=localStorage.getItem("crm_active_page");
+const leadId=localStorage.getItem("crm_current_lead_id");
+const savedSessionUser=localStorage.getItem("crm_session_user");
+const currentSessionUser=currentUser?.id||"";
+const shouldRestorePage=savedPage&&savedSessionUser&&savedSessionUser===currentSessionUser;
+const pageToShow=shouldRestorePage?savedPage:"dashboard";
+
+if(pageToShow==="leadProfile"&&leadId){
+viewLead(leadId,previousPage);
+return;
+}
+
+const target=document.getElementById(pageToShow+"Page");
+if(target)target.classList.remove("hidden");
+else document.getElementById("dashboardPage").classList.remove("hidden");
+showPage(pageToShow,document.querySelector('[data-page="'+pageToShow+'"]'));
+}
 function updateHeaderForAuthenticatedUser(user){document.getElementById("currentUserDisplay").textContent=user.email||"User";document.getElementById("logoutButton").style.display="inline-block";}
 function updateHeaderForLoggedOut(){document.getElementById("currentUserDisplay").textContent="Administrator";document.getElementById("logoutButton").style.display="none";}
 async function loadCRMData(){if(!currentUser){console.warn("No authenticated user found");return;}await loadLeads();await loadPipeline();await loadSmartDashboard();}
@@ -310,7 +330,9 @@ if(pageInfo[page]){pageTitle.textContent=pageInfo[page][0];pageSubtitle.textCont
 if(page!=="leadProfile"){previousPage=page;localStorage.setItem("crm_active_page",page);localStorage.setItem("crm_session_user",currentUser?.id||"");}
 window.scrollTo({top:0,behavior:"smooth"});
 }
-function backToPrevious(){showPage(previousPage,document.querySelector(`[data-page="${previousPage}"]`));if(previousPage==="pipeline")loadPipeline();else loadLeads()}
+function backToPrevious(){
+localStorage.removeItem("crm_current_lead_id");
+showPage(previousPage,document.querySelector(`[data-page="${previousPage}"]`));if(previousPage==="pipeline")loadPipeline();else loadLeads()}
 function escapeHtml(v){return String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;")}
 function formatDate(v){if(!v)return"-";const d=new Date(v);return isNaN(d)?"-":d.toLocaleString("en-IN",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"})}
 function localDateTimeToISOString(value){
@@ -657,6 +679,7 @@ draggedLeadId=null;await loadLeads();await loadPipeline();
 async function viewLead(id,fromPage){
 if(fromPage)previousPage=fromPage;
 const {data:lead,error}=await supabaseClient.from("leads").select("*").eq("id",id).single();if(error||!lead)return alert(error?.message||"Lead not found");
+localStorage.setItem("crm_current_lead_id",id);
 const phone=String(lead.mobile_number||"").replace(/\D/g,"");
 leadProfileContent.innerHTML=`<div class="card" id="quickStatusCard"><h3 style="margin-bottom:10px">Quick Status Update</h3><div class="actions"><select id="quickStatusSelect" style="max-width:220px"><option>New</option><option>Contacted</option><option>Follow-up</option><option>Interested</option><option>Converted</option><option>Not Interested</option></select><button class="btn-primary" onclick="quickUpdateStatus(${Number(lead.id)})">Update Status</button></div></div><div class="profile-grid"><div class="detail-box"><label>Full Name</label><strong>${escapeHtml(lead.full_name)}</strong></div><div class="detail-box"><label>Mobile Number</label><strong>${escapeHtml(lead.mobile_number)}</strong></div><div class="detail-box"><label>Current Status</label><strong>${escapeHtml(lead.status||"New")}</strong></div></div>
 <div class="profile-grid"><div class="detail-box"><label>City</label><strong>${escapeHtml(lead.city||"-")}</strong></div><div class="detail-box"><label>Lead Source</label><strong>${escapeHtml(lead.lead_source||"-")}</strong></div><div class="detail-box"><label>Next Follow-up</label><strong>${formatDate(lead.next_follow_up)}</strong></div><div class="detail-box"><label>Created</label><strong>${formatDate(lead.created_at)}</strong></div></div>
