@@ -82,19 +82,46 @@ button{border:0;border-radius:8px;padding:10px 14px;cursor:pointer}.btn-primary{
 <header class="header"><button class="hamburger-btn" onclick="toggleSidebar()">☰</button><div><h1 id="pageTitle">Dashboard</h1><p id="pageSubtitle">Welcome to Future Secure Providers CRM</p></div><div class="admin"><strong id="currentUserDisplay">Administrator</strong><span>Future Secure Providers</span><button id="logoutButton" class="btn-logout" onclick="handleLogout()" style="display:none;">Logout</button></div></header>
 <div class="content">
 <div class="stats">
-<div class="stat-card"><h3>Today's Follow-ups</h3><div class="number" id="todayFollowupsCount">0</div></div>
-<div class="stat-card"><h3>Pending Tasks</h3><div class="number" id="pendingTasksCount">0</div></div>
-<div class="stat-card"><h3>Overdue</h3><div class="number" id="overdueCount">0</div></div>
+
+  <div class="stat-card">
+    <h3>Today's Follow-ups</h3>
+    <div class="number" id="todayFollowupsCount">0</div>
+  </div>
+
+  <div class="stat-card">
+    <h3>Pending Tasks</h3>
+    <div class="number" id="pendingTasksCount">0</div>
+  </div>
+
+  <div class="stat-card">
+    <h3>Overdue</h3>
+    <div class="number" id="overdueCount">0</div>
+  </div>
+
 </div>
 
 <div class="card">
-<div class="card-header">
-<h2>🔥 Priority Actions</h2>
-<button class="btn-secondary" onclick="loadSmartDashboard()">Refresh</button>
-</div>
-<div id="priorityActions"><div class="empty">Loading...</div></div>
-</div>
 
+  <div class="card-header">
+    <h2>🔥 Priority Actions</h2>
+
+    <button
+      class="btn-secondary"
+      onclick="loadSmartDashboard()"
+    >
+      Refresh
+    </button>
+  </div>
+
+  <div id="priorityActions">
+
+    <div class="empty">
+      Loading...
+    </div>
+
+  </div>
+
+</div>
 <section id="loginPage" class="page">
 <div class="login-container">
 <div class="login-box">
@@ -118,7 +145,6 @@ button{border:0;border-radius:8px;padding:10px 14px;cursor:pointer}.btn-primary{
 </div>
 </div>
 </section>
-
 <section id="dashboardPage" class="page">
 <div class="stats">
 <div class="stat-card"><h3>Total Leads</h3><div class="number" id="totalLeads">0</div></div>
@@ -136,7 +162,7 @@ button{border:0;border-radius:8px;padding:10px 14px;cursor:pointer}.btn-primary{
 <div class="form-group"><label>Full Name *</label><input id="leadName" required placeholder="Customer name"></div>
 <div class="form-group"><label>Mobile Number *</label><input id="leadPhone" required placeholder="Mobile number"></div>
 <div class="form-group"><label>City</label><input id="leadCity" placeholder="City"></div>
-<div class="form-group"><label>Lead Source</label><select id="leadSource"><option>Manual</option><option>Website</option><option>Meta Ads</option><option>WhatsApp</option><option>Referral</option><option>Other</option></select></div>
+<div class="form-group"><label>Lead Source</label><select id="leadSource"><option>Manual</option><option>Website</option><option>Meta Ads</option><option>Facebook</option><option>Instagram</option><option>WhatsApp</option><option>Referral</option><option>Other</option></select></div>
 <div class="form-group"><label>Status</label><select id="leadStatus"><option>New</option><option>Contacted</option><option>Follow-up</option><option>Interested</option><option>Converted</option><option>Not Interested</option></select></div>
 <div class="form-group"><label>Next Follow-up</label><input type="datetime-local" id="leadFollowUp"></div>
 <div class="form-group full"><label>Notes</label><textarea id="leadNotes" placeholder="Enter customer details or notes..."></textarea></div>
@@ -149,57 +175,57 @@ button{border:0;border-radius:8px;padding:10px 14px;cursor:pointer}.btn-primary{
 
 <section id="tasksPage" class="page hidden">
 <div class="stats">
-<div class="stat-card"><h3>Pending</h3><div class="number" id="pendingTaskCount">0</div></div>
-<div class="stat-card"><h3>Overdue</h3><div class="number" id="overdueTaskCount">0</div></div>
-<div class="stat-card"><h3>Today</h3><div class="number" id="todayTaskCount">0</div></div>
-<div class="stat-card"><h3>Completed</h3><div class="number" id="completedTaskCount">0</div></div>
+  <div class="stat-card"><h3>Pending</h3><div class="number" id="pendingTaskCount">0</div></div>
+  <div class="stat-card"><h3>Overdue</h3><div class="number" id="overdueTaskCount">0</div></div>
+  <div class="stat-card"><h3>Today</h3><div class="number" id="todayTaskCount">0</div></div>
+  <div class="stat-card"><h3>Completed</h3><div class="number" id="completedTaskCount">0</div></div>
 </div>
 <div class="card">
-<div class="card-header"><h2>Tasks</h2><div class="actions"><button class="btn-secondary" onclick="loadTasks()">Refresh</button><button class="btn-primary" onclick="openTaskModal()">+ Add Task</button></div></div>
-<div class="table-wrapper"><table>
-<thead><tr><th>Task</th><th>Lead</th><th>Due Date & Time</th><th>Priority</th><th>Status</th><th>Action</th></tr></thead>
-<tbody id="tasksList"></tbody>
-</table></div>
+  <div class="card-header"><h2>Tasks</h2><div class="actions"><button class="btn-secondary" onclick="loadTasks()">Refresh</button><button class="btn-primary" onclick="openTaskModal()">+ Add Task</button></div></div>
+  <div class="table-wrapper"><table>
+    <thead><tr><th>Task</th><th>Lead</th><th>Due Date & Time</th><th>Priority</th><th>Status</th><th>Action</th></tr></thead>
+    <tbody id="tasksList"></tbody>
+  </table></div>
 </div>
 </section>
 
 <section id="calendarPage" class="page hidden">
 <div class="card">
-<div class="card-header">
-<h2>Appointment Calendar</h2>
-<div class="calendar-controls">
-<button class="btn-secondary" onclick="previousMonth()">← Previous</button>
-<button class="btn-secondary" onclick="goToToday()">Today</button>
-<button class="btn-secondary" onclick="nextMonth()">Next →</button>
-<button class="btn-primary" onclick="openAppointmentFormModal(null)">+ New Appointment</button>
-<span class="calendar-month-year" id="calendarMonthYear"></span>
-</div>
-</div>
-
-<div class="calendar-wrapper">
-<div class="calendar-grid" id="calendarGrid"></div>
-</div>
+  <div class="card-header">
+    <h2>Appointment Calendar</h2>
+    <div class="calendar-controls">
+      <button class="btn-secondary" onclick="previousMonth()">← Previous</button>
+      <button class="btn-secondary" onclick="goToToday()">Today</button>
+      <button class="btn-secondary" onclick="nextMonth()">Next →</button>
+      <button class="btn-primary" onclick="openAppointmentFormModal(null)">+ New Appointment</button>
+      <span class="calendar-month-year" id="calendarMonthYear"></span>
+    </div>
+  </div>
+  
+  <div class="calendar-wrapper">
+    <div class="calendar-grid" id="calendarGrid"></div>
+  </div>
 </div>
 
 <div class="card">
-<div class="card-header">
-<h2 id="appointmentListTitle">Appointments This Month</h2>
-</div>
-<div class="table-wrapper">
-<table>
-<thead>
-<tr>
-<th>Date</th>
-<th>Time</th>
-<th>Customer Name</th>
-<th>Mobile</th>
-<th>Status</th>
-<th>Action</th>
-</tr>
-</thead>
-<tbody id="appointmentsList"></tbody>
-</table>
-</div>
+  <div class="card-header">
+    <h2 id="appointmentListTitle">Appointments This Month</h2>
+  </div>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Time</th>
+          <th>Customer Name</th>
+          <th>Mobile</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="appointmentsList"></tbody>
+    </table>
+  </div>
 </div>
 </section>
 
@@ -209,71 +235,1188 @@ button{border:0;border-radius:8px;padding:10px 14px;cursor:pointer}.btn-primary{
 <div class="card"><h2>Lead Source Performance</h2><div class="table-wrapper"><table><thead><tr><th>Lead Source</th><th>Total Leads</th><th>Converted</th><th>Conversion Rate</th></tr></thead><tbody id="sourceReportTable"></tbody></table></div></div>
 </section>
 
+<!-- IMPORTANT: PIPELINE IS INSIDE .content, BEFORE CLOSING MAIN -->
 <section id="pipelinePage" class="page hidden"><div class="card"><div class="card-header"><h2>Lead Pipeline</h2><button class="btn-primary" onclick="loadPipeline()">Refresh</button></div><div class="pipeline-board" id="pipelineBoard"><div class="empty">Loading pipeline...</div></div></div></section>
 
+<!-- IMPORTANT: PROFILE IS ALSO INSIDE .content -->
 <section id="leadProfilePage" class="page hidden"><div class="card"><div class="card-header"><h2>Lead Profile</h2><button class="btn-secondary" onclick="backToPrevious()">← Back</button></div><div id="leadProfileContent" class="empty">Select a lead to view profile.</div></div></section>
 
 <section id="settingsPage" class="page hidden">
 <div class="card">
-<h2>Import / Export Leads</h2>
-<p class="muted">Export all leads as CSV or import multiple leads from a CSV file.</p>
-<div class="import-export-actions">
-<button class="btn-primary" type="button" onclick="exportLeadsCSV()">⬇ Export Leads CSV</button>
-<label class="btn-secondary file-label">⬆ Import CSV<input type="file" id="leadImportFile" accept=".csv,text/csv" onchange="handleLeadCSVImport(event)"></label>
-</div>
-<div class="import-help">
-<strong>CSV columns:</strong> full_name, mobile_number, city, lead_source, status, next_follow_up, notes
-<br><small>Only <strong>full_name</strong> and <strong>mobile_number</strong> are required. Duplicate mobile numbers will be skipped.</small>
-</div>
-<div id="importResult" class="import-result"></div>
-</div>
-<div class="card">
-<h2>Backup CRM Data</h2>
-<p class="muted">Create a complete backup of Leads, Tasks and Activity History as a JSON file.</p>
-<div class="import-export-actions">
-<button class="btn-primary" type="button" onclick="createCRMBackup()">💾 Create Backup</button>
-</div>
-<div id="backupResult" class="import-result"></div>
+  <h2>Import / Export Leads</h2>
+  <p class="muted">Export all leads as CSV or import multiple leads from a CSV file.</p>
+  <div class="import-export-actions">
+    <button class="btn-primary" type="button" onclick="exportLeadsCSV()">⬇ Export Leads CSV</button>
+    <label class="btn-secondary file-label">⬆ Import CSV<input type="file" id="leadImportFile" accept=".csv,text/csv" onchange="handleLeadCSVImport(event)"></label>
+  </div>
+  <div class="import-help">
+    <strong>CSV columns:</strong> full_name, mobile_number, city, lead_source, status, next_follow_up, notes
+    <br><small>Only <strong>full_name</strong> and <strong>mobile_number</strong> are required. Duplicate mobile numbers will be skipped.</small>
+  </div>
+  <div id="importResult" class="import-result"></div>
 </div>
 <div class="card">
-<h2>Restore CRM Backup</h2>
-<p class="muted">Select a Future Secure Providers CRM backup JSON file. Existing records are preserved; matching IDs are skipped to avoid accidental overwrite.</p>
-<div class="import-export-actions">
-<label class="btn-secondary file-label">📂 Select Backup File<input type="file" id="backupRestoreFile" accept=".json,application/json" onchange="handleBackupRestore(event)"></label>
+  <h2>Backup CRM Data</h2>
+  <p class="muted">Create a complete backup of Leads, Tasks and Activity History as a JSON file.</p>
+  <div class="import-export-actions">
+    <button class="btn-primary" type="button" onclick="createCRMBackup()">💾 Create Backup</button>
+  </div>
+  <div id="backupResult" class="import-result"></div>
 </div>
-<div id="restoreResult" class="import-result"></div>
+<div class="card">
+  <h2>Restore CRM Backup</h2>
+  <p class="muted">Select a Future Secure Providers CRM backup JSON file. Existing records are preserved; matching IDs are skipped to avoid accidental overwrite.</p>
+  <div class="import-export-actions">
+    <label class="btn-secondary file-label">📂 Select Backup File<input type="file" id="backupRestoreFile" accept=".json,application/json" onchange="handleBackupRestore(event)"></label>
+  </div>
+  <div id="restoreResult" class="import-result"></div>
 </div>
 </section>
 
 </div></main></div>
 
+<script>
+const SUPABASE_URL="https://cjwxirpwzluynymwjzxl.supabase.co";
+const SUPABASE_KEY="sb_publishable_jkr9U6yu6ODDa4JvHmrE4w_gIWJBsOz";
+const supabaseClient=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+let currentUser=null;
+async function initializeAuth(){try{const{data:{session},error}=await supabaseClient.auth.getSession();if(error)throw error;if(session){currentUser=session.user;updateHeaderForAuthenticatedUser(currentUser);showCRMUI();await loadCRMData();}else{showLoginPage();}}catch(err){console.error("Error initializing auth:",err);showLoginPage();}}
+async function initializeAuthStateListener(){supabaseClient.auth.onAuthStateChange((event,session)=>{if(event==="SIGNED_IN"&&session){currentUser=session.user;updateHeaderForAuthenticatedUser(currentUser);showCRMUI();loadCRMData();}else if(event==="SIGNED_OUT"){currentUser=null;clearCRMData();updateHeaderForLoggedOut();showLoginPage();}else if(event==="TOKEN_REFRESHED"){console.log("Token refreshed");}});}
+async function handleLoginSubmit(event){event.preventDefault();const email=document.getElementById("loginEmail").value.trim();const password=document.getElementById("loginPassword").value;const submitButton=document.getElementById("loginSubmitButton");const errorDiv=document.getElementById("loginErrorMessage");submitButton.disabled=true;submitButton.textContent="Signing In...";errorDiv.classList.remove("show");try{const{data,error}=await supabaseClient.auth.signInWithPassword({email,password});if(error)throw error;currentUser=data.user;updateHeaderForAuthenticatedUser(currentUser);showCRMUI();await loadCRMData();}catch(err){console.error("Sign in error:",err);showLoginError(err.message||"Sign in failed. Please check your credentials and try again.");}finally{submitButton.disabled=false;submitButton.textContent="Sign In";}}
+function showLoginError(message){const errorDiv=document.getElementById("loginErrorMessage");errorDiv.textContent=message;errorDiv.classList.add("show");}
+async function handleLogout(){try{const{error}=await supabaseClient.auth.signOut();if(error)throw error;currentUser=null;clearCRMData();updateHeaderForLoggedOut();showLoginPage();}catch(err){console.error("Sign out error:",err);alert("Error signing out: "+err.message);}}
+function showLoginPage(){const allPages=document.querySelectorAll(".page");allPages.forEach(page=>page.classList.add("hidden"));document.getElementById("loginPage").classList.remove("hidden");document.querySelector(".sidebar").style.display="none";document.querySelector(".sidebar-overlay").style.display="none";document.getElementById("logoutButton").style.display="none";}
+function showCRMUI(){
+const allPages=document.querySelectorAll(".page");
+allPages.forEach(page=>page.classList.add("hidden"));
+document.querySelector(".sidebar").style.display="flex";
+const savedPage=localStorage.getItem("crm_active_page");
+const leadId=localStorage.getItem("crm_current_lead_id");
+const savedSessionUser=localStorage.getItem("crm_session_user");
+const currentSessionUser=currentUser?.id||"";
+const shouldRestorePage=savedPage&&savedSessionUser&&savedSessionUser===currentSessionUser;
+const pageToShow=shouldRestorePage?savedPage:"dashboard";
+
+if(leadId&&pageToShow==="leads"){
+viewLead(leadId,previousPage);
+return;
+}
+if(leadId&&pageToShow!=="leads"){
+localStorage.removeItem("crm_current_lead_id");
+}
+
+const target=document.getElementById(pageToShow+"Page");
+if(target)target.classList.remove("hidden");
+else document.getElementById("dashboardPage").classList.remove("hidden");
+showPage(pageToShow,document.querySelector('[data-page="'+pageToShow+'"]'));
+}
+function updateHeaderForAuthenticatedUser(user){document.getElementById("currentUserDisplay").textContent=user.email||"User";document.getElementById("logoutButton").style.display="inline-block";}
+function updateHeaderForLoggedOut(){document.getElementById("currentUserDisplay").textContent="Administrator";document.getElementById("logoutButton").style.display="none";}
+async function loadCRMData(){if(!currentUser){console.warn("No authenticated user found");return;}await loadLeads();await loadPipeline();await loadSmartDashboard();}
+function clearCRMData(){allLeadsCache=[];currentTasks=[];currentLeadActivities=[];document.getElementById("recentLeads").innerHTML="<tr><td colspan='4' class='empty'>No leads</td></tr>";document.getElementById("leadsTable").innerHTML="";document.getElementById("pipelineBoard").innerHTML="<div class='empty'>Loading pipeline...</div>";document.getElementById("priorityActions").innerHTML="<div class='empty'>No priority actions</div>";localStorage.removeItem("crm_active_page");localStorage.removeItem("crm_session_user");}
+let previousPage="leads";
+
+const pageInfo={
+dashboard:["Dashboard","Welcome to Future Secure Providers CRM"],
+leads:["Leads","Manage all customer leads"],addLead:["Add New Lead","Create or update a customer lead"],
+followups:["Follow-ups","Manage scheduled follow-ups"],tasks:["Today's Tasks","Manage your daily activities"],
+calendar:["Calendar","View and manage appointments"],
+reports:["Reports","View CRM performance reports"],pipeline:["Lead Pipeline","Track leads by sales stage"],
+leadProfile:["Lead Profile","Customer details and activity"],settings:["Settings","CRM configuration"]};
+
+function showPage(page,element){
+document.querySelectorAll(".page").forEach(x=>x.classList.add("hidden"));
+const target=document.getElementById(page+"Page");if(target)target.classList.remove("hidden");
+document.querySelectorAll(".nav-item").forEach(x=>x.classList.remove("active"));
+if(element)element.classList.add("active");
+if(pageInfo[page]){pageTitle.textContent=pageInfo[page][0];pageSubtitle.textContent=pageInfo[page][1]}
+if(page!=="leadProfile"){previousPage=page;localStorage.setItem("crm_active_page",page);localStorage.setItem("crm_session_user",currentUser?.id||"");}
+window.scrollTo({top:0,behavior:"smooth"});
+}
+function backToPrevious(){
+localStorage.removeItem("crm_current_lead_id");
+showPage(previousPage,document.querySelector(`[data-page="${previousPage}"]`));if(previousPage==="pipeline")loadPipeline();else loadLeads()}
+function escapeHtml(v){return String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;")}
+function formatDate(v){if(!v)return"-";const d=new Date(v);return isNaN(d)?"-":d.toLocaleString("en-IN",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"})}
+function localDateTimeToISOString(value){
+  if(!value)return null;
+  const d=new Date(value);
+  return isNaN(d) ? null : d.toISOString();
+}
+function isoToLocalDateTime(value){
+  if(!value)return "";
+  const d=new Date(value);
+  if(isNaN(d))return "";
+  const pad=n=>String(n).padStart(2,"0");
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+function showMessage(text,type){const m=formMessage;m.textContent=text;m.className="message "+type;setTimeout(()=>m.className="message",4000)}
+function openNewLead(){leadForm.reset();delete leadForm.dataset.editId;leadFormTitle.textContent="Add New Lead";saveLeadButton.textContent="Save Lead";showPage("addLead",document.querySelector('[data-page="addLead"]'))}
+
+async function handleBackupRestore(event){
+ const file=event.target.files?.[0],result=document.getElementById("restoreResult");
+ if(!file)return;
+ result.textContent="Reading backup...";
+ try{
+  const text=await file.text();
+  const backup=JSON.parse(text);
+  if(!backup?.data || !Array.isArray(backup.data.leads) || !Array.isArray(backup.data.tasks) || !Array.isArray(backup.data.lead_activities)){
+   throw new Error("This is not a valid Future Secure Providers CRM backup file.");
+  }
+  const leadCount=backup.data.leads.length,taskCount=backup.data.tasks.length,activityCount=backup.data.lead_activities.length;
+  if(!confirm(`Restore this backup?\n\nLeads: ${leadCount}\nTasks: ${taskCount}\nActivities: ${activityCount}\n\nExisting records will be preserved. Matching IDs will be skipped.`)){
+   result.textContent="Restore cancelled.";return;
+  }
+  result.textContent="Restoring leads...";
+  const existingLeads=(await supabaseClient.from("leads").select("id")).data||[];
+  const leadIds=new Set(existingLeads.map(x=>String(x.id)));
+  const leadsToInsert=backup.data.leads.filter(x=>x.id==null||!leadIds.has(String(x.id)));
+  let leadsAdded=0,tasksAdded=0,activitiesAdded=0,skippedLeads=leadCount-leadsToInsert.length,skippedTasks=0,skippedActivities=0;
+
+  // Preserve IDs only when possible; otherwise insert without id so Supabase generates one.
+  for(const row of leadsToInsert){
+   const payload={...row};
+   delete payload.id;
+   if(!payload.created_by){payload.created_by=currentUser.id;}
+   const {error}=await supabaseClient.from("leads").insert([payload]);
+   if(error)throw new Error("Lead restore failed: "+error.message);
+   leadsAdded++;
+  }
+
+  result.textContent="Restoring tasks...";
+  const existingTasks=(await supabaseClient.from("tasks").select("id")).data||[];
+  const taskIds=new Set(existingTasks.map(x=>String(x.id)));
+  for(const row of backup.data.tasks){
+   if(row.id!=null&&taskIds.has(String(row.id))){skippedTasks++;continue}
+   const payload={...row};delete payload.id;
+   if(!payload.created_by){payload.created_by=currentUser.id;}
+   const {error}=await supabaseClient.from("tasks").insert([payload]);
+   if(error){skippedTasks++;continue}
+   tasksAdded++;
+  }
+
+  result.textContent="Restoring activity history...";
+  const existingActivities=(await supabaseClient.from("lead_activities").select("id")).data||[];
+  const activityIds=new Set(existingActivities.map(x=>String(x.id)));
+  for(const row of backup.data.lead_activities){
+   if(row.id!=null&&activityIds.has(String(row.id))){skippedActivities++;continue}
+   const payload={...row};delete payload.id;
+   if(!payload.created_by){payload.created_by=currentUser.id;}
+   const {error}=await supabaseClient.from("lead_activities").insert([payload]);
+   if(error){skippedActivities++;continue}
+   activitiesAdded++;
+  }
+
+  await loadLeads();await loadPipeline();await loadTasks();
+  result.textContent=`Restore complete: ${leadsAdded} leads, ${tasksAdded} tasks, ${activitiesAdded} activities added. Skipped: ${skippedLeads} leads, ${skippedTasks} tasks, ${skippedActivities} activities.`;
+ }catch(err){result.textContent="Restore failed: "+(err.message||err)}
+ finally{event.target.value=""}
+}
+async function createCRMBackup(){
+ const result=document.getElementById("backupResult");
+ result.textContent="Creating backup...";
+ try{
+  const [leadsRes,tasksRes,activitiesRes]=await Promise.all([
+   supabaseClient.from("leads").select("*").order("id"),
+   supabaseClient.from("tasks").select("*").order("id"),
+   supabaseClient.from("lead_activities").select("*").order("id")
+  ]);
+  if(leadsRes.error)throw leadsRes.error;
+  if(tasksRes.error)throw tasksRes.error;
+  if(activitiesRes.error)throw activitiesRes.error;
+  const backup={
+   app:"Future Secure Providers CRM",
+   backup_created_at:new Date().toISOString(),
+   version:"1.0",
+   data:{
+    leads:leadsRes.data||[],
+    tasks:tasksRes.data||[],
+    lead_activities:activitiesRes.data||[]
+   }
+  };
+  const blob=new Blob([JSON.stringify(backup,null,2)],{type:"application/json"});
+  const url=URL.createObjectURL(blob),a=document.createElement("a");
+  a.href=url;
+  a.download=`future-secure-providers-crm-backup-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();URL.revokeObjectURL(url);
+  result.textContent=`Backup created successfully: ${(backup.data.leads||[]).length} leads, ${(backup.data.tasks||[]).length} tasks, ${(backup.data.lead_activities||[]).length} activities.`;
+ }catch(err){result.textContent="Backup failed: "+(err.message||err)}
+}
+function csvEscape(value){
+ const text=String(value??"");
+ return `"${text.replace(/"/g,'""')}"`;
+}
+function exportLeadsCSV(){
+ const rows=allLeadsCache||[];
+ if(!rows.length){alert("No leads available to export.");return}
+ const headers=["id","full_name","mobile_number","city","lead_source","status","next_follow_up","notes","created_at"];
+ const csv=[headers.join(","),...rows.map(x=>headers.map(h=>csvEscape(x[h]??"")).join(","))].join("\n");
+ const blob=new Blob([csv],{type:"text/csv;charset=utf-8;"});
+ const url=URL.createObjectURL(blob),a=document.createElement("a");
+ a.href=url;a.download=`future-secure-providers-leads-${new Date().toISOString().slice(0,10)}.csv`;a.click();URL.revokeObjectURL(url);
+}
+function parseCSV(text){
+ const rows=[];let row=[],cell="",quoted=false;
+ for(let i=0;i<text.length;i++){
+  const c=text[i],n=text[i+1];
+  if(c==='"'){if(quoted&&n==='"'){cell+='"';i++}else quoted=!quoted}
+  else if(c===","&&!quoted){row.push(cell.trim());cell=""}
+  else if((c==="\n"||c==="\r")&&!quoted){
+   if(c==="\r"&&n==="\n")i++;
+   row.push(cell.trim());cell="";
+   if(row.some(v=>v!==""))rows.push(row);row=[];
+  }else cell+=c;
+ }
+ row.push(cell.trim());if(row.some(v=>v!==""))rows.push(row);
+ if(!rows.length)return [];
+ const headers=rows[0].map(h=>h.replace(/^\uFEFF/,"").trim().toLowerCase());
+ return rows.slice(1).map(r=>Object.fromEntries(headers.map((h,i)=>[h,r[i]??""])));
+}
+async function handleLeadCSVImport(event){
+ const file=event.target.files?.[0];const result=document.getElementById("importResult");
+ if(!file)return;
+ result.textContent="Reading CSV...";
+ try{
+  const text=await file.text(),items=parseCSV(text);
+  if(!items.length)throw new Error("No lead rows found in CSV.");
+  const {data:existing,error}=await supabaseClient.from("leads").select("mobile_number");
+  if(error)throw error;
+  const existingMobiles=new Set((existing||[]).map(x=>String(x.mobile_number||"").trim()));
+  let added=0,skipped=0,invalid=0;
+  for(const item of items){
+   const name=(item.full_name||item.name||"").trim();
+   const mobile=(item.mobile_number||item.mobile||item.phone||"").trim();
+   if(!name||!mobile){invalid++;continue}
+   if(existingMobiles.has(mobile)){skipped++;continue}
+   const payload={
+    full_name:name,mobile_number:mobile,city:(item.city||"").trim()||null,
+    lead_source:(item.lead_source||"CSV Import").trim()||"CSV Import",
+    status:(item.status||"New").trim()||"New",
+    next_follow_up:(item.next_follow_up||"").trim()||null,
+    notes:(item.notes||"").trim()||null,
+    created_by:currentUser.id
+   };
+   const {data,error:insertError}=await supabaseClient.from("leads").insert([payload]).select().single();
+   if(insertError){invalid++;continue}
+   existingMobiles.add(mobile);added++;
+   await addLeadActivity(data.id,"Lead Imported","Lead was imported from CSV.");
+  }
+  await loadLeads();await loadPipeline();
+  result.textContent=`Import complete: ${added} added, ${skipped} duplicate skipped, ${invalid} invalid/failed.`;
+ }catch(err){result.textContent="Import failed: "+(err.message||err)}
+ finally{event.target.value=""}
+}
+let allLeadsCache=[];
+function getLocalDateKey(value){if(!value)return "";const d=new Date(value);if(isNaN(d))return "";const p=n=>String(n).padStart(2,"0");return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;}
+function populateLeadFilters(){const city=document.getElementById("filterCity"),source=document.getElementById("filterSource");if(!city||!source)return;const cv=city.value,sv=source.value;const cities=[...new Set(allLeadsCache.map(x=>(x.city||"").trim()).filter(Boolean))].sort();const sources=[...new Set(allLeadsCache.map(x=>(x.lead_source||"").trim()).filter(Boolean))].sort();city.innerHTML='<option value="">All Cities</option>'+cities.map(x=>`<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join("");source.innerHTML='<option value="">All Sources</option>'+sources.map(x=>`<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join("");city.value=cv;source.value=sv;}
+function applyLeadFilters() {
+
+    const search = (
+        document.getElementById("leadSearch")?.value || ""
+    ).trim().toLowerCase();
+
+    const status =
+        document.getElementById("filterStatus")?.value || "";
+
+    const city =
+        document.getElementById("filterCity")?.value || "";
+
+    const source =
+        document.getElementById("filterSource")?.value || "";
+
+    const date =
+        document.getElementById("filterFollowupDate")?.value || "";
+
+    const rows = allLeadsCache.filter(x => {
+
+        const name = (x.full_name || "").toLowerCase();
+
+        const mobile = String(
+            x.mobile_number || ""
+        ).toLowerCase();
+
+        const matchesSearch =
+            !search ||
+            name.includes(search) ||
+            mobile.includes(search);
+
+        const matchesStatus =
+            !status ||
+            (x.status || "New") === status;
+
+        const matchesCity =
+            !city ||
+            (x.city || "").trim() === city;
+
+        const matchesSource =
+            !source ||
+            (x.lead_source || "").trim() === source;
+
+        const matchesDate =
+            !date ||
+            getLocalDateKey(x.next_follow_up) === date;
+
+        return (
+            matchesSearch &&
+            matchesStatus &&
+            matchesCity &&
+            matchesSource &&
+            matchesDate
+        );
+    });
+
+    const count =
+        document.getElementById("filteredLeadCount");
+
+    if (count) {
+        count.textContent = rows.length;
+    }
+
+    renderLeads(rows);
+}
+function clearLeadFilters(){
+  filterStatus.value="";
+  filterCity.value="";
+  filterSource.value="";
+  filterFollowupDate.value="";
+  
+  const s=document.getElementById("leadSearch");
+  if(s)s.value="";
+  
+  applyLeadFilters();
+}
+async function loadLeads(){
+const {data,error}=await supabaseClient.from("leads").select("*").order("created_at",{ascending:false});
+if(error){leadsTable.innerHTML=`<tr><td colspan="7" class="empty">${escapeHtml(error.message)}</td></tr>`;return}
+const rows=data||[];allLeadsCache=rows;populateLeadFilters();applyLeadFilters();renderRecent(rows);updateDashboard(rows);renderReports(rows);loadFollowups(rows)
+}
+function updateDashboard(rows){totalLeads.textContent=rows.length;newLeads.textContent=rows.filter(x=>x.status==="New").length;followupCount.textContent=rows.filter(x=>x.next_follow_up).length;convertedCount.textContent=rows.filter(x=>x.status==="Converted").length}
+function renderRecent(rows){recentLeads.innerHTML=rows.slice(0,5).map(x=>`<tr onclick="viewLead(${Number(x.id)})" style="cursor:pointer"><td>${escapeHtml(x.full_name)}</td><td>${escapeHtml(x.mobile_number)}</td><td>${escapeHtml(x.city||"-")}</td><td><span class="status">${escapeHtml(x.status||"New")}</span></td></tr>`).join("")||`<tr><td colspan="4" class="empty">No leads found</td></tr>`}
+function renderLeads(rows){leadsTable.innerHTML=rows.map(x=>`<tr><td>${escapeHtml(x.full_name)}</td><td>${escapeHtml(x.mobile_number)}</td><td>${escapeHtml(x.city||"-")}</td><td>${escapeHtml(x.lead_source||"-")}</td><td><span class="status">${escapeHtml(x.status||"New")}</span></td><td>${formatDate(x.next_follow_up)}</td><td><div class="actions"><button class="btn-secondary" onclick="viewLead(${Number(x.id)})">View</button><button class="btn-edit" onclick="editLead(${Number(x.id)})">Edit</button><button class="btn-danger" onclick="deleteLead(${Number(x.id)})">Delete</button></div></td></tr>`).join("")||`<tr><td colspan="7" class="empty">No leads found</td></tr>`}
+function searchLeads(v) {
+    applyLeadFilters();
+}
+
+async function addLeadActivity(leadId,activityType,description){
+  if(!leadId)return;
+  const {error}=await supabaseClient.from("lead_activities").insert([{
+    lead_id:leadId,activity_type:activityType,description:description||null,created_by:currentUser.id
+  }]);
+  if(error)console.error("Activity log error:",error.message);
+}
+async function loadLeadActivities(leadId){
+  const box=document.getElementById("leadActivityTimeline");
+  if(!box)return;
+  const {data,error}=await supabaseClient.from("lead_activities").select("*").eq("lead_id",leadId).order("created_at",{ascending:false});
+  if(error){box.innerHTML=`<div class="empty">Unable to load activity history</div>`;return}
+  box.innerHTML=(data||[]).map(a=>`<div class="detail-box" style="margin-bottom:8px"><strong>${escapeHtml(a.activity_type||"Activity")}</strong><div style="margin-top:4px">${escapeHtml(a.description||"-")}</div><small style="display:block;margin-top:6px;color:var(--muted)">${formatDate(a.created_at)}</small></div>`).join("")||'<div class="empty">No activity history yet</div>';
+}
+// Get lead source from URL query parameter (for website quote forms)
+function getLeadSourceFromURL(){
+  const params=new URLSearchParams(window.location.search);
+  const source=params.get("source");
+  if(source==="MetaAds")return "Meta Ads";
+  return "Website";
+}
+
+leadForm.addEventListener("submit",async e=>{
+e.preventDefault();
+const editId=leadForm.dataset.editId;
+
+// For NEW leads: read URL parameter directly
+let leadSourceValue=leadSource.value;
+if(!editId){
+  const urlParams=new URLSearchParams(window.location.search);
+  const sourceParam=urlParams.get("source");
+  if(sourceParam==="MetaAds"){
+    leadSourceValue="Meta Ads";
+  }else{
+    leadSourceValue="Website";
+  }
+}
+
+const payload={full_name:leadName.value.trim(),mobile_number:leadPhone.value.trim(),city:leadCity.value.trim()||null,lead_source:leadSourceValue,status:leadStatus.value,next_follow_up:localDateTimeToISOString(leadFollowUp.value),notes:leadNotes.value.trim()||null};
+if(!payload.full_name||!payload.mobile_number)return showMessage("Please enter customer name and mobile number.","error");
+const {data:duplicates,error:duplicateError}=await supabaseClient.from("leads").select("id,full_name,mobile_number").eq("mobile_number",payload.mobile_number);
+if(duplicateError)return showMessage("Error checking duplicate mobile: "+duplicateError.message,"error");
+const duplicate=(duplicates||[]).find(x=>String(x.id)!==String(editId||""));
+if(duplicate)return showMessage(`Duplicate mobile number! ${duplicate.full_name} already exists with ${duplicate.mobile_number}.`,"error");
+saveLeadButton.disabled=true;saveLeadButton.textContent=editId?"Updating...":"Saving...";
+let result;if(editId){result=await supabaseClient.from("leads").update(payload).eq("id",editId).select().single()}else{const insertPayload={...payload,created_by:currentUser.id};result=await supabaseClient.from("leads").insert([insertPayload]).select().single()}
+saveLeadButton.disabled=false;
+if(result.error){showMessage("Error saving lead: "+result.error.message,"error");saveLeadButton.textContent=editId?"Update Lead":"Save Lead";return}
+const savedLeadId=editId||result.data?.id;
+if(editId)await addLeadActivity(savedLeadId,"Lead Updated","Lead details were updated.");
+else await addLeadActivity(savedLeadId,"Lead Created","Lead was added to CRM.");
+showMessage(editId?"Lead updated successfully!":"Lead saved successfully!","success");leadForm.reset();delete leadForm.dataset.editId;saveLeadButton.textContent="Save Lead";await loadLeads();await loadPipeline();setTimeout(()=>showPage("leads",document.querySelector('[data-page="leads"]')),600)
+});
+async function editLead(id){const {data,error}=await supabaseClient.from("leads").select("*").eq("id",id).maybeSingle();if(error)return alert(error.message);if(!data)return;leadName.value=data.full_name||"";leadPhone.value=data.mobile_number||"";leadCity.value=data.city||"";leadSource.value=data.lead_source||"Manual";leadStatus.value=data.status||"New";leadFollowUp.value=isoToLocalDateTime(data.next_follow_up);leadNotes.value=data.notes||"";leadForm.dataset.editId=id;leadFormTitle.textContent="Update Lead";saveLeadButton.textContent="Update Lead";showPage("addLead",document.querySelector('[data-page="addLead"]'))}
+async function deleteLead(id){if(!confirm("Delete this lead?"))return;const {error}=await supabaseClient.from("leads").delete().eq("id",id);if(error)return alert(error.message);await loadLeads();await loadPipeline()}
+
+async function loadPipeline(){
+const board=document.getElementById("pipelineBoard");board.innerHTML='<div class="empty">Loading pipeline...</div>';
+const {data,error}=await supabaseClient.from("leads").select("*").order("created_at",{ascending:false});
+if(error){board.innerHTML=`<div class="empty">${escapeHtml(error.message)}</div>`;return}
+const stages=[["New","🆕 New"],["Contacted","📞 Contacted"],["Follow-up","📅 Follow-up"],["Interested","🔥 Interested"],["Converted","✅ Converted"]];
+board.innerHTML=stages.map(([key,label])=>{const items=(data||[]).filter(x=>x.status===key);return `<div class="pipeline-column" data-status="${key}" ondragover="pipelineDragOver(event)" ondragleave="pipelineDragLeave(event)" ondrop="pipelineDrop(event,'${key}')"><h3><span>${label}</span><span class="pipeline-count">${items.length}</span></h3>${items.length?items.map(x=>`<div class="pipeline-card" draggable="true" ondragstart="pipelineDragStart(event,${Number(x.id)})" ondragend="pipelineDragEnd(event)" onclick="viewLead(${Number(x.id)},'pipeline')"><strong>${escapeHtml(x.full_name||"-")}</strong><small>📞 ${escapeHtml(x.mobile_number||"-")}</small><small>📍 ${escapeHtml(x.city||"-")}</small><small>📅 ${x.next_follow_up?formatDate(x.next_follow_up):"No follow-up"}</small></div>`).join(""):'<div class="empty">No leads</div>'}</div>`}).join("")
+}
+
+let draggedLeadId=null;
+function pipelineDragStart(event,id){draggedLeadId=id;event.currentTarget.classList.add("dragging");event.dataTransfer.effectAllowed="move";event.dataTransfer.setData("text/plain",String(id))}
+function pipelineDragEnd(event){event.currentTarget.classList.remove("dragging");document.querySelectorAll(".pipeline-column").forEach(x=>x.classList.remove("drag-over"));draggedLeadId=null}
+function pipelineDragOver(event){event.preventDefault();event.currentTarget.classList.add("drag-over");event.dataTransfer.dropEffect="move"}
+function pipelineDragLeave(event){event.currentTarget.classList.remove("drag-over")}
+async function pipelineDrop(event,newStatus){
+event.preventDefault();event.currentTarget.classList.remove("drag-over");
+const id=draggedLeadId||Number(event.dataTransfer.getData("text/plain"));
+if(!id)return;
+const {data:lead,error:getError}=await supabaseClient.from("leads").select("id,status").eq("id",id).maybeSingle();
+if(getError)return alert("Error loading lead: "+getError.message);
+if(!lead)return;
+if(lead.status===newStatus){draggedLeadId=null;return}
+const oldStatus=lead.status||"New";
+const {error}=await supabaseClient.from("leads").update({status:newStatus}).eq("id",id);
+if(error)return alert("Error updating pipeline: "+error.message);
+await addLeadActivity(id,"Pipeline Status Changed",`Status changed from ${oldStatus} to ${newStatus}.`);
+draggedLeadId=null;await loadLeads();await loadPipeline();
+}
+async function viewLead(id,fromPage){
+if(fromPage)previousPage=fromPage;
+const {data:lead,error}=await supabaseClient.from("leads").select("*").eq("id",id).maybeSingle();if(error)return alert(error?.message||"Lead not found");if(!lead){localStorage.removeItem("crm_current_lead_id");showPage("leads",document.querySelector('[data-page="leads"]'));return}
+localStorage.setItem("crm_current_lead_id",id);
+const phone=String(lead.mobile_number||"").replace(/\D/g,"");
+leadProfileContent.innerHTML=`<div class="card" id="quickStatusCard"><h3 style="margin-bottom:10px">Quick Status Update</h3><div class="actions"><select id="quickStatusSelect" style="max-width:220px"><option>New</option><option>Contacted</option><option>Follow-up</option><option>Interested</option><option>Converted</option><option>Not Interested</option></select><button class="btn-primary" onclick="quickUpdateStatus(${Number(lead.id)})">Update Status</button></div></div><div class="profile-grid"><div class="detail-box"><label>Full Name</label><strong>${escapeHtml(lead.full_name)}</strong></div><div class="detail-box"><label>Mobile Number</label><strong>${escapeHtml(lead.mobile_number)}</strong></div><div class="detail-box"><label>Current Status</label><strong>${escapeHtml(lead.status||"New")}</strong></div></div>
+<div class="profile-grid"><div class="detail-box"><label>City</label><strong>${escapeHtml(lead.city||"-")}</strong></div><div class="detail-box"><label>Lead Source</label><strong>${escapeHtml(lead.lead_source||"-")}</strong></div><div class="detail-box"><label>Next Follow-up</label><strong>${formatDate(lead.next_follow_up)}</strong></div><div class="detail-box"><label>Created</label><strong>${formatDate(lead.created_at)}</strong></div></div>
+<div class="card"><h3 style="margin-bottom:10px">Notes</h3><div>${escapeHtml(lead.notes||"No notes added").replace(/\n/g,"<br>")}</div></div><div class="card"><h3 style="margin-bottom:10px">Activity History</h3><div id="leadActivityTimeline"><div class="empty">Loading activity history...</div></div></div>
+<div class="actions">
+  <button class="btn-call" onclick="logCall(${Number(lead.id)},'${phone}')">Call</button>
+  <button class="btn-wa" onclick="logWhatsApp(${Number(lead.id)},'${phone}')">WhatsApp</button>
+  <button class="btn-edit" onclick="editLead(${Number(lead.id)})">Edit Lead</button>
+  <button class="btn-primary" onclick="completeFollowup(${Number(lead.id)})">Complete Follow-up</button>
+  <button class="btn-secondary" onclick="rescheduleFollowup(${Number(lead.id)})">Reschedule</button>
+  <button class="btn-danger" onclick="noResponseFollowup(${Number(lead.id)})">No Response</button>
+</div>`;
+const quick=document.getElementById("quickStatusSelect");if(quick)quick.value=lead.status||"New";
+showPage("leadProfile",null);
+await loadLeadActivities(id);
+}
+
+async function quickUpdateStatus(id){
+const status=document.getElementById("quickStatusSelect").value;
+const {data:current,error:currentError}=await supabaseClient.from("leads").select("status").eq("id",id).maybeSingle();
+if(currentError)return alert("Unable to read current status: "+currentError.message);
+if(!current)return alert("Lead not found");
+const oldStatus=current.status||"New";
+const {error}=await supabaseClient.from("leads").update({status}).eq("id",id);
+if(error)return alert("Error updating status: "+error.message);
+if(oldStatus!==status)await addLeadActivity(id,"Quick Status Changed",`Status changed from ${oldStatus} to ${status}.`);
+await loadLeads();await loadPipeline();
+await viewLead(id,previousPage);
+}
+async function logCall(leadId,mobile){
+  await addLeadActivity(
+    leadId,
+    "Call Initiated",
+    `Call initiated to ${mobile}`
+  );
+  window.location.href=`tel:${mobile}`;
+}
+
+async function logWhatsApp(leadId,mobile){
+  await addLeadActivity(
+    leadId,
+    "WhatsApp Opened",
+    `WhatsApp opened for ${mobile}`
+  );
+  window.open(`https://wa.me/91${mobile}`,"_blank");
+}
+async function loadFollowups(preloaded){let rows=preloaded;if(!rows){const {data,error}=await supabaseClient.from("leads").select("*").not("next_follow_up","is",null).order("next_follow_up",{ascending:true});if(error){followupsTable.innerHTML=`<tr><td colspan="6" class="empty">${escapeHtml(error.message)}</td></tr>`;return}rows=data||[]}rows=rows.filter(x=>x.next_follow_up);const now=new Date(),today=new Date(now.getFullYear(),now.getMonth(),now.getDate()),tomorrow=new Date(today),dayAfter=new Date(today);tomorrow.setDate(tomorrow.getDate()+1);dayAfter.setDate(dayAfter.getDate()+2);const type=x=>{const d=new Date(x.next_follow_up);if(d<today)return"Overdue";if(d>=today&&d<tomorrow)return"Today";if(d>=tomorrow&&d<dayAfter)return"Tomorrow";return"Upcoming"};todayFollowupCount.textContent=rows.filter(x=>type(x)==="Today").length;tomorrowFollowupCount.textContent=rows.filter(x=>type(x)==="Tomorrow").length;overdueFollowupCount.textContent=rows.filter(x=>type(x)==="Overdue").length;followupsTable.innerHTML=rows.map(x=>`<tr><td><span class="status">${type(x)}</span></td><td>${escapeHtml(x.full_name)}</td><td>${escapeHtml(x.mobile_number)}</td><td>${formatDate(x.next_follow_up)}</td><td>${escapeHtml(x.status||"New")}</td><td><div class="actions"><button class="btn-primary" onclick="completeFollowup(${Number(x.id)})">Complete</button><button class="btn-secondary" onclick="viewLead(${Number(x.id)},'followups')">View</button></div></td></tr>`).join("")||`<tr><td colspan="6" class="empty">No follow-ups scheduled</td></tr>`}
+let followupLeadId=null;
+
+function completeFollowup(id){
+  followupLeadId=id;
+  document.getElementById("followupModal").classList.add("show");
+  document.getElementById("followupResult").value="Spoke";
+  document.getElementById("followupNote").value="";
+  document.getElementById("nextFollowup").value="";
+}
+
+function closeFollowupModal(){
+  document.getElementById("followupModal").classList.remove("show");
+  followupLeadId=null;
+}
+function rescheduleFollowup(id){
+    followupLeadId = id;
+    document.getElementById("followupModal").classList.add("show");
+    document.getElementById("followupResult").value = "Reschedule";
+    document.getElementById("followupNote").value = "";
+    document.getElementById("nextFollowup").value = "";
+}
+
+function noResponseFollowup(id){
+    followupLeadId = id;
+    document.getElementById("followupModal").classList.add("show");
+    document.getElementById("followupResult").value = "No Answer";
+    document.getElementById("followupNote").value = "";
+    document.getElementById("nextFollowup").value = "";
+}
+async function saveFollowup(){
+
+  if(!followupLeadId) return;
+
+  const { data: lead, error } = await supabaseClient
+    .from("leads")
+    .select("*")
+    .eq("id", followupLeadId)
+    .maybeSingle();
+
+  if(error || !lead){
+    return alert(error?.message || "Lead not found");
+  }
+
+  const result = document.getElementById("followupResult").value;
+
+  const note = document
+    .getElementById("followupNote")
+    .value
+    .trim();
+
+  const next = document
+    .getElementById("nextFollowup")
+    .value;
+
+  const nextValue = localDateTimeToISOString(next);
+
+  // Save follow-up history
+  const stamp = new Date().toLocaleString("en-IN");
+
+  const activity =
+    `[Follow-up completed | ${stamp}] ` +
+    `Result: ${result || "-"}` +
+    `${note ? ` | Note: ${note}` : ""}`;
+
+  const notes = [lead.notes, activity]
+    .filter(Boolean)
+    .join("\n");
+
+  const update = {
+    next_follow_up: nextValue,
+    notes: notes
+  };
+
+  if(
+    lead.status === "New" ||
+    lead.status === "Contacted"
+  ){
+    update.status = "Follow-up";
+  }
+
+  // Update lead
+  const { error: updateError } = await supabaseClient
+    .from("leads")
+    .update(update)
+    .eq("id", followupLeadId);
+
+  if(updateError){
+    return alert(
+      "Error completing follow-up: " +
+      updateError.message
+    );
+  }
+
+  // Add activity
+  const followupDescription =
+    `Result: ${result || "-"}` +
+    `${note ? ` | Note: ${note}` : ""}` +
+    `${
+      nextValue
+        ? ` | Next follow-up: ${formatDate(nextValue)}`
+        : " | No next follow-up scheduled."
+    }`;
+
+  await addLeadActivity(
+    followupLeadId,
+    "Follow-up Completed",
+    followupDescription
+  );
+
+  // Create next task automatically
+  if(nextValue){
+
+    const taskPayload = {
+      title: `Follow-up: ${lead.full_name || "Customer"}`,
+
+      description:
+        `Previous Result: ${result || "-"}` +
+        `${note ? ` | Note: ${note}` : ""}`,
+
+      lead_id: Number(followupLeadId),
+
+      due_date: nextValue,
+
+      priority:
+  result === "Interested"
+    ? "High"
+    : "Medium",
+
+status: "Pending",
+created_by: currentUser.id
+};
+    const { error: taskError } = await supabaseClient
+      .from("tasks")
+      .insert([taskPayload]);
+
+    if(taskError){
+
+      console.error(
+        "Next task creation error:",
+        taskError
+      );
+
+      alert(
+        "Follow-up saved, but next task could not be created: " +
+        taskError.message
+      );
+
+    } else {
+
+      await addLeadActivity(
+        followupLeadId,
+        "Next Follow-up Task Created",
+        `Task scheduled for ${formatDate(nextValue)}`
+      );
+
+    }
+  }
+// Complete the original task only after follow-up is successfully saved
+if (window.pendingCompleteTaskId) {
+
+    const { error: completeError } = await supabaseClient
+        .from("tasks")
+        .update({
+            status: "Completed",
+            completed_at: new Date().toISOString()
+        })
+        .eq("id", window.pendingCompleteTaskId);
+
+    if (completeError) {
+        return alert("Follow-up saved, but task could not be completed: " + completeError.message);
+    }
+
+    window.pendingCompleteTaskId = null;
+    window.pendingCompleteTask = null;
+}
+  // Close popup
+  closeFollowupModal();
+
+  // Refresh all CRM sections
+  await loadLeads();
+  await loadPipeline();
+  await loadFollowups();
+  await loadTasks();
+
+  if(nextValue){
+
+    alert(
+      "Follow-up saved successfully.\n\n" +
+      "Next follow-up task created for:\n" +
+      formatDate(nextValue)
+    );
+
+  } else {
+
+    alert("Follow-up saved successfully.");
+
+  }
+}
+function renderReports(rows){
+const now=new Date(),today=new Date(now.getFullYear(),now.getMonth(),now.getDate()),tomorrow=new Date(today);tomorrow.setDate(tomorrow.getDate()+1);
+const week=new Date(today);week.setDate(week.getDate()-((week.getDay()+6)%7));
+const month=new Date(now.getFullYear(),now.getMonth(),1);
+const d=x=>x.created_at?new Date(x.created_at):null;
+const conv=rows.filter(x=>x.status==="Converted").length;
+reportConversionRate.textContent=(rows.length?(conv/rows.length*100).toFixed(1):0)+"%";
+reportTodayLeads.textContent=rows.filter(x=>{const z=d(x);return z&&z>=today&&z<tomorrow}).length;
+reportWeekLeads.textContent=rows.filter(x=>{const z=d(x);return z&&z>=week}).length;
+reportMonthLeads.textContent=rows.filter(x=>{const z=d(x);return z&&z>=month}).length;
+const statuses=["New","Contacted","Follow-up","Interested","Converted","Not Interested"];
+statusReportTable.innerHTML=statuses.map(st=>`<tr><td>${st}</td><td><strong>${rows.filter(x=>x.status===st).length}</strong></td></tr>`).join("");
+const sources=[...new Set(rows.map(x=>(x.lead_source||"Unknown").trim()||"Unknown"))].sort((a,b)=>a.localeCompare(b));
+sourceReportTable.innerHTML=sources.map(source=>{
+ const sourceRows=rows.filter(x=>((x.lead_source||"Unknown").trim()||"Unknown")===source);
+ const converted=sourceRows.filter(x=>x.status==="Converted").length;
+ const rate=sourceRows.length?(converted/sourceRows.length*100).toFixed(1):"0.0";
+ return `<tr><td><strong>${escapeHtml(source)}</strong></td><td>${sourceRows.length}</td><td>${converted}</td><td>${rate}%</td></tr>`;
+}).join("")||'<tr><td colspan="4" class="empty">No lead source data available</td></tr>';
+}
+let currentTasks=[];
+async function loadTasks(){
+  const {data,error}=await supabaseClient.from("tasks").select("*, leads(full_name,mobile_number)").order("status",{ascending:true}).order("due_date",{ascending:true});
+  if(error){tasksList.innerHTML=`<tr><td colspan="6" class="empty">${escapeHtml(error.message)}</td></tr>`;return}
+  currentTasks=data||[];
+  const now=new Date(), startToday=new Date(now.getFullYear(),now.getMonth(),now.getDate()), tomorrow=new Date(startToday);tomorrow.setDate(tomorrow.getDate()+1);
+  const pending=currentTasks.filter(t=>t.status==="Pending");
+  const completed=currentTasks.filter(t=>t.status==="Completed");
+  const overdue=pending.filter(t=>t.due_date&&new Date(t.due_date)<now);
+  const today=pending.filter(t=>{if(!t.due_date)return false;const d=new Date(t.due_date);return d>=startToday&&d<tomorrow});
+  pendingTaskCount.textContent=pending.length;
+  overdueTaskCount.textContent=overdue.length;
+  todayTaskCount.textContent=today.length;
+  completedTaskCount.textContent=completed.length;
+  tasksList.innerHTML=currentTasks.map(t=>{
+    const lead=t.leads?.full_name||"-";
+    const priorityClass=`priority-${String(t.priority||"Medium").toLowerCase()}`;
+    return `<tr class="${t.status==="Completed"?"task-completed":""}">
+      <td><strong>${escapeHtml(t.title||"-")}</strong>${t.description?`<div class="small-muted">${escapeHtml(t.description)}</div>`:""}</td>
+      <td>${escapeHtml(lead)}</td>
+      <td>${t.due_date?formatDate(t.due_date):"-"}</td>
+      <td><span class="${priorityClass}">${escapeHtml(t.priority||"Medium")}</span></td>
+      <td>${t.status==="Completed"?"✅ Completed":"⏳ Pending"}</td>
+      <td><div class="actions">${t.status==="Pending"?`<button class="btn-primary" onclick="completeTask(${Number(t.id)})">Complete</button>`:""}<button class="btn-secondary" onclick="deleteTask(${Number(t.id)})">Delete</button></div></td>
+    </tr>`;
+  }).join("")||`<tr><td colspan="6" class="empty">No tasks yet</td></tr>`;
+}
+async function openTaskModal(){
+  taskTitle.value="";taskDescription.value="";taskDueDate.value="";taskPriority.value="Medium";taskLead.innerHTML='<option value="">No lead selected</option>';
+  const {data,error}=await supabaseClient.from("leads").select("id,full_name,mobile_number").order("full_name",{ascending:true});
+  if(error)return alert("Unable to load leads: "+error.message);
+  (data||[]).forEach(l=>{const o=document.createElement("option");o.value=l.id;o.textContent=`${l.full_name||"Unnamed"}${l.mobile_number?" - "+l.mobile_number:""}`;taskLead.appendChild(o)});
+  document.getElementById("taskModal").classList.add("show");
+}
+function closeTaskModal(){document.getElementById("taskModal").classList.remove("show")}
+async function saveTask(){
+  const title=taskTitle.value.trim();if(!title)return alert("Please enter task title.");
+  const payload={title,description:taskDescription.value.trim()||null,lead_id:taskLead.value?Number(taskLead.value):null,due_date:localDateTimeToISOString(taskDueDate.value),priority:taskPriority.value,status:"Pending",created_by:currentUser.id};
+  const {data,error}=await supabaseClient.from("tasks").insert([payload]).select().single();
+  if(error)return alert("Error saving task: "+error.message);
+  if(payload.lead_id)await addLeadActivity(payload.lead_id,"Task Created",`Task: ${title}${payload.due_date?` | Due: ${formatDate(payload.due_date)}`:""}`);
+  closeTaskModal();await loadTasks();alert("Task saved successfully.");
+}
+async function completeTask(id) {
+    const task = currentTasks.find(t => Number(t.id) === Number(id));
+
+    if (!task) {
+        return alert("Task not found");
+    }
+
+    // Task ID and task details temporarily store
+    window.pendingCompleteTaskId = id;
+    window.pendingCompleteTask = task;
+
+    // If linked lead exists, open follow-up popup first
+    if (task.lead_id) {
+        completeFollowup(task.lead_id);
+        return;
+    }
+
+    // Only tasks without a linked lead can be completed directly
+    const { error } = await supabaseClient
+        .from("tasks")
+        .update({
+            status: "Completed",
+            completed_at: new Date().toISOString()
+        })
+        .eq("id", id);
+
+    if (error) {
+        return alert("Error completing task: " + error.message);
+    }
+
+    await loadTasks();
+    await loadSmartDashboard();
+}
+async function deleteTask(id){
+  const task=currentTasks.find(t=>Number(t.id)===Number(id));
+  if(!confirm("Delete this task?"))return;
+  const {error}=await supabaseClient.from("tasks").delete().eq("id",id);
+  if(error)return alert("Error deleting task: "+error.message);
+  if(task?.lead_id)await addLeadActivity(task.lead_id,"Task Deleted",`Task deleted: ${task.title||"-"}.`);
+  await loadTasks();
+}
+document.addEventListener("DOMContentLoaded", () => {
+    initializeAuth();
+    initializeAuthStateListener();
+    document.getElementById("loginForm").addEventListener("submit", handleLoginSubmit);
+});
+async function loadSmartDashboard() {
+
+  const leadsResult = await supabaseClient
+    .from("leads")
+    .select("*");
+
+  const tasksResult = await supabaseClient
+    .from("tasks")
+    .select("*")
+    .order("due_date", {
+      ascending: true
+    });
+
+
+  const leads =
+    leadsResult.data || [];
+
+  const tasks =
+    tasksResult.data || [];
+
+
+  const now = new Date();
+
+  const today = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate()
+  );
+
+  const tomorrow = new Date(today);
+
+  tomorrow.setDate(
+    tomorrow.getDate() + 1
+  );
+
+
+  function isToday(value) {
+
+    if (!value) return false;
+
+    const date =
+      new Date(value);
+
+    return (
+      date >= today &&
+      date < tomorrow
+    );
+
+  }
+
+
+  function isOverdue(value) {
+
+    if (!value) return false;
+
+    return new Date(value) < today;
+
+  }
+
+
+  const todayFollowups =
+    leads.filter(function(lead) {
+
+      return isToday(
+        lead.next_follow_up
+      );
+
+    });
+
+
+  const overdueFollowups =
+    leads.filter(function(lead) {
+
+      return isOverdue(
+        lead.next_follow_up
+      );
+
+    });
+
+
+  const pendingTasks =
+    tasks.filter(function(task) {
+
+      return task.status !==
+        "Completed";
+
+    });
+
+
+  const overdueTasks =
+    pendingTasks.filter(function(task) {
+
+      return isOverdue(
+        task.due_date
+      );
+
+    });
+
+
+  document.getElementById(
+    "todayFollowupsCount"
+  ).textContent =
+    todayFollowups.length;
+
+
+  document.getElementById(
+    "pendingTasksCount"
+  ).textContent =
+    pendingTasks.length;
+
+
+  document.getElementById(
+    "overdueCount"
+  ).textContent =
+    overdueFollowups.length +
+    overdueTasks.length;
+
+
+  const actions = [];
+
+
+  overdueFollowups.forEach(function(lead) {
+
+    actions.push({
+
+      type: "followup",
+
+      priority: 1,
+
+      title:
+        lead.full_name ||
+        "Unnamed Lead",
+
+      subtitle:
+        "⚠️ Overdue Follow-up • " +
+        formatDate(
+          lead.next_follow_up
+        ),
+
+      leadId: lead.id
+
+    });
+
+  });
+
+
+  overdueTasks.forEach(function(task) {
+
+    actions.push({
+
+      type: "task",
+
+      priority: 2,
+
+      title:
+        task.title ||
+        "Task",
+
+      subtitle:
+        "⚠️ Overdue Task • " +
+        formatDate(
+          task.due_date
+        ),
+
+      taskId: task.id
+
+    });
+
+  });
+
+
+  todayFollowups.forEach(function(lead) {
+
+    actions.push({
+
+      type: "followup",
+
+      priority: 3,
+
+      title:
+        lead.full_name ||
+        "Unnamed Lead",
+
+      subtitle:
+        "📞 Follow-up Today • " +
+        formatDate(
+          lead.next_follow_up
+        ),
+
+      leadId: lead.id
+
+    });
+
+  });
+
+
+  pendingTasks
+    .filter(function(task) {
+
+      return isToday(
+        task.due_date
+      );
+
+    })
+    .forEach(function(task) {
+
+      actions.push({
+
+        type: "task",
+
+        priority: 4,
+
+        title:
+          task.title ||
+          "Task",
+
+        subtitle:
+          "📋 Task Today • " +
+          formatDate(
+            task.due_date
+          ),
+
+        taskId: task.id
+
+      });
+
+    });
+
+
+  actions.sort(function(a, b) {
+
+    return a.priority - b.priority;
+
+  });
+
+
+  const container =
+    document.getElementById(
+      "priorityActions"
+    );
+
+
+  if (!actions.length) {
+
+    container.innerHTML = `
+
+      <div class="empty">
+
+        🎉 No urgent actions.
+        You are all caught up!
+
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+
+  container.innerHTML =
+    actions
+      .slice(0, 10)
+      .map(function(item) {
+
+        let button = "";
+
+
+        if (
+          item.type ===
+          "followup"
+        ) {
+
+          button = `
+
+            <button
+              class="btn-primary"
+              onclick="
+                completeFollowup(
+                  ${Number(item.leadId)}
+                )
+              "
+            >
+              Follow-up
+            </button>
+
+          `;
+
+        } else {
+
+          button = `
+
+            <button
+              class="btn-primary"
+              onclick="
+                completeTask(
+                  ${Number(item.taskId)}
+                )
+              "
+            >
+              Complete
+            </button>
+
+          `;
+
+        }
+
+
+        return `
+
+          <div
+            style="
+              display:flex;
+              justify-content:space-between;
+              align-items:center;
+              gap:15px;
+              padding:14px 0;
+              border-bottom:1px solid #eee;
+            "
+          >
+
+            <div>
+
+              <strong>
+                ${escapeHtml(item.title)}
+              </strong>
+
+              <div
+                class="muted"
+                style="margin-top:4px"
+              >
+
+                ${escapeHtml(
+                  item.subtitle
+                )}
+
+              </div>
+
+            </div>
+
+            ${button}
+
+          </div>
+
+        `;
+
+      })
+      .join("");
+
+}
+</script>
+
 <div id="followupModal" class="followup-modal">
-<div class="followup-modal-box">
-<div class="followup-modal-header">
-<h3>Complete Follow-up</h3>
-<button type="button" class="modal-close" onclick="closeFollowupModal()">×</button>
-</div>
+  <div class="followup-modal-box">
+    <div class="followup-modal-header">
+      <h3>Complete Follow-up</h3>
+      <button type="button" class="modal-close" onclick="closeFollowupModal()">×</button>
+    </div>
 
-<label>Follow-up Result</label>
-<select id="followupResult">
-<option value="Spoke">Spoke</option>
-<option value="No Answer">No Answer</option>
-<option value="Interested">Interested</option>
-<option value="Call Later">Call Later</option>
-<option value="Not Interested">Not Interested</option>
-</select>
+    <label>Follow-up Result</label>
+    <select id="followupResult">
+      <option value="Spoke">Spoke</option>
+      <option value="No Answer">No Answer</option>
+      <option value="Interested">Interested</option>
+      <option value="Call Later">Call Later</option>
+      <option value="Not Interested">Not Interested</option>
+    </select>
 
-<label>Follow-up Note <span>(Optional)</span></label>
-<textarea id="followupNote" placeholder="Add follow-up note..."></textarea>
+    <label>Follow-up Note <span>(Optional)</span></label>
+    <textarea id="followupNote" placeholder="Add follow-up note..."></textarea>
 
-<label>Next Follow-up Date & Time <span>(Optional)</span></label>
-<input type="datetime-local" id="nextFollowup">
+    <label>Next Follow-up Date & Time <span>(Optional)</span></label>
+    <input type="datetime-local" id="nextFollowup">
 
-<div class="followup-modal-actions">
-<button type="button" class="btn-secondary" onclick="closeFollowupModal()">Cancel</button>
-<button type="button" class="btn-primary" onclick="saveFollowup()">Save Follow-up</button>
-</div>
-</div>
+    <div class="followup-modal-actions">
+      <button type="button" class="btn-secondary" onclick="closeFollowupModal()">Cancel</button>
+      <button type="button" class="btn-primary" onclick="saveFollowup()">Save Follow-up</button>
+    </div>
+  </div>
 </div>
 
 <style>
@@ -291,196 +1434,489 @@ button{border:0;border-radius:8px;padding:10px 14px;cursor:pointer}.btn-primary{
 </style>
 
 <div id="taskModal" class="followup-modal">
-<div class="followup-modal-box">
-<div class="followup-modal-header"><h3>Add Task</h3><button type="button" class="modal-close" onclick="closeTaskModal()">×</button></div>
-<label>Task Title</label><input id="taskTitle" placeholder="Enter task title">
-<label>Description <span>(Optional)</span></label><textarea id="taskDescription" placeholder="Add task details..."></textarea>
-<label>Linked Lead <span>(Optional)</span></label><select id="taskLead"><option value="">No lead selected</option></select>
-<label>Due Date & Time <span>(Optional)</span></label><input type="datetime-local" id="taskDueDate">
-<label>Priority</label><select id="taskPriority"><option value="Low">Low</option><option value="Medium" selected>Medium</option><option value="High">High</option></select>
-<div class="followup-modal-actions"><button type="button" class="btn-secondary" onclick="closeTaskModal()">Cancel</button><button type="button" class="btn-primary" onclick="saveTask()">Save Task</button></div>
+  <div class="followup-modal-box">
+    <div class="followup-modal-header"><h3>Add Task</h3><button type="button" class="modal-close" onclick="closeTaskModal()">×</button></div>
+    <label>Task Title</label><input id="taskTitle" placeholder="Enter task title">
+    <label>Description <span>(Optional)</span></label><textarea id="taskDescription" placeholder="Add task details..."></textarea>
+    <label>Linked Lead <span>(Optional)</span></label><select id="taskLead"><option value="">No lead selected</option></select>
+    <label>Due Date & Time <span>(Optional)</span></label><input type="datetime-local" id="taskDueDate">
+    <label>Priority</label><select id="taskPriority"><option value="Low">Low</option><option value="Medium" selected>Medium</option><option value="High">High</option></select>
+    <div class="followup-modal-actions"><button type="button" class="btn-secondary" onclick="closeTaskModal()">Cancel</button><button type="button" class="btn-primary" onclick="saveTask()">Save Task</button></div>
+  </div>
 </div>
-</div>
-
 <style>
 .priority-high{font-weight:700}.priority-medium{font-weight:600}.priority-low{font-weight:500}
 .task-completed{text-decoration:line-through;opacity:.65}
 </style>
 
 <div id="appointmentModal" class="followup-modal">
-<div class="followup-modal-box">
-<div class="followup-modal-header">
-<h3>Appointment Details</h3>
-<button type="button" class="modal-close" onclick="closeAppointmentModal()">×</button>
-</div>
-<div id="appointmentModalContent" class="appointment-modal-body">
-</div>
-<div class="followup-modal-actions">
-<button type="button" class="btn-secondary" onclick="closeAppointmentModal()">Close</button>
-</div>
-</div>
+  <div class="followup-modal-box">
+    <div class="followup-modal-header">
+      <h3>Appointment Details</h3>
+      <button type="button" class="modal-close" onclick="closeAppointmentModal()">×</button>
+    </div>
+    <div id="appointmentModalContent" class="appointment-modal-body">
+      <!-- Populated by JavaScript -->
+    </div>
+    <div class="followup-modal-actions">
+      <button type="button" class="btn-secondary" onclick="closeAppointmentModal()">Close</button>
+    </div>
+  </div>
 </div>
 
 <div id="appointmentFormModal" class="followup-modal hidden">
-<div class="followup-modal-box">
-<div class="followup-modal-header">
-<h3 id="appointmentFormTitle">New Appointment</h3>
-<button type="button" class="modal-close" onclick="closeAppointmentFormModal()">×</button>
-</div>
-<div class="followup-modal-body" id="appointmentFormContent">
-</div>
-<div class="followup-modal-actions">
-<button type="button" class="btn-primary" onclick="saveAppointmentFromForm()">Save Appointment</button>
-<button type="button" class="btn-danger" id="deleteApptButton" style="display:none;" onclick="deleteAppointmentFromForm()">Delete Appointment</button>
-<button type="button" class="btn-secondary" onclick="closeAppointmentFormModal()">Cancel</button>
-</div>
-</div>
+  <div class="followup-modal-box">
+    <div class="followup-modal-header">
+      <h3 id="appointmentFormTitle">New Appointment</h3>
+      <button type="button" class="modal-close" onclick="closeAppointmentFormModal()">×</button>
+    </div>
+    <div class="followup-modal-body" id="appointmentFormContent">
+      <!-- Populated by JavaScript -->
+    </div>
+    <div class="followup-modal-actions">
+      <button type="button" class="btn-primary" onclick="saveAppointmentFromForm()">Save Appointment</button>
+      <button type="button" class="btn-danger" id="deleteApptButton" style="display:none;" onclick="deleteAppointmentFromForm()">Delete Appointment</button>
+      <button type="button" class="btn-secondary" onclick="closeAppointmentFormModal()">Cancel</button>
+    </div>
+  </div>
 </div>
 
 <div id="dateScheduleModal" class="followup-modal hidden">
-<div class="followup-modal-box">
-<div class="followup-modal-header">
-<h3 id="dateScheduleTitle">Schedule – Date</h3>
-<button type="button" class="modal-close" onclick="closeDateScheduleModal()">×</button>
-</div>
-<div id="dateScheduleContent" class="appointment-modal-body">
-</div>
-<div class="followup-modal-actions">
-<button type="button" class="btn-secondary" onclick="closeDateScheduleModal()">Close</button>
-</div>
-</div>
+  <div class="followup-modal-box">
+    <div class="followup-modal-header">
+      <h3 id="dateScheduleTitle">Schedule – Date</h3>
+      <button type="button" class="modal-close" onclick="closeDateScheduleModal()">×</button>
+    </div>
+    <div id="dateScheduleContent" class="appointment-modal-body">
+    </div>
+    <div class="followup-modal-actions">
+      <button type="button" class="btn-secondary" onclick="closeDateScheduleModal()">Close</button>
+    </div>
+  </div>
 </div>
 
 <script>
-const SUPABASE_URL="https://cjwxirpwzluynymwjzxl.supabase.co";
-const SUPABASE_KEY="sb_publishable_jkr9U6yu6ODDa4JvHmrE4w_gIWJBsOz";
-const supabaseClient=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-let currentUser=null;
-async function initializeAuth(){try{const{data:{session},error}=await supabaseClient.auth.getSession();if(error)throw error;if(session){currentUser=session.user;updateHeaderForAuthenticatedUser(currentUser);showCRMUI();await loadCRMData();}else{showLoginPage();}}catch(err){console.error("Error initializing auth:",err);showLoginPage();}}
-async function initializeAuthStateListener(){supabaseClient.auth.onAuthStateChange((event,session)=>{if(event==="SIGNED_IN"&&session){currentUser=session.user;updateHeaderForAuthenticatedUser(currentUser);showCRMUI();loadCRMData();}else if(event==="SIGNED_OUT"){currentUser=null;clearCRMData();updateHeaderForLoggedOut();showLoginPage();}else if(event==="TOKEN_REFRESHED"){console.log("Token refreshed");}});}
-async function handleLoginSubmit(event){event.preventDefault();const email=document.getElementById("loginEmail").value.trim();const password=document.getElementById("loginPassword").value;const submitButton=document.getElementById("loginSubmitButton");const errorDiv=document.getElementById("loginErrorMessage");submitButton.disabled=true;submitButton.textContent="Signing In...";errorDiv.classList.remove("show");try{const{data,error}=await supabaseClient.auth.signInWithPassword({email,password});if(error)throw error;currentUser=data.user;updateHeaderForAuthenticatedUser(currentUser);showCRMUI();await loadCRMData();}catch(err){console.error("Sign in error:",err);showLoginError(err.message||"Sign in failed. Please check your credentials and try again.");}finally{submitButton.disabled=false;submitButton.textContent="Sign In";}}
-function showLoginError(message){const errorDiv=document.getElementById("loginErrorMessage");errorDiv.textContent=message;errorDiv.classList.add("show");}
-async function handleLogout(){try{const{error}=await supabaseClient.auth.signOut();if(error)throw error;currentUser=null;clearCRMData();updateHeaderForLoggedOut();showLoginPage();}catch(err){console.error("Sign out error:",err);alert("Error signing out: "+err.message);}}
-function showLoginPage(){const allPages=document.querySelectorAll(".page");allPages.forEach(page=>page.classList.add("hidden"));document.getElementById("loginPage").classList.remove("hidden");document.querySelector(".sidebar").style.display="none";document.querySelector(".sidebar-overlay").style.display="none";document.getElementById("logoutButton").style.display="none";}
-function showCRMUI(){const allPages=document.querySelectorAll(".page");allPages.forEach(page=>page.classList.add("hidden"));document.querySelector(".sidebar").style.display="flex";const savedPage=localStorage.getItem("crm_active_page");const leadId=localStorage.getItem("crm_current_lead_id");const savedSessionUser=localStorage.getItem("crm_session_user");const currentSessionUser=currentUser?.id||"";const shouldRestorePage=savedPage&&savedSessionUser&&savedSessionUser===currentSessionUser;const pageToShow=shouldRestorePage?savedPage:"dashboard";if(leadId&&pageToShow==="leads"){viewLead(leadId,previousPage);return;}if(leadId&&pageToShow!=="leads"){localStorage.removeItem("crm_current_lead_id");}const target=document.getElementById(pageToShow+"Page");if(target)target.classList.remove("hidden");else document.getElementById("dashboardPage").classList.remove("hidden");showPage(pageToShow,document.querySelector('[data-page="'+pageToShow+'"]'));}
-function updateHeaderForAuthenticatedUser(user){document.getElementById("currentUserDisplay").textContent=user.email||"User";document.getElementById("logoutButton").style.display="inline-block";}
-function updateHeaderForLoggedOut(){document.getElementById("currentUserDisplay").textContent="Administrator";document.getElementById("logoutButton").style.display="none";}
-async function loadCRMData(){if(!currentUser){console.warn("No authenticated user found");return;}await loadLeads();await loadPipeline();await loadSmartDashboard();}
-function clearCRMData(){allLeadsCache=[];currentTasks=[];currentLeadActivities=[];document.getElementById("recentLeads").innerHTML="<tr><td colspan='4' class='empty'>No leads</td></tr>";document.getElementById("leadsTable").innerHTML="";document.getElementById("pipelineBoard").innerHTML="<div class='empty'>Loading pipeline...</div>";document.getElementById("priorityActions").innerHTML="<div class='empty'>No priority actions</div>";localStorage.removeItem("crm_active_page");localStorage.removeItem("crm_session_user");}
-let previousPage="leads";
-
-const pageInfo={dashboard:["Dashboard","Welcome to Future Secure Providers CRM"],leads:["Leads","Manage all customer leads"],addLead:["Add New Lead","Create or update a customer lead"],followups:["Follow-ups","Manage scheduled follow-ups"],tasks:["Today's Tasks","Manage your daily activities"],calendar:["Calendar","View and manage appointments"],reports:["Reports","View CRM performance reports"],pipeline:["Lead Pipeline","Track leads by sales stage"],leadProfile:["Lead Profile","Customer details and activity"],settings:["Settings","CRM configuration"]};
-
-function showPage(page,element){document.querySelectorAll(".page").forEach(x=>x.classList.add("hidden"));const target=document.getElementById(page+"Page");if(target)target.classList.remove("hidden");document.querySelectorAll(".nav-item").forEach(x=>x.classList.remove("active"));if(element)element.classList.add("active");if(pageInfo[page]){pageTitle.textContent=pageInfo[page][0];pageSubtitle.textContent=pageInfo[page][1]}if(page!=="leadProfile"){previousPage=page;localStorage.setItem("crm_active_page",page);localStorage.setItem("crm_session_user",currentUser?.id||"");}window.scrollTo({top:0,behavior:"smooth"});}
-function backToPrevious(){localStorage.removeItem("crm_current_lead_id");showPage(previousPage,document.querySelector(`[data-page="${previousPage}"]`));if(previousPage==="pipeline")loadPipeline();else loadLeads()}
-function escapeHtml(v){return String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;")}
-function formatDate(v){if(!v)return"-";const d=new Date(v);return isNaN(d)?"-":d.toLocaleString("en-IN",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"})}
-function localDateTimeToISOString(value){if(!value)return null;const d=new Date(value);return isNaN(d)?null:d.toISOString();}
-function isoToLocalDateTime(value){if(!value)return "";const d=new Date(value);if(isNaN(d))return "";const pad=n=>String(n).padStart(2,"0");return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;}
-function showMessage(text,type){const m=formMessage;m.textContent=text;m.className="message "+type;setTimeout(()=>m.className="message",4000)}
-function openNewLead(){leadForm.reset();delete leadForm.dataset.editId;leadFormTitle.textContent="Add New Lead";saveLeadButton.textContent="Save Lead";showPage("addLead",document.querySelector('[data-page="addLead"]'))}
-
-async function handleBackupRestore(event){const file=event.target.files?.[0],result=document.getElementById("restoreResult");if(!file)return;result.textContent="Reading backup...";try{const text=await file.text();const backup=JSON.parse(text);if(!backup?.data||!Array.isArray(backup.data.leads)||!Array.isArray(backup.data.tasks)||!Array.isArray(backup.data.lead_activities)){throw new Error("This is not a valid Future Secure Providers CRM backup file.");}const leadCount=backup.data.leads.length,taskCount=backup.data.tasks.length,activityCount=backup.data.lead_activities.length;if(!confirm(`Restore this backup?\n\nLeads: ${leadCount}\nTasks: ${taskCount}\nActivities: ${activityCount}\n\nExisting records will be preserved. Matching IDs will be skipped.`)){result.textContent="Restore cancelled.";return;}result.textContent="Restoring leads...";const existingLeads=(await supabaseClient.from("leads").select("id")).data||[];const leadIds=new Set(existingLeads.map(x=>String(x.id)));const leadsToInsert=backup.data.leads.filter(x=>x.id==null||!leadIds.has(String(x.id)));let leadsAdded=0,tasksAdded=0,activitiesAdded=0,skippedLeads=leadCount-leadsToInsert.length,skippedTasks=0,skippedActivities=0;for(const row of leadsToInsert){const payload={...row};delete payload.id;if(!payload.created_by){payload.created_by=currentUser.id;}const{error}=await supabaseClient.from("leads").insert([payload]);if(error)throw new Error("Lead restore failed: "+error.message);leadsAdded++;}result.textContent="Restoring tasks...";const existingTasks=(await supabaseClient.from("tasks").select("id")).data||[];const taskIds=new Set(existingTasks.map(x=>String(x.id)));for(const row of backup.data.tasks){if(row.id!=null&&taskIds.has(String(row.id))){skippedTasks++;continue}const payload={...row};delete payload.id;if(!payload.created_by){payload.created_by=currentUser.id;}const{error}=await supabaseClient.from("tasks").insert([payload]);if(error){skippedTasks++;continue}tasksAdded++;}result.textContent="Restoring activity history...";const existingActivities=(await supabaseClient.from("lead_activities").select("id")).data||[];const activityIds=new Set(existingActivities.map(x=>String(x.id)));for(const row of backup.data.lead_activities){if(row.id!=null&&activityIds.has(String(row.id))){skippedActivities++;continue}const payload={...row};delete payload.id;if(!payload.created_by){payload.created_by=currentUser.id;}const{error}=await supabaseClient.from("lead_activities").insert([payload]);if(error){skippedActivities++;continue}activitiesAdded++;}await loadLeads();await loadPipeline();await loadTasks();result.textContent=`Restore complete: ${leadsAdded} leads, ${tasksAdded} tasks, ${activitiesAdded} activities added. Skipped: ${skippedLeads} leads, ${skippedTasks} tasks, ${skippedActivities} activities.`;}catch(err){result.textContent="Restore failed: "+(err.message||err)}finally{event.target.value=""}}
-async function createCRMBackup(){const result=document.getElementById("backupResult");result.textContent="Creating backup...";try{const[leadsRes,tasksRes,activitiesRes]=await Promise.all([supabaseClient.from("leads").select("*").order("id"),supabaseClient.from("tasks").select("*").order("id"),supabaseClient.from("lead_activities").select("*").order("id")]);if(leadsRes.error)throw leadsRes.error;if(tasksRes.error)throw tasksRes.error;if(activitiesRes.error)throw activitiesRes.error;const backup={app:"Future Secure Providers CRM",backup_created_at:new Date().toISOString(),version:"1.0",data:{leads:leadsRes.data||[],tasks:tasksRes.data||[],lead_activities:activitiesRes.data||}};const blob=new Blob([JSON.stringify(backup,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=`future-secure-providers-crm-backup-${new Date().toISOString().slice(0,10)}.json`;a.click();URL.revokeObjectURL(url);result.textContent=`Backup created successfully: ${(backup.data.leads||[]).length} leads, ${(backup.data.tasks||[]).length} tasks, ${(backup.data.lead_activities||[]).length} activities.`;}catch(err){result.textContent="Backup failed: "+(err.message||err)}}
-function csvEscape(value){const text=String(value??"");return `"${text.replace(/"/g,'""')}"`;}
-function exportLeadsCSV(){const rows=allLeadsCache||[];if(!rows.length){alert("No leads available to export.");return}const headers=["id","full_name","mobile_number","city","lead_source","status","next_follow_up","notes","created_at"];const csv=[headers.join(","),...rows.map(x=>headers.map(h=>csvEscape(x[h]??"")).join(","))].join("\n");const blob=new Blob([csv],{type:"text/csv;charset=utf-8;"});const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=`future-secure-providers-leads-${new Date().toISOString().slice(0,10)}.csv`;a.click();URL.revokeObjectURL(url);}
-function parseCSV(text){const rows=[];let row=[],cell="",quoted=false;for(let i=0;i<text.length;i++){const c=text[i],n=text[i+1];if(c==='"'){if(quoted&&n==='"'){cell+='"';i++}else quoted=!quoted}else if(c===","&&!quoted){row.push(cell.trim());cell=""}else if((c==="\n"||c==="\r")&&!quoted){if(c==="\r"&&n==="\n")i++;row.push(cell.trim());cell="";if(row.some(v=>v!==""))rows.push(row);row=[];}else cell+=c;}row.push(cell.trim());if(row.some(v=>v!==""))rows.push(row);if(!rows.length)return[];const headers=rows[0].map(h=>h.replace(/^\uFEFF/,"").trim().toLowerCase());return rows.slice(1).map(r=>Object.fromEntries(headers.map((h,i)=>[h,r[i]??""])))}
-async function handleLeadCSVImport(event){const file=event.target.files?.[0];const result=document.getElementById("importResult");if(!file)return;result.textContent="Reading CSV...";try{const text=await file.text(),items=parseCSV(text);if(!items.length)throw new Error("No lead rows found in CSV.");const{data:existing,error}=await supabaseClient.from("leads").select("mobile_number");if(error)throw error;const existingMobiles=new Set((existing||[]).map(x=>String(x.mobile_number||"").trim()));let added=0,skipped=0,invalid=0;for(const item of items){const name=(item.full_name||item.name||"").trim();const mobile=(item.mobile_number||item.mobile||item.phone||"").trim();if(!name||!mobile){invalid++;continue}if(existingMobiles.has(mobile)){skipped++;continue}const payload={full_name:name,mobile_number:mobile,city:(item.city||"").trim()||null,lead_source:(item.lead_source||"CSV Import").trim()||"CSV Import",status:(item.status||"New").trim()||"New",next_follow_up:(item.next_follow_up||"").trim()||null,notes:(item.notes||"").trim()||null,created_by:currentUser.id};const{data,error:insertError}=await supabaseClient.from("leads").insert([payload]).select().single();if(insertError){invalid++;continue}existingMobiles.add(mobile);added++;await addLeadActivity(data.id,"Lead Imported","Lead was imported from CSV.");}await loadLeads();await loadPipeline();result.textContent=`Import complete: ${added} added, ${skipped} duplicate skipped, ${invalid} invalid/failed.`;}catch(err){result.textContent="Import failed: "+(err.message||err)}finally{event.target.value=""}}
-let allLeadsCache=[];
-function getLocalDateKey(value){if(!value)return "";const d=new Date(value);if(isNaN(d))return "";const p=n=>String(n).padStart(2,"0");return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;}
-function populateLeadFilters(){const city=document.getElementById("filterCity"),source=document.getElementById("filterSource");if(!city||!source)return;const cv=city.value,sv=source.value;const cities=[...new Set(allLeadsCache.map(x=>(x.city||"").trim()).filter(Boolean))].sort();const sources=[...new Set(allLeadsCache.map(x=>(x.lead_source||"").trim()).filter(Boolean))].sort();city.innerHTML='<option value="">All Cities</option>'+cities.map(x=>`<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join("");source.innerHTML='<option value="">All Sources</option>'+sources.map(x=>`<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join("");city.value=cv;source.value=sv;}
-function applyLeadFilters(){const search=((document.getElementById("leadSearch")?.value)||"").trim().toLowerCase();const status=document.getElementById("filterStatus")?.value||"";const city=document.getElementById("filterCity")?.value||"";const source=document.getElementById("filterSource")?.value||"";const date=document.getElementById("filterFollowupDate")?.value||"";const rows=allLeadsCache.filter(x=>{const name=(x.full_name||"").toLowerCase();const mobile=String(x.mobile_number||"").toLowerCase();const matchesSearch=!search||name.includes(search)||mobile.includes(search);const matchesStatus=!status||(x.status||"New")===status;const matchesCity=!city||(x.city||"").trim()===city;const matchesSource=!source||(x.lead_source||"").trim()===source;const matchesDate=!date||getLocalDateKey(x.next_follow_up)===date;return matchesSearch&&matchesStatus&&matchesCity&&matchesSource&&matchesDate;});const count=document.getElementById("filteredLeadCount");if(count){count.textContent=rows.length;}renderLeads(rows);}
-function clearLeadFilters(){filterStatus.value="";filterCity.value="";filterSource.value="";filterFollowupDate.value="";const s=document.getElementById("leadSearch");if(s)s.value="";applyLeadFilters();}
-async function loadLeads(){const{data,error}=await supabaseClient.from("leads").select("*").order("created_at",{ascending:false});if(error){leadsTable.innerHTML=`<tr><td colspan="7" class="empty">${escapeHtml(error.message)}</td></tr>`;return}const rows=data||[];allLeadsCache=rows;populateLeadFilters();applyLeadFilters();renderRecent(rows);updateDashboard(rows);renderReports(rows);loadFollowups(rows)}
-function updateDashboard(rows){totalLeads.textContent=rows.length;newLeads.textContent=rows.filter(x=>x.status==="New").length;followupCount.textContent=rows.filter(x=>x.next_follow_up).length;convertedCount.textContent=rows.filter(x=>x.status==="Converted").length}
-function renderRecent(rows){recentLeads.innerHTML=rows.slice(0,5).map(x=>`<tr onclick="viewLead(${Number(x.id)})" style="cursor:pointer"><td>${escapeHtml(x.full_name)}</td><td>${escapeHtml(x.mobile_number)}</td><td>${escapeHtml(x.city||"-")}</td><td><span class="status">${escapeHtml(x.status||"New")}</span></td></tr>`).join("")||`<tr><td colspan="4" class="empty">No leads found</td></tr>`}
-function renderLeads(rows){leadsTable.innerHTML=rows.map(x=>`<tr><td>${escapeHtml(x.full_name)}</td><td>${escapeHtml(x.mobile_number)}</td><td>${escapeHtml(x.city||"-")}</td><td>${escapeHtml(x.lead_source||"-")}</td><td><span class="status">${escapeHtml(x.status||"New")}</span></td><td>${formatDate(x.next_follow_up)}</td><td><div class="actions"><button class="btn-secondary" onclick="viewLead(${Number(x.id)})">View</button><button class="btn-edit" onclick="editLead(${Number(x.id)})">Edit</button><button class="btn-danger" onclick="deleteLead(${Number(x.id)})">Delete</button></div></td></tr>`).join("")||`<tr><td colspan="7" class="empty">No leads found</td></tr>`}
-function searchLeads(v){applyLeadFilters();}
-
-async function addLeadActivity(leadId,activityType,description){if(!leadId)return;const{error}=await supabaseClient.from("lead_activities").insert([{lead_id:leadId,activity_type:activityType,description:description||null,created_by:currentUser.id}]);if(error)console.error("Activity log error:",error.message);}
-async function loadLeadActivities(leadId){const box=document.getElementById("leadActivityTimeline");if(!box)return;const{data,error}=await supabaseClient.from("lead_activities").select("*").eq("lead_id",leadId).order("created_at",{ascending:false});if(error){box.innerHTML=`<div class="empty">Unable to load activity history</div>`;return}box.innerHTML=(data||[]).map(a=>`<div class="detail-box" style="margin-bottom:8px"><strong>${escapeHtml(a.activity_type||"Activity")}</strong><div style="margin-top:4px">${escapeHtml(a.description||"-")}</div><small style="display:block;margin-top:6px;color:var(--muted)">${formatDate(a.created_at)}</small></div>`).join("")||'<div class="empty">No activity history yet</div>';}
-function getLeadSourceFromURL(){const params=new URLSearchParams(window.location.search);const source=params.get("source");if(source==="MetaAds")return "Meta Ads";return "Website";}
-
-leadForm.addEventListener("submit",async e=>{e.preventDefault();const editId=leadForm.dataset.editId;let leadSourceValue=leadSource.value;if(!editId){const urlParams=new URLSearchParams(window.location.search);const sourceParam=urlParams.get("source");if(sourceParam==="MetaAds"){leadSourceValue="Meta Ads";}else{leadSourceValue="Website";}}const payload={full_name:leadName.value.trim(),mobile_number:leadPhone.value.trim(),city:leadCity.value.trim()||null,lead_source:leadSourceValue,status:leadStatus.value,next_follow_up:localDateTimeToISOString(leadFollowUp.value),notes:leadNotes.value.trim()||null};if(!payload.full_name||!payload.mobile_number)return showMessage("Please enter customer name and mobile number.","error");const{data:duplicates,error:duplicateError}=await supabaseClient.from("leads").select("id,full_name,mobile_number").eq("mobile_number",payload.mobile_number);if(duplicateError)return showMessage("Error checking duplicate mobile: "+duplicateError.message,"error");const duplicate=(duplicates||[]).find(x=>String(x.id)!==String(editId||""));if(duplicate)return showMessage(`Duplicate mobile number! ${duplicate.full_name} already exists with ${duplicate.mobile_number}.`,"error");saveLeadButton.disabled=true;saveLeadButton.textContent=editId?"Updating...":"Saving...";let result;if(editId){result=await supabaseClient.from("leads").update(payload).eq("id",editId).select().single()}else{const insertPayload={...payload,created_by:currentUser.id};result=await supabaseClient.from("leads").insert([insertPayload]).select().single()}saveLeadButton.disabled=false;if(result.error){showMessage("Error saving lead: "+result.error.message,"error");saveLeadButton.textContent=editId?"Update Lead":"Save Lead";return}const savedLeadId=editId||result.data?.id;if(editId)await addLeadActivity(savedLeadId,"Lead Updated","Lead details were updated.");else await addLeadActivity(savedLeadId,"Lead Created","Lead was added to CRM.");showMessage(editId?"Lead updated successfully!":"Lead saved successfully!","success");leadForm.reset();delete leadForm.dataset.editId;saveLeadButton.textContent="Save Lead";await loadLeads();await loadPipeline();setTimeout(()=>showPage("leads",document.querySelector('[data-page="leads"]')),600)});
-async function editLead(id){const{data,error}=await supabaseClient.from("leads").select("*").eq("id",id).maybeSingle();if(error)return alert(error.message);if(!data)return;leadName.value=data.full_name||"";leadPhone.value=data.mobile_number||"";leadCity.value=data.city||"";leadSource.value=data.lead_source||"Manual";leadStatus.value=data.status||"New";leadFollowUp.value=isoToLocalDateTime(data.next_follow_up);leadNotes.value=data.notes||"";leadForm.dataset.editId=id;leadFormTitle.textContent="Update Lead";saveLeadButton.textContent="Update Lead";showPage("addLead",document.querySelector('[data-page="addLead"]'))}
-async function deleteLead(id){if(!confirm("Delete this lead?"))return;const{error}=await supabaseClient.from("leads").delete().eq("id",id);if(error)return alert(error.message);await loadLeads();await loadPipeline()}
-
-async function loadPipeline(){const board=document.getElementById("pipelineBoard");board.innerHTML='<div class="empty">Loading pipeline...</div>';const{data,error}=await supabaseClient.from("leads").select("*").order("created_at",{ascending:false});if(error){board.innerHTML=`<div class="empty">${escapeHtml(error.message)}</div>`;return}const stages=[["New","🆕 New"],["Contacted","📞 Contacted"],["Follow-up","📅 Follow-up"],["Interested","🔥 Interested"],["Converted","✅ Converted"]];board.innerHTML=stages.map(([key,label])=>{const items=(data||[]).filter(x=>x.status===key);return `<div class="pipeline-column" data-status="${key}" ondragover="pipelineDragOver(event)" ondragleave="pipelineDragLeave(event)" ondrop="pipelineDrop(event,'${key}')"><h3><span>${label}</span><span class="pipeline-count">${items.length}</span></h3>${items.length?items.map(x=>`<div class="pipeline-card" draggable="true" ondragstart="pipelineDragStart(event,${Number(x.id)})" ondragend="pipelineDragEnd(event)" onclick="viewLead(${Number(x.id)},'pipeline')"><strong>${escapeHtml(x.full_name||"-")}</strong><small>📞 ${escapeHtml(x.mobile_number||"-")}</small><small>📍 ${escapeHtml(x.city||"-")}</small><small>📅 ${x.next_follow_up?formatDate(x.next_follow_up):"No follow-up"}</small></div>`).join(""):'<div class="empty">No leads</div>'}</div>`}).join("")}
-
-let draggedLeadId=null;
-function pipelineDragStart(event,id){draggedLeadId=id;event.currentTarget.classList.add("dragging");event.dataTransfer.effectAllowed="move";event.dataTransfer.setData("text/plain",String(id))}
-function pipelineDragEnd(event){event.currentTarget.classList.remove("dragging");document.querySelectorAll(".pipeline-column").forEach(x=>x.classList.remove("drag-over"));draggedLeadId=null}
-function pipelineDragOver(event){event.preventDefault();event.currentTarget.classList.add("drag-over");event.dataTransfer.dropEffect="move"}
-function pipelineDragLeave(event){event.currentTarget.classList.remove("drag-over")}
-async function pipelineDrop(event,newStatus){event.preventDefault();event.currentTarget.classList.remove("drag-over");const id=draggedLeadId||Number(event.dataTransfer.getData("text/plain"));if(!id)return;const{data:lead,error:getError}=await supabaseClient.from("leads").select("id,status").eq("id",id).maybeSingle();if(getError)return alert("Error loading lead: "+getError.message);if(!lead)return;if(lead.status===newStatus){draggedLeadId=null;return}const oldStatus=lead.status||"New";const{error}=await supabaseClient.from("leads").update({status:newStatus}).eq("id",id);if(error)return alert("Error updating pipeline: "+error.message);await addLeadActivity(id,"Pipeline Status Changed",`Status changed from ${oldStatus} to ${newStatus}.`);draggedLeadId=null;await loadLeads();await loadPipeline();}
-async function viewLead(id,fromPage){if(fromPage)previousPage=fromPage;const{data:lead,error}=await supabaseClient.from("leads").select("*").eq("id",id).maybeSingle();if(error)return alert(error?.message||"Lead not found");if(!lead){localStorage.removeItem("crm_current_lead_id");showPage("leads",document.querySelector('[data-page="leads"]'));return}localStorage.setItem("crm_current_lead_id",id);const phone=String(lead.mobile_number||"").replace(/\D/g,"");leadProfileContent.innerHTML=`<div class="card" id="quickStatusCard"><h3 style="margin-bottom:10px">Quick Status Update</h3><div class="actions"><select id="quickStatusSelect" style="max-width:220px"><option>New</option><option>Contacted</option><option>Follow-up</option><option>Interested</option><option>Converted</option><option>Not Interested</option></select><button class="btn-primary" onclick="quickUpdateStatus(${Number(lead.id)})">Update Status</button></div></div><div class="profile-grid"><div class="detail-box"><label>Full Name</label><strong>${escapeHtml(lead.full_name)}</strong></div><div class="detail-box"><label>Mobile Number</label><strong>${escapeHtml(lead.mobile_number)}</strong></div><div class="detail-box"><label>Current Status</label><strong>${escapeHtml(lead.status||"New")}</strong></div></div><div class="profile-grid"><div class="detail-box"><label>City</label><strong>${escapeHtml(lead.city||"-")}</strong></div><div class="detail-box"><label>Lead Source</label><strong>${escapeHtml(lead.lead_source||"-")}</strong></div><div class="detail-box"><label>Next Follow-up</label><strong>${formatDate(lead.next_follow_up)}</strong></div><div class="detail-box"><label>Created</label><strong>${formatDate(lead.created_at)}</strong></div></div><div class="card"><h3 style="margin-bottom:10px">Notes</h3><div>${escapeHtml(lead.notes||"No notes added").replace(/\n/g,"<br>")}</div></div><div class="card"><h3 style="margin-bottom:10px">Activity History</h3><div id="leadActivityTimeline"><div class="empty">Loading activity history...</div></div></div><div class="actions"><button class="btn-call" onclick="logCall(${Number(lead.id)},'${phone}')">Call</button><button class="btn-wa" onclick="logWhatsApp(${Number(lead.id)},'${phone}')">WhatsApp</button><button class="btn-edit" onclick="editLead(${Number(lead.id)})">Edit Lead</button><button class="btn-primary" onclick="completeFollowup(${Number(lead.id)})">Complete Follow-up</button><button class="btn-secondary" onclick="rescheduleFollowup(${Number(lead.id)})">Reschedule</button><button class="btn-danger" onclick="noResponseFollowup(${Number(lead.id)})">No Response</button></div>`;const quick=document.getElementById("quickStatusSelect");if(quick)quick.value=lead.status||"New";showPage("leadProfile",null);await loadLeadActivities(id);}
-
-async function quickUpdateStatus(id){const status=document.getElementById("quickStatusSelect").value;const{data:current,error:currentError}=await supabaseClient.from("leads").select("status").eq("id",id).maybeSingle();if(currentError)return alert("Unable to read current status: "+currentError.message);if(!current)return alert("Lead not found");const oldStatus=current.status||"New";const{error}=await supabaseClient.from("leads").update({status}).eq("id",id);if(error)return alert("Error updating status: "+error.message);if(oldStatus!==status)await addLeadActivity(id,"Quick Status Changed",`Status changed from ${oldStatus} to ${status}.`);await loadLeads();await loadPipeline();await viewLead(id,previousPage);}
-async function logCall(leadId,mobile){await addLeadActivity(leadId,"Call Initiated",`Call initiated to ${mobile}`);window.location.href=`tel:${mobile}`;}
-async function logWhatsApp(leadId,mobile){await addLeadActivity(leadId,"WhatsApp Opened",`WhatsApp opened for ${mobile}`);window.open(`https://wa.me/91${mobile}`,"_blank");}
-async function loadFollowups(preloaded){let rows=preloaded;if(!rows){const{data,error}=await supabaseClient.from("leads").select("*").not("next_follow_up","is",null).order("next_follow_up",{ascending:true});if(error){followupsTable.innerHTML=`<tr><td colspan="6" class="empty">${escapeHtml(error.message)}</td></tr>`;return}rows=data||[]}rows=rows.filter(x=>x.next_follow_up);const now=new Date(),today=new Date(now.getFullYear(),now.getMonth(),now.getDate()),tomorrow=new Date(today),dayAfter=new Date(today);tomorrow.setDate(tomorrow.getDate()+1);dayAfter.setDate(dayAfter.getDate()+2);const type=x=>{const d=new Date(x.next_follow_up);if(d<today)return"Overdue";if(d>=today&&d<tomorrow)return"Today";if(d>=tomorrow&&d<dayAfter)return"Tomorrow";return"Upcoming"};todayFollowupCount.textContent=rows.filter(x=>type(x)==="Today").length;tomorrowFollowupCount.textContent=rows.filter(x=>type(x)==="Tomorrow").length;overdueFollowupCount.textContent=rows.filter(x=>type(x)==="Overdue").length;followupsTable.innerHTML=rows.map(x=>`<tr><td><span class="status">${type(x)}</span></td><td>${escapeHtml(x.full_name)}</td><td>${escapeHtml(x.mobile_number)}</td><td>${formatDate(x.next_follow_up)}</td><td>${escapeHtml(x.status||"New")}</td><td><div class="actions"><button class="btn-primary" onclick="completeFollowup(${Number(x.id)})">Complete</button><button class="btn-secondary" onclick="viewLead(${Number(x.id)},'followups')">View</button></div></td></tr>`).join("")||`<tr><td colspan="6" class="empty">No follow-ups scheduled</td></tr>`}
-let followupLeadId=null;
-
-function completeFollowup(id){followupLeadId=id;document.getElementById("followupModal").classList.add("show");document.getElementById("followupResult").value="Spoke";document.getElementById("followupNote").value="";document.getElementById("nextFollowup").value="";}
-function closeFollowupModal(){document.getElementById("followupModal").classList.remove("show");followupLeadId=null;}
-function rescheduleFollowup(id){followupLeadId=id;document.getElementById("followupModal").classList.add("show");document.getElementById("followupResult").value="Reschedule";document.getElementById("followupNote").value="";document.getElementById("nextFollowup").value="";}
-function noResponseFollowup(id){followupLeadId=id;document.getElementById("followupModal").classList.add("show");document.getElementById("followupResult").value="No Answer";document.getElementById("followupNote").value="";document.getElementById("nextFollowup").value="";}
-async function saveFollowup(){if(!followupLeadId)return;const{data:lead,error}=await supabaseClient.from("leads").select("*").eq("id",followupLeadId).maybeSingle();if(error||!lead){return alert(error?.message||"Lead not found");}const result=document.getElementById("followupResult").value;const note=document.getElementById("followupNote").value.trim();const next=document.getElementById("nextFollowup").value;const nextValue=localDateTimeToISOString(next);const stamp=new Date().toLocaleString("en-IN");const activity=`[Follow-up completed | ${stamp}] Result: ${result||"-"}${note?` | Note: ${note}`:""}`;const notes=[lead.notes,activity].filter(Boolean).join("\n");const update={next_follow_up:nextValue,notes:notes};if(lead.status==="New"||lead.status==="Contacted"){update.status="Follow-up";}const{error:updateError}=await supabaseClient.from("leads").update(update).eq("id",followupLeadId);if(updateError){return alert("Error completing follow-up: "+updateError.message);}const followupDescription=`Result: ${result||"-"}${note?` | Note: ${note}`:""}${nextValue?` | Next follow-up: ${formatDate(nextValue)}`:" | No next follow-up scheduled."}`;await addLeadActivity(followupLeadId,"Follow-up Completed",followupDescription);if(nextValue){const taskPayload={title:`Follow-up: ${lead.full_name||"Customer"}`,description:`Previous Result: ${result||"-"}${note?` | Note: ${note}`:""}`,lead_id:Number(followupLeadId),due_date:nextValue,priority:result==="Interested"?"High":"Medium",status:"Pending",created_by:currentUser.id};const{error:taskError}=await supabaseClient.from("tasks").insert([taskPayload]);if(taskError){console.error("Next task creation error:",taskError);alert("Follow-up saved, but next task could not be created: "+taskError.message);}else{await addLeadActivity(followupLeadId,"Next Follow-up Task Created",`Task scheduled for ${formatDate(nextValue)}`);}}if(window.pendingCompleteTaskId){const{error:completeError}=await supabaseClient.from("tasks").update({status:"Completed",completed_at:new Date().toISOString()}).eq("id",window.pendingCompleteTaskId);if(completeError){return alert("Follow-up saved, but task could not be completed: "+completeError.message);}window.pendingCompleteTaskId=null;window.pendingCompleteTask=null;}closeFollowupModal();await loadLeads();await loadPipeline();await loadFollowups();await loadTasks();if(nextValue){alert("Follow-up saved successfully.\n\nNext follow-up task created for:\n"+formatDate(nextValue));}else{alert("Follow-up saved successfully.");}}
-function renderReports(rows){const now=new Date(),today=new Date(now.getFullYear(),now.getMonth(),now.getDate()),tomorrow=new Date(today);tomorrow.setDate(tomorrow.getDate()+1);const week=new Date(today);week.setDate(week.getDate()-((week.getDay()+6)%7));const month=new Date(now.getFullYear(),now.getMonth(),1);const d=x=>x.created_at?new Date(x.created_at):null;const conv=rows.filter(x=>x.status==="Converted").length;reportConversionRate.textContent=(rows.length?(conv/rows.length*100).toFixed(1):0)+"%";reportTodayLeads.textContent=rows.filter(x=>{const z=d(x);return z&&z>=today&&z<tomorrow}).length;reportWeekLeads.textContent=rows.filter(x=>{const z=d(x);return z&&z>=week}).length;reportMonthLeads.textContent=rows.filter(x=>{const z=d(x);return z&&z>=month}).length;const statuses=["New","Contacted","Follow-up","Interested","Converted","Not Interested"];statusReportTable.innerHTML=statuses.map(st=>`<tr><td>${st}</td><td><strong>${rows.filter(x=>x.status===st).length}</strong></td></tr>`).join("");const sources=[...new Set(rows.map(x=>(x.lead_source||"Unknown").trim()||"Unknown"))].sort((a,b)=>a.localeCompare(b));sourceReportTable.innerHTML=sources.map(source=>{const sourceRows=rows.filter(x=>((x.lead_source||"Unknown").trim()||"Unknown")===source);const converted=sourceRows.filter(x=>x.status==="Converted").length;const rate=sourceRows.length?(converted/sourceRows.length*100).toFixed(1):"0.0";return `<tr><td><strong>${escapeHtml(source)}</strong></td><td>${sourceRows.length}</td><td>${converted}</td><td>${rate}%</td></tr>`;}).join("")||'<tr><td colspan="4" class="empty">No lead source data available</td></tr>';}
-let currentTasks=[];
-async function loadTasks(){const{data,error}=await supabaseClient.from("tasks").select("*, leads(full_name,mobile_number)").order("status",{ascending:true}).order("due_date",{ascending:true});if(error){tasksList.innerHTML=`<tr><td colspan="6" class="empty">${escapeHtml(error.message)}</td></tr>`;return}currentTasks=data||[];const now=new Date(),startToday=new Date(now.getFullYear(),now.getMonth(),now.getDate()),tomorrow=new Date(startToday);tomorrow.setDate(tomorrow.getDate()+1);const pending=currentTasks.filter(t=>t.status==="Pending");const completed=currentTasks.filter(t=>t.status==="Completed");const overdue=pending.filter(t=>t.due_date&&new Date(t.due_date)<now);const today=pending.filter(t=>{if(!t.due_date)return false;const d=new Date(t.due_date);return d>=startToday&&d<tomorrow});pendingTaskCount.textContent=pending.length;overdueTaskCount.textContent=overdue.length;todayTaskCount.textContent=today.length;completedTaskCount.textContent=completed.length;tasksList.innerHTML=currentTasks.map(t=>{const lead=t.leads?.full_name||"-";const priorityClass=`priority-${String(t.priority||"Medium").toLowerCase()}`;return `<tr class="${t.status==="Completed"?"task-completed":""}"><td><strong>${escapeHtml(t.title||"-")}</strong>${t.description?`<div class="small-muted">${escapeHtml(t.description)}</div>`:""}</td><td>${escapeHtml(lead)}</td><td>${t.due_date?formatDate(t.due_date):"-"}</td><td><span class="${priorityClass}">${escapeHtml(t.priority||"Medium")}</span></td><td>${t.status==="Completed"?"✅ Completed":"⏳ Pending"}</td><td><div class="actions">${t.status==="Pending"?`<button class="btn-primary" onclick="completeTask(${Number(t.id)})">Complete</button>`:""}<button class="btn-secondary" onclick="deleteTask(${Number(t.id)})">Delete</button></div></td></tr>`;}).join("")||`<tr><td colspan="6" class="empty">No tasks yet</td></tr>`;}
-async function openTaskModal(){taskTitle.value="";taskDescription.value="";taskDueDate.value="";taskPriority.value="Medium";taskLead.innerHTML='<option value="">No lead selected</option>';const{data,error}=await supabaseClient.from("leads").select("id,full_name,mobile_number").order("full_name",{ascending:true});if(error)return alert("Unable to load leads: "+error.message);(data||[]).forEach(l=>{const o=document.createElement("option");o.value=l.id;o.textContent=`${l.full_name||"Unnamed"}${l.mobile_number?" - "+l.mobile_number:""}`;taskLead.appendChild(o)});document.getElementById("taskModal").classList.add("show");}
-function closeTaskModal(){document.getElementById("taskModal").classList.remove("show")}
-async function saveTask(){const title=taskTitle.value.trim();if(!title)return alert("Please enter task title.");const payload={title,description:taskDescription.value.trim()||null,lead_id:taskLead.value?Number(taskLead.value):null,due_date:localDateTimeToISOString(taskDueDate.value),priority:taskPriority.value,status:"Pending",created_by:currentUser.id};const{data,error}=await supabaseClient.from("tasks").insert([payload]).select().single();if(error)return alert("Error saving task: "+error.message);if(payload.lead_id)await addLeadActivity(payload.lead_id,"Task Created",`Task: ${title}${payload.due_date?` | Due: ${formatDate(payload.due_date)}`:""}` );closeTaskModal();await loadTasks();alert("Task saved successfully.");}
-async function completeTask(id){const task=currentTasks.find(t=>Number(t.id)===Number(id));if(!task){return alert("Task not found");}window.pendingCompleteTaskId=id;window.pendingCompleteTask=task;if(task.lead_id){completeFollowup(task.lead_id);return;}const{error}=await supabaseClient.from("tasks").update({status:"Completed",completed_at:new Date().toISOString()}).eq("id",id);if(error){return alert("Error completing task: "+error.message);}await loadTasks();await loadSmartDashboard();}
-async function deleteTask(id){const task=currentTasks.find(t=>Number(t.id)===Number(id));if(!confirm("Delete this task?"))return;const{error}=await supabaseClient.from("tasks").delete().eq("id",id);if(error)return alert("Error deleting task: "+error.message);if(task?.lead_id)await addLeadActivity(task.lead_id,"Task Deleted",`Task deleted: ${task.title||"-"}.`);await loadTasks();}
-document.addEventListener("DOMContentLoaded",()=>{initializeAuth();initializeAuthStateListener();document.getElementById("loginForm").addEventListener("submit",handleLoginSubmit);});
-async function loadSmartDashboard(){const leadsResult=await supabaseClient.from("leads").select("*");const tasksResult=await supabaseClient.from("tasks").select("*").order("due_date",{ascending:true});const leads=leadsResult.data||[];const tasks=tasksResult.data||[];const now=new Date();const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());const tomorrow=new Date(today);tomorrow.setDate(tomorrow.getDate()+1);function isToday(value){if(!value)return false;const date=new Date(value);return date>=today&&date<tomorrow;}function isOverdue(value){if(!value)return false;return new Date(value)<today;}const todayFollowups=leads.filter(function(lead){return isToday(lead.next_follow_up);});const overdueFollowups=leads.filter(function(lead){return isOverdue(lead.next_follow_up);});const pendingTasks=tasks.filter(function(task){return task.status!=="Completed";});const overdueTasks=pendingTasks.filter(function(task){return isOverdue(task.due_date);});document.getElementById("todayFollowupsCount").textContent=todayFollowups.length;document.getElementById("pendingTasksCount").textContent=pendingTasks.length;document.getElementById("overdueCount").textContent=overdueFollowups.length+overdueTasks.length;const actions=[];overdueFollowups.forEach(function(lead){actions.push({type:"followup",priority:1,title:lead.full_name||"Unnamed Lead",subtitle:"⚠️ Overdue Follow-up • "+formatDate(lead.next_follow_up),leadId:lead.id});});overdueTasks.forEach(function(task){actions.push({type:"task",priority:2,title:task.title||"Task",subtitle:"⚠️ Overdue Task • "+formatDate(task.due_date),taskId:task.id});});todayFollowups.forEach(function(lead){actions.push({type:"followup",priority:3,title:lead.full_name||"Unnamed Lead",subtitle:"📞 Follow-up Today • "+formatDate(lead.next_follow_up),leadId:lead.id});});pendingTasks.filter(function(task){return isToday(task.due_date);}).forEach(function(task){actions.push({type:"task",priority:4,title:task.title||"Task",subtitle:"📋 Task Today • "+formatDate(task.due_date),taskId:task.id});});actions.sort(function(a,b){return a.priority-b.priority;});const container=document.getElementById("priorityActions");if(!actions.length){container.innerHTML=`<div class="empty">🎉 No urgent actions. You are all caught up!</div>`;return;}container.innerHTML=actions.slice(0,10).map(function(item){let button="";if(item.type==="followup"){button=`<button class="btn-primary" onclick="completeFollowup(${Number(item.leadId)})">Follow-up</button>`;}else{button=`<button class="btn-primary" onclick="completeTask(${Number(item.taskId)})">Complete</button>`;}return `<div style="display:flex;justify-content:space-between;align-items:center;gap:15px;padding:14px 0;border-bottom:1px solid #eee;"><div><strong>${escapeHtml(item.title)}</strong><div class="muted" style="margin-top:4px;">${escapeHtml(item.subtitle)}</div></div>${button}</div>`;}).join("");}
-
-// Calendar Module
+// ===== CALENDAR MODULE (Phase 3A - MOCK DATA ONLY) =====
+// Global variables for appointments
 let currentAppointments=[];
 let currentFollowups=[];
 let currentCalendarMonth=new Date();
 let currentEditingAppointmentId=null;
 
-async function loadCalendar(){if(!currentUser){console.warn("No authenticated user");return;}const year=currentCalendarMonth.getFullYear();const month=String(currentCalendarMonth.getMonth()+1).padStart(2,"0");const monthStart=`${year}-${month}-01`;const nextMonthDate=new Date(currentCalendarMonth.getFullYear(),currentCalendarMonth.getMonth()+1,1);const nextYear=nextMonthDate.getFullYear();const nextMonth=String(nextMonthDate.getMonth()+1).padStart(2,"0");const monthEnd=`${nextYear}-${nextMonth}-01`;const{data:apptData,error:apptError}=await supabaseClient.from("appointments").select("*").gte("appointment_date",monthStart).lt("appointment_date",monthEnd).order("appointment_date",{ascending:true});if(apptError){console.error("Error loading appointments:",apptError);currentAppointments=[];}else{currentAppointments=apptData||[];}const{data:leadData,error:leadError}=await supabaseClient.from("leads").select("id,full_name,mobile_number,next_follow_up,status").not("next_follow_up","is",null).order("next_follow_up",{ascending:true});if(leadError){console.error("Error loading follow-ups:",leadError);currentFollowups=[];}else{currentFollowups=(leadData||[]).filter(lead=>{if(!lead.next_follow_up)return false;const followUpDate=new Date(lead.next_follow_up);const followUpYear=followUpDate.getFullYear();const followUpMonth=String(followUpDate.getMonth()+1).padStart(2,"0");return followUpYear===parseInt(year)&&followUpMonth===month;});}renderCalendar(currentAppointments,currentFollowups);renderScheduleList(currentAppointments,currentFollowups);}
+async function loadCalendar(){
+  if(!currentUser){console.warn("No authenticated user");return;}
+  const year=currentCalendarMonth.getFullYear();
+  const month=String(currentCalendarMonth.getMonth()+1).padStart(2,"0");
+  const monthStart=`${year}-${month}-01`;
+  const nextMonthDate=new Date(currentCalendarMonth.getFullYear(),currentCalendarMonth.getMonth()+1,1);
+  const nextYear=nextMonthDate.getFullYear();
+  const nextMonth=String(nextMonthDate.getMonth()+1).padStart(2,"0");
+  const monthEnd=`${nextYear}-${nextMonth}-01`;
+  
+  // Load appointments
+  const {data:apptData,error:apptError}=await supabaseClient.from("appointments").select("*").gte("appointment_date",monthStart).lt("appointment_date",monthEnd).order("appointment_date",{ascending:true});
+  if(apptError){console.error("Error loading appointments:",apptError);currentAppointments=[];}
+  else{currentAppointments=apptData||[];}
+  
+  // Load follow-ups from leads table for current month
+  const {data:leadData,error:leadError}=await supabaseClient.from("leads").select("id,full_name,mobile_number,next_follow_up,status").not("next_follow_up","is",null).order("next_follow_up",{ascending:true});
+  if(leadError){console.error("Error loading follow-ups:",leadError);currentFollowups=[];}
+  else{
+    currentFollowups=(leadData||[]).filter(lead=>{
+      if(!lead.next_follow_up)return false;
+      const followUpDate=new Date(lead.next_follow_up);
+      const followUpYear=followUpDate.getFullYear();
+      const followUpMonth=String(followUpDate.getMonth()+1).padStart(2,"0");
+      return followUpYear===parseInt(year)&&followUpMonth===month;
+    });
+  }
+  
+  renderCalendar(currentAppointments,currentFollowups);
+  renderScheduleList(currentAppointments,currentFollowups);
+}
 function previousMonth(){currentCalendarMonth.setMonth(currentCalendarMonth.getMonth()-1);loadCalendar();}
 function nextMonth(){currentCalendarMonth.setMonth(currentCalendarMonth.getMonth()+1);loadCalendar();}
 function goToToday(){currentCalendarMonth=new Date();loadCalendar();}
 
-function renderCalendar(appointments,followups){const year=currentCalendarMonth.getFullYear(),month=currentCalendarMonth.getMonth();document.getElementById("calendarMonthYear").textContent=new Date(year,month).toLocaleString("en-IN",{month:"long",year:"numeric"});const firstDay=new Date(year,month,1),lastDay=new Date(year,month+1,0),prevLastDay=new Date(year,month,0);const firstDayOfWeek=firstDay.getDay(),lastDateOfMonth=lastDay.getDate(),lastDateOfPrevMonth=prevLastDay.getDate(),prevMonthDays=firstDayOfWeek;let html='<div class="calendar-day-header">Sun</div><div class="calendar-day-header">Mon</div><div class="calendar-day-header">Tue</div><div class="calendar-day-header">Wed</div><div class="calendar-day-header">Thu</div><div class="calendar-day-header">Fri</div><div class="calendar-day-header">Sat</div>';for(let x=prevMonthDays;x>0;x--){const date=lastDateOfPrevMonth-x+1;html+=`<div class="calendar-cell other-month"><div class="calendar-cell-date">${date}</div></div>`;}for(let date=1;date<=lastDateOfMonth;date++){const dateStr=`${year}-${String(month+1).padStart(2,"0")}-${String(date).padStart(2,"0")}`;const dayAppts=(appointments||[]).filter(a=>a.appointment_date===dateStr);const dayFollowups=(followups||[]).filter(f=>{if(!f.next_follow_up)return false;const fDate=new Date(f.next_follow_up).toISOString().split('T')[0];return fDate===dateStr;});const totalItems=dayAppts.length+dayFollowups.length;const isToday=new Date().toDateString()===new Date(year,month,date).toDateString();html+=`<div class="calendar-cell ${isToday?"today":""}" onclick="handleDateClick('${dateStr}')"><div class="calendar-cell-date">${date}</div><div class="calendar-cell-appointments">${dayAppts.map(a=>`<span class="appointment-dot ${a.status.toLowerCase()}"></span>`).join("")}${dayFollowups.map(f=>`<span class="followup-dot"></span>`).join("")}${totalItems>0?`<div style="margin-top:4px;font-size:10px;">${totalItems} item${totalItems>1?"s":""}</div>`:""}</div></div>`;}const totalCells=prevMonthDays+lastDateOfMonth,nextMonthDays=42-totalCells;for(let date=1;date<=nextMonthDays;date++){html+=`<div class="calendar-cell other-month"><div class="calendar-cell-date">${date}</div></div>`;}document.getElementById("calendarGrid").innerHTML=html;}
+function renderCalendar(appointments,followups){
+const year=currentCalendarMonth.getFullYear(),month=currentCalendarMonth.getMonth();
+document.getElementById("calendarMonthYear").textContent=new Date(year,month).toLocaleString("en-IN",{month:"long",year:"numeric"});
+const firstDay=new Date(year,month,1),lastDay=new Date(year,month+1,0),prevLastDay=new Date(year,month,0);
+const firstDayOfWeek=firstDay.getDay(),lastDateOfMonth=lastDay.getDate(),lastDateOfPrevMonth=prevLastDay.getDate(),prevMonthDays=firstDayOfWeek;
 
-function renderScheduleList(appointments,followups){const year=currentCalendarMonth.getFullYear(),month=String(currentCalendarMonth.getMonth()+1).padStart(2,"0");const monthAppts=(appointments||[]).filter(a=>a.appointment_date.startsWith(`${year}-${month}`));const monthFollowups=(followups||[]).filter(f=>{if(!f.next_follow_up)return false;const fDate=new Date(f.next_follow_up).toISOString().split('T')[0];return fDate.startsWith(`${year}-${month}`);});const combined=[];monthAppts.forEach(a=>{combined.push({type:'appointment',data:a});});monthFollowups.forEach(f=>{combined.push({type:'followup',data:f});});combined.sort((a,b)=>{const aDate=a.type==='appointment'?a.data.appointment_date:new Date(a.data.next_follow_up).toISOString().split('T')[0];const bDate=b.type==='appointment'?b.data.appointment_date:new Date(b.data.next_follow_up).toISOString().split('T')[0];if(aDate!==bDate)return new Date(aDate)-new Date(bDate);const aTime=a.type==='appointment'?a.data.appointment_time:new Date(a.data.next_follow_up).toISOString().split('T')[1].substring(0,5);const bTime=b.type==='appointment'?b.data.appointment_time:new Date(b.data.next_follow_up).toISOString().split('T')[1].substring(0,5);return aTime.localeCompare(bTime);});const html=combined.map(item=>{if(item.type==='appointment'){const a=item.data;const dateObj=new Date(a.appointment_date);const formattedDate=dateObj.toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"});const statusClass=a.status.toLowerCase();return `<tr onclick="openAppointmentModal(${a.id});" style="cursor:pointer;"><td>${escapeHtml(formattedDate)}</td><td>${escapeHtml(a.appointment_time)}</td><td><span style="color:#059669;font-weight:bold;">🟢</span> ${escapeHtml(a.customer_name)}</td><td>${escapeHtml(a.mobile_number)}</td><td><span class="appointment-badge ${statusClass}">${escapeHtml(a.status)}</span></td><td><button class="btn-secondary" onclick="event.stopPropagation();openAppointmentModal(${a.id});">View</button></td></tr>`;}else{const f=item.data;const followupDate=new Date(f.next_follow_up);const formattedDate=followupDate.toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"});const followupTime=followupDate.toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit",hour12:false});return `<tr onclick="viewLead(${f.id},'calendar');" style="cursor:pointer;"><td>${escapeHtml(formattedDate)}</td><td>${escapeHtml(followupTime)}</td><td><span style="color:#2563eb;font-weight:bold;">🔵</span> ${escapeHtml(f.full_name)}</td><td>${escapeHtml(f.mobile_number)}</td><td><span class="appointment-badge">${escapeHtml(f.status||"Pending")}</span></td><td><button class="btn-secondary" onclick="event.stopPropagation();viewLead(${f.id},'calendar');">View</button></td></tr>`;}}).join("")||(combined.length===0?`<tr><td colspan="6" class="empty">No appointments or follow-ups this month</td></tr>`:"");document.getElementById("appointmentsList").innerHTML=html;}
+let html='<div class="calendar-day-header">Sun</div><div class="calendar-day-header">Mon</div><div class="calendar-day-header">Tue</div><div class="calendar-day-header">Wed</div><div class="calendar-day-header">Thu</div><div class="calendar-day-header">Fri</div><div class="calendar-day-header">Sat</div>';
 
-function handleDateClick(dateStr){const appts=currentAppointments.filter(a=>a.appointment_date===dateStr);const followups=currentFollowups.filter(f=>{if(!f.next_follow_up)return false;const fDate=new Date(f.next_follow_up).toISOString().split('T')[0];return fDate===dateStr;});const totalItems=appts.length+followups.length;if(totalItems===0){alert("No appointments or follow-ups on this date");return}if(totalItems===1){if(appts.length===1){openAppointmentModal(appts[0].id);return}if(followups.length===1){viewLead(followups[0].id,'calendar');return}}openDateScheduleModal(dateStr);}
+for(let x=prevMonthDays;x>0;x--){
+const date=lastDateOfPrevMonth-x+1;
+html+=`<div class="calendar-cell other-month"><div class="calendar-cell-date">${date}</div></div>`;
+}
 
-function openAppointmentModal(id){const appt=currentAppointments.find(a=>a.id===id);if(!appt)return;currentEditingAppointmentId=id;const dateObj=new Date(appt.appointment_date);const formattedDate=dateObj.toLocaleDateString("en-IN",{weekday:"long",day:"2-digit",month:"long",year:"numeric"});const statusBg={"scheduled":"#d1fae5","completed":"#dbeafe","cancelled":"#fee2e2"}[appt.status.toLowerCase()]||"#f0f0f0";const statusColor={"scheduled":"#065f46","completed":"#0c4a6e","cancelled":"#7f1d1d"}[appt.status.toLowerCase()]||"#333";const html=`<div style="margin-bottom:16px;"><strong>Date & Time</strong><div>${escapeHtml(formattedDate)}</div><div style="font-size:14px;margin-top:4px;">${escapeHtml(appt.appointment_time)}</div></div><div style="margin-bottom:16px;"><strong>Customer Name</strong><div>${escapeHtml(appt.customer_name)}</div></div><div style="margin-bottom:16px;"><strong>Mobile Number</strong><div>${escapeHtml(appt.mobile_number)}</div></div><div style="margin-bottom:16px;"><strong>Status</strong><div style="display:inline-block;padding:6px 12px;border-radius:6px;background:${statusBg};color:${statusColor};font-weight:600;">${escapeHtml(appt.status)}</div></div><div style="margin-bottom:16px;"><strong>Notes</strong><div>${escapeHtml(appt.notes||"-")}</div></div><div style="margin-top:20px;display:flex;gap:8px;"><button class="btn-primary" onclick="editAppointment(${id})">✏️ Edit</button><button class="btn-danger" onclick="confirmDeleteAppointment(${id})">🗑️ Delete</button></div>`;document.getElementById("appointmentModalContent").innerHTML=html;document.getElementById("appointmentModal").classList.add("show");}
+for(let date=1;date<=lastDateOfMonth;date++){
+const dateStr=`${year}-${String(month+1).padStart(2,"0")}-${String(date).padStart(2,"0")}`;
+const dayAppts=(appointments||[]).filter(a=>a.appointment_date===dateStr);
+const dayFollowups=(followups||[]).filter(f=>{
+  if(!f.next_follow_up)return false;
+  const fDate=new Date(f.next_follow_up).toISOString().split('T')[0];
+  return fDate===dateStr;
+});
+const totalItems=dayAppts.length+dayFollowups.length;
+const isToday=new Date().toDateString()===new Date(year,month,date).toDateString();
+html+=`<div class="calendar-cell ${isToday?"today":""}" onclick="handleDateClick('${dateStr}')">
+<div class="calendar-cell-date">${date}</div>
+<div class="calendar-cell-appointments">
+${dayAppts.map(a=>`<span class="appointment-dot ${a.status.toLowerCase()}"></span>`).join("")}
+${dayFollowups.map(f=>`<span class="followup-dot"></span>`).join("")}
+${totalItems>0?`<div style="margin-top:4px;font-size:10px;">${totalItems} item${totalItems>1?"s":""}</div>`:""}
+</div>
+</div>`;
+}
 
-function closeAppointmentModal(){document.getElementById("appointmentModal").classList.remove("show");currentEditingAppointmentId=null;}
+const totalCells=prevMonthDays+lastDateOfMonth,nextMonthDays=42-totalCells;
+for(let date=1;date<=nextMonthDays;date++){
+html+=`<div class="calendar-cell other-month"><div class="calendar-cell-date">${date}</div></div>`;
+}
 
-function openDateScheduleModal(dateStr){const appts=currentAppointments.filter(a=>a.appointment_date===dateStr);const followups=currentFollowups.filter(f=>{if(!f.next_follow_up)return false;const fDate=new Date(f.next_follow_up).toISOString().split('T')[0];return fDate===dateStr;});const combined=[];appts.forEach(a=>combined.push({type:'appointment',data:a}));followups.forEach(f=>combined.push({type:'followup',data:f}));combined.sort((a,b)=>{const aTime=a.type==='appointment'?a.data.appointment_time:new Date(a.data.next_follow_up).toISOString().split('T')[1].substring(0,5);const bTime=b.type==='appointment'?b.data.appointment_time:new Date(b.data.next_follow_up).toISOString().split('T')[1].substring(0,5);return aTime.localeCompare(bTime);});const dateObj=new Date(dateStr);const dateTitle=dateObj.toLocaleDateString("en-IN",{weekday:"long",day:"2-digit",month:"long",year:"numeric"});document.getElementById("dateScheduleTitle").textContent=`Schedule – ${dateTitle}`;const contentHtml=combined.map(item=>{if(item.type==='appointment'){const a=item.data;return `<div style="margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border);"><div style="display:flex;align-items:flex-start;gap:10px;"><span style="color:#059669;font-weight:bold;font-size:16px;">🟢</span><div style="flex:1;"><div style="font-weight:600;color:var(--text);">${escapeHtml(a.customer_name)}</div><div style="font-size:13px;color:var(--muted);margin-top:4px;">🕐 ${escapeHtml(a.appointment_time)}</div><div style="font-size:13px;color:var(--muted);margin-top:2px;">📞 ${escapeHtml(a.mobile_number)}</div><div style="margin-top:6px;"><span class="appointment-badge ${a.status.toLowerCase()}">${escapeHtml(a.status)}</span></div><button class="btn-secondary" style="margin-top:8px;padding:4px 12px;font-size:12px;" onclick="openAppointmentModal(${a.id});closeDateScheduleModal();">View Appointment</button></div></div></div>`;}else{const f=item.data;const followupTime=new Date(f.next_follow_up).toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit",hour12:false});return `<div style="margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border);"><div style="display:flex;align-items:flex-start;gap:10px;"><span style="color:#2563eb;font-weight:bold;font-size:16px;">🔵</span><div style="flex:1;"><div style="font-weight:600;color:var(--text);">${escapeHtml(f.full_name)}</div><div style="font-size:13px;color:var(--muted);margin-top:4px;">🕐 ${escapeHtml(followupTime)}</div><div style="font-size:13px;color:var(--muted);margin-top:2px;">📞 ${escapeHtml(f.mobile_number)}</div><div style="margin-top:6px;"><span class="appointment-badge">${escapeHtml(f.status||"Pending")}</span></div><button class="btn-secondary" style="margin-top:8px;padding:4px 12px;font-size:12px;" onclick="viewLead(${f.id},'calendar');closeDateScheduleModal();">View Lead</button></div></div></div>`;}}).join("");document.getElementById("dateScheduleContent").innerHTML=contentHtml;document.getElementById("dateScheduleModal").classList.add("show");}
+document.getElementById("calendarGrid").innerHTML=html;
+}
 
-function closeDateScheduleModal(){document.getElementById("dateScheduleModal").classList.remove("show");}
+function renderScheduleList(appointments,followups){
+const year=currentCalendarMonth.getFullYear(),month=String(currentCalendarMonth.getMonth()+1).padStart(2,"0");
+const monthAppts=(appointments||[]).filter(a=>a.appointment_date.startsWith(`${year}-${month}`));
+const monthFollowups=(followups||[]).filter(f=>{
+  if(!f.next_follow_up)return false;
+  const fDate=new Date(f.next_follow_up).toISOString().split('T')[0];
+  return fDate.startsWith(`${year}-${month}`);
+});
 
-async function saveAppointment(formData){if(!currentUser){alert("Not authenticated");return;}if(!formData.lead_id||!formData.customer_name||!formData.mobile_number||!formData.appointment_date||!formData.appointment_time||!formData.status){alert("Please fill all required fields");return;}const payload={...formData,created_by:currentUser.id};const{data,error}=await supabaseClient.from("appointments").insert([payload]).select().single();if(error){alert("Error saving appointment: "+error.message);return;}showMessage("Appointment created successfully!","success");closeAppointmentModal();await loadCalendar();}
+// Combine appointments and follow-ups
+const combined=[];
+monthAppts.forEach(a=>{
+  combined.push({type:'appointment',data:a});
+});
+monthFollowups.forEach(f=>{
+  combined.push({type:'followup',data:f});
+});
 
-async function updateAppointment(id,formData){if(!currentUser){alert("Not authenticated");return;}if(!formData.customer_name||!formData.mobile_number||!formData.appointment_date||!formData.appointment_time){alert("Please fill all required fields");return;}const updatePayload={customer_name:formData.customer_name,mobile_number:formData.mobile_number,appointment_date:formData.appointment_date,appointment_time:formData.appointment_time,status:formData.status,notes:formData.notes};const{error}=await supabaseClient.from("appointments").update(updatePayload).eq("id",id);if(error){alert("Error updating appointment: "+error.message);return;}showMessage("Appointment updated successfully!","success");closeAppointmentModal();await loadCalendar();}
+// Sort by date and time
+combined.sort((a,b)=>{
+  const aDate=a.type==='appointment'?a.data.appointment_date:new Date(a.data.next_follow_up).toISOString().split('T')[0];
+  const bDate=b.type==='appointment'?b.data.appointment_date:new Date(b.data.next_follow_up).toISOString().split('T')[0];
+  if(aDate!==bDate)return new Date(aDate)-new Date(bDate);
+  const aTime=a.type==='appointment'?a.data.appointment_time:new Date(a.data.next_follow_up).toISOString().split('T')[1].substring(0,5);
+  const bTime=b.type==='appointment'?b.data.appointment_time:new Date(b.data.next_follow_up).toISOString().split('T')[1].substring(0,5);
+  return aTime.localeCompare(bTime);
+});
 
-async function deleteAppointment(id){if(!confirm("Are you sure you want to delete this appointment?"))return;const{error}=await supabaseClient.from("appointments").delete().eq("id",id);if(error){alert("Error deleting appointment: "+error.message);return;}showMessage("Appointment deleted successfully!","success");closeAppointmentModal();await loadCalendar();}
+const html=combined.map(item=>{
+  if(item.type==='appointment'){
+    const a=item.data;
+    const dateObj=new Date(a.appointment_date);
+    const formattedDate=dateObj.toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"});
+    const statusClass=a.status.toLowerCase();
+    return `<tr onclick="openAppointmentModal(${a.id});" style="cursor:pointer;">
+<td>${escapeHtml(formattedDate)}</td>
+<td>${escapeHtml(a.appointment_time)}</td>
+<td><span style="color:#059669;font-weight:bold;">🟢</span> ${escapeHtml(a.customer_name)}</td>
+<td>${escapeHtml(a.mobile_number)}</td>
+<td><span class="appointment-badge ${statusClass}">${escapeHtml(a.status)}</span></td>
+<td><button class="btn-secondary" onclick="event.stopPropagation();openAppointmentModal(${a.id});">View</button></td>
+</tr>`;
+  }else{
+    const f=item.data;
+    const followupDate=new Date(f.next_follow_up);
+    const formattedDate=followupDate.toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"});
+    const followupTime=followupDate.toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit",hour12:false});
+    return `<tr onclick="viewLead(${f.id},'calendar');" style="cursor:pointer;">
+<td>${escapeHtml(formattedDate)}</td>
+<td>${escapeHtml(followupTime)}</td>
+<td><span style="color:#2563eb;font-weight:bold;">🔵</span> ${escapeHtml(f.full_name)}</td>
+<td>${escapeHtml(f.mobile_number)}</td>
+<td><span class="appointment-badge">${escapeHtml(f.status||"Pending")}</span></td>
+<td><button class="btn-secondary" onclick="event.stopPropagation();viewLead(${f.id},'calendar');">View</button></td>
+</tr>`;
+  }
+}).join("")||(combined.length===0?`<tr><td colspan="6" class="empty">No appointments or follow-ups this month</td></tr>`:"");
 
-function editAppointment(id){const appt=currentAppointments.find(a=>a.id===id);if(!appt)return;openAppointmentFormModal(appt.lead_id,id);}
+document.getElementById("appointmentsList").innerHTML=html;
+}
 
-function confirmDeleteAppointment(id){deleteAppointment(id);}
+function handleDateClick(dateStr){
+const appts=currentAppointments.filter(a=>a.appointment_date===dateStr);
+const followups=currentFollowups.filter(f=>{
+  if(!f.next_follow_up)return false;
+  const fDate=new Date(f.next_follow_up).toISOString().split('T')[0];
+  return fDate===dateStr;
+});
+const totalItems=appts.length+followups.length;
 
-function autoFillLeadData(){const leadIdInput=document.getElementById("apptFormLeadId");if(!leadIdInput)return;const leadId=parseInt(leadIdInput.value);if(!leadId){document.getElementById("apptFormCustomerName").value="";document.getElementById("apptFormMobile").value="";return;}const leads=allLeadsCache||[];const selectedLead=leads.find(l=>l.id===leadId);if(selectedLead){document.getElementById("apptFormCustomerName").value=escapeHtml(selectedLead.full_name||"");document.getElementById("apptFormMobile").value=escapeHtml(selectedLead.mobile_number||"");}}
+if(totalItems===0){alert("No appointments or follow-ups on this date");return}
+if(totalItems===1){
+  if(appts.length===1){openAppointmentModal(appts[0].id);return}
+  if(followups.length===1){viewLead(followups[0].id,'calendar');return}
+}
 
-function openAppointmentFormModal(leadId,appointmentId){const appt=appointmentId?currentAppointments.find(a=>a.id===appointmentId):null;const title=appt?"Edit Appointment":"New Appointment";const isEditMode=!!appt;const selectedLeadId=isEditMode?appt.lead_id:leadId;const leads=allLeadsCache||[];const leadsOptions=leads.map(l=>`<option value="${l.id}" ${selectedLeadId===l.id?"selected":""}>${escapeHtml(l.full_name)}</option>`).join("");const html=`<div style="margin-bottom:12px;"><label><strong>Lead</strong> <span style="color:red;">*</span></label><select id="apptFormLeadId" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;margin-top:4px;" ${isEditMode?"disabled":""} ${isEditMode?"":"onchange=\"autoFillLeadData()\""}><option value="">Select a lead</option>${leadsOptions}</select></div><div style="margin-bottom:12px;"><label><strong>Customer Name</strong> <span style="color:red;">*</span></label><input type="text" id="apptFormCustomerName" value="${escapeHtml(appt?.customer_name||"")}" placeholder="Full name" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;margin-top:4px;box-sizing:border-box;" ${isEditMode?"":"readonly"}></div><div style="margin-bottom:12px;"><label><strong>Mobile Number</strong> <span style="color:red;">*</span></label><input type="text" id="apptFormMobile" value="${escapeHtml(appt?.mobile_number||"")}" placeholder="10-digit number" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;margin-top:4px;box-sizing:border-box;" ${isEditMode?"":"readonly"}></div><div style="margin-bottom:12px;"><label><strong>Date</strong> <span style="color:red;">*</span></label><input type="date" id="apptFormDate" value="${appt?.appointment_date||""}" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;margin-top:4px;box-sizing:border-box;"></div><div style="margin-bottom:12px;"><label><strong>Time</strong> <span style="color:red;">*</span></label><input type="time" id="apptFormTime" value="${appt?.appointment_time||""}" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;margin-top:4px;box-sizing:border-box;"></div><div style="margin-bottom:12px;"><label><strong>Status</strong> <span style="color:red;">*</span></label><select id="apptFormStatus" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;margin-top:4px;"><option value="Scheduled" ${appt?.status==="Scheduled"?"selected":""}>Scheduled</option><option value="Completed" ${appt?.status==="Completed"?"selected":""}>Completed</option><option value="Cancelled" ${appt?.status==="Cancelled"?"selected":""}>Cancelled</option></select></div><div style="margin-bottom:12px;"><label><strong>Notes</strong></label><textarea id="apptFormNotes" placeholder="Add notes (optional)" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;margin-top:4px;box-sizing:border-box;height:80px;">${escapeHtml(appt?.notes||"")}</textarea></div>`;document.getElementById("appointmentFormContent").innerHTML=html;document.getElementById("appointmentFormTitle").textContent=title;document.getElementById("deleteApptButton").style.display=isEditMode?"block":"none";if(!isEditMode&&selectedLeadId){autoFillLeadData();}document.getElementById("appointmentFormModal").classList.add("show");}
+// Multiple items - open date schedule modal
+openDateScheduleModal(dateStr);
+}
 
-function closeAppointmentFormModal(){document.getElementById("appointmentFormModal").classList.remove("show");currentEditingAppointmentId=null;}
+function openAppointmentModal(id){
+const appt=currentAppointments.find(a=>a.id===id);
+if(!appt)return;
+currentEditingAppointmentId=id;
+const dateObj=new Date(appt.appointment_date);
+const formattedDate=dateObj.toLocaleDateString("en-IN",{weekday:"long",day:"2-digit",month:"long",year:"numeric"});
+const statusBg={"scheduled":"#d1fae5","completed":"#dbeafe","cancelled":"#fee2e2"}[appt.status.toLowerCase()]||"#f0f0f0";
+const statusColor={"scheduled":"#065f46","completed":"#0c4a6e","cancelled":"#7f1d1d"}[appt.status.toLowerCase()]||"#333";
 
-async function saveAppointmentFromForm(){const leadId=parseInt(document.getElementById("apptFormLeadId").value);const customerName=document.getElementById("apptFormCustomerName").value.trim();const mobile=document.getElementById("apptFormMobile").value.trim();const date=document.getElementById("apptFormDate").value;const time=document.getElementById("apptFormTime").value;const status=document.getElementById("apptFormStatus").value;const notes=document.getElementById("apptFormNotes").value.trim();if(!leadId){alert("Please select a lead");return;}if(!customerName||!mobile||!date||!time||!status){alert("Please fill all required fields");return;}const formData={lead_id:leadId,customer_name:customerName,mobile_number:mobile,appointment_date:date,appointment_time:time,status:status,notes:notes||null};if(currentEditingAppointmentId){await updateAppointment(currentEditingAppointmentId,formData);}else{await saveAppointment(formData);}closeAppointmentFormModal();}
+const html=`
+<div style="margin-bottom:16px;">
+<strong>Date & Time</strong>
+<div>${escapeHtml(formattedDate)}</div>
+<div style="font-size:14px;margin-top:4px;">${escapeHtml(appt.appointment_time)}</div>
+</div>
+<div style="margin-bottom:16px;">
+<strong>Customer Name</strong>
+<div>${escapeHtml(appt.customer_name)}</div>
+</div>
+<div style="margin-bottom:16px;">
+<strong>Mobile Number</strong>
+<div>${escapeHtml(appt.mobile_number)}</div>
+</div>
+<div style="margin-bottom:16px;">
+<strong>Status</strong>
+<div style="display:inline-block;padding:6px 12px;border-radius:6px;background:${statusBg};color:${statusColor};font-weight:600;">${escapeHtml(appt.status)}</div>
+</div>
+<div style="margin-bottom:16px;">
+<strong>Notes</strong>
+<div>${escapeHtml(appt.notes||"-")}</div>
+</div>
+<div style="margin-top:20px;display:flex;gap:8px;">
+<button class="btn-primary" onclick="editAppointment(${id})">✏️ Edit</button>
+<button class="btn-danger" onclick="confirmDeleteAppointment(${id})">🗑️ Delete</button>
+</div>
+`;
+document.getElementById("appointmentModalContent").innerHTML=html;
+document.getElementById("appointmentModal").classList.add("show");
+}
 
-async function deleteAppointmentFromForm(){if(!currentEditingAppointmentId)return;await deleteAppointment(currentEditingAppointmentId);closeAppointmentFormModal();}
+function closeAppointmentModal(){
+document.getElementById("appointmentModal").classList.remove("show");
+currentEditingAppointmentId=null;
+}
+
+function openDateScheduleModal(dateStr){
+const appts=currentAppointments.filter(a=>a.appointment_date===dateStr);
+const followups=currentFollowups.filter(f=>{
+  if(!f.next_follow_up)return false;
+  const fDate=new Date(f.next_follow_up).toISOString().split('T')[0];
+  return fDate===dateStr;
+});
+
+// Combine and sort by time
+const combined=[];
+appts.forEach(a=>combined.push({type:'appointment',data:a}));
+followups.forEach(f=>combined.push({type:'followup',data:f}));
+combined.sort((a,b)=>{
+  const aTime=a.type==='appointment'?a.data.appointment_time:new Date(a.data.next_follow_up).toISOString().split('T')[1].substring(0,5);
+  const bTime=b.type==='appointment'?b.data.appointment_time:new Date(b.data.next_follow_up).toISOString().split('T')[1].substring(0,5);
+  return aTime.localeCompare(bTime);
+});
+
+// Format date title
+const dateObj=new Date(dateStr);
+const dateTitle=dateObj.toLocaleDateString("en-IN",{weekday:"long",day:"2-digit",month:"long",year:"numeric"});
+document.getElementById("dateScheduleTitle").textContent=`Schedule – ${dateTitle}`;
+
+// Build content HTML
+const contentHtml=combined.map(item=>{
+  if(item.type==='appointment'){
+    const a=item.data;
+    return `<div style="margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border);">
+<div style="display:flex;align-items:flex-start;gap:10px;">
+<span style="color:#059669;font-weight:bold;font-size:16px;">🟢</span>
+<div style="flex:1;">
+<div style="font-weight:600;color:var(--text);">${escapeHtml(a.customer_name)}</div>
+<div style="font-size:13px;color:var(--muted);margin-top:4px;">🕐 ${escapeHtml(a.appointment_time)}</div>
+<div style="font-size:13px;color:var(--muted);margin-top:2px;">📞 ${escapeHtml(a.mobile_number)}</div>
+<div style="margin-top:6px;"><span class="appointment-badge ${a.status.toLowerCase()}">${escapeHtml(a.status)}</span></div>
+<button class="btn-secondary" style="margin-top:8px;padding:4px 12px;font-size:12px;" onclick="openAppointmentModal(${a.id});closeDateScheduleModal();">View Appointment</button>
+</div>
+</div>
+</div>`;
+  }else{
+    const f=item.data;
+    const followupTime=new Date(f.next_follow_up).toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit",hour12:false});
+    return `<div style="margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border);">
+<div style="display:flex;align-items:flex-start;gap:10px;">
+<span style="color:#2563eb;font-weight:bold;font-size:16px;">🔵</span>
+<div style="flex:1;">
+<div style="font-weight:600;color:var(--text);">${escapeHtml(f.full_name)}</div>
+<div style="font-size:13px;color:var(--muted);margin-top:4px;">🕐 ${escapeHtml(followupTime)}</div>
+<div style="font-size:13px;color:var(--muted);margin-top:2px;">📞 ${escapeHtml(f.mobile_number)}</div>
+<div style="margin-top:6px;"><span class="appointment-badge">${escapeHtml(f.status||"Pending")}</span></div>
+<button class="btn-secondary" style="margin-top:8px;padding:4px 12px;font-size:12px;" onclick="viewLead(${f.id},'calendar');closeDateScheduleModal();">View Lead</button>
+</div>
+</div>
+</div>`;
+  }
+}).join("");
+
+document.getElementById("dateScheduleContent").innerHTML=contentHtml;
+document.getElementById("dateScheduleModal").classList.add("show");
+}
+
+function closeDateScheduleModal(){
+document.getElementById("dateScheduleModal").classList.remove("show");
+}
+
+async function saveAppointment(formData){
+if(!currentUser){alert("Not authenticated");return;}
+if(!formData.lead_id||!formData.customer_name||!formData.mobile_number||!formData.appointment_date||!formData.appointment_time||!formData.status){
+alert("Please fill all required fields");return;}
+const payload={...formData,created_by:currentUser.id};
+const {data,error}=await supabaseClient.from("appointments").insert([payload]).select().single();
+if(error){alert("Error saving appointment: "+error.message);return;}
+showMessage("Appointment created successfully!","success");
+closeAppointmentModal();
+await loadCalendar();
+}
+
+async function updateAppointment(id,formData){
+if(!currentUser){alert("Not authenticated");return;}
+if(!formData.customer_name||!formData.mobile_number||!formData.appointment_date||!formData.appointment_time){
+alert("Please fill all required fields");return;}
+const updatePayload={customer_name:formData.customer_name,mobile_number:formData.mobile_number,appointment_date:formData.appointment_date,appointment_time:formData.appointment_time,status:formData.status,notes:formData.notes};
+const {error}=await supabaseClient.from("appointments").update(updatePayload).eq("id",id);
+if(error){alert("Error updating appointment: "+error.message);return;}
+showMessage("Appointment updated successfully!","success");
+closeAppointmentModal();
+await loadCalendar();
+}
+
+async function deleteAppointment(id){
+if(!confirm("Are you sure you want to delete this appointment?"))return;
+const {error}=await supabaseClient.from("appointments").delete().eq("id",id);
+if(error){alert("Error deleting appointment: "+error.message);return;}
+showMessage("Appointment deleted successfully!","success");
+closeAppointmentModal();
+await loadCalendar();
+}
+
+function editAppointment(id){
+const appt=currentAppointments.find(a=>a.id===id);
+if(!appt)return;
+openAppointmentFormModal(appt.lead_id,id);
+}
+
+function confirmDeleteAppointment(id){
+deleteAppointment(id);
+}
+
+function autoFillLeadData(){
+const leadIdInput=document.getElementById("apptFormLeadId");
+if(!leadIdInput)return;
+const leadId=parseInt(leadIdInput.value);
+if(!leadId){
+document.getElementById("apptFormCustomerName").value="";
+document.getElementById("apptFormMobile").value="";
+return;
+}
+const leads=allLeadsCache||[];
+const selectedLead=leads.find(l=>l.id===leadId);
+if(selectedLead){
+document.getElementById("apptFormCustomerName").value=escapeHtml(selectedLead.full_name||"");
+document.getElementById("apptFormMobile").value=escapeHtml(selectedLead.mobile_number||"");
+}
+}
+
+function openAppointmentFormModal(leadId,appointmentId){
+const appt=appointmentId?currentAppointments.find(a=>a.id===appointmentId):null;
+const title=appt?"Edit Appointment":"New Appointment";
+const isEditMode=!!appt;
+const selectedLeadId=isEditMode?appt.lead_id:leadId;
+
+const leads=allLeadsCache||[];
+const leadsOptions=leads.map(l=>`<option value="${l.id}" ${selectedLeadId===l.id?"selected":""}>${escapeHtml(l.full_name)}</option>`).join("");
+
+const html=`
+<div style="margin-bottom:12px;">
+<label><strong>Lead</strong> <span style="color:red;">*</span></label>
+<select id="apptFormLeadId" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;margin-top:4px;" ${isEditMode?"disabled":""} ${isEditMode?"":"onchange=\"autoFillLeadData()\""}>
+<option value="">Select a lead</option>
+${leadsOptions}
+</select>
+</div>
+<div style="margin-bottom:12px;">
+<label><strong>Customer Name</strong> <span style="color:red;">*</span></label>
+<input type="text" id="apptFormCustomerName" value="${escapeHtml(appt?.customer_name||"")}" placeholder="Full name" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;margin-top:4px;box-sizing:border-box;" ${isEditMode?"":"readonly"}>
+</div>
+<div style="margin-bottom:12px;">
+<label><strong>Mobile Number</strong> <span style="color:red;">*</span></label>
+<input type="text" id="apptFormMobile" value="${escapeHtml(appt?.mobile_number||"")}" placeholder="10-digit number" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;margin-top:4px;box-sizing:border-box;" ${isEditMode?"":"readonly"}>
+</div>
+<div style="margin-bottom:12px;">
+<label><strong>Date</strong> <span style="color:red;">*</span></label>
+<input type="date" id="apptFormDate" value="${appt?.appointment_date||""}" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;margin-top:4px;box-sizing:border-box;">
+</div>
+<div style="margin-bottom:12px;">
+<label><strong>Time</strong> <span style="color:red;">*</span></label>
+<input type="time" id="apptFormTime" value="${appt?.appointment_time||""}" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;margin-top:4px;box-sizing:border-box;">
+</div>
+<div style="margin-bottom:12px;">
+<label><strong>Status</strong> <span style="color:red;">*</span></label>
+<select id="apptFormStatus" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;margin-top:4px;">
+<option value="Scheduled" ${appt?.status==="Scheduled"?"selected":""}>Scheduled</option>
+<option value="Completed" ${appt?.status==="Completed"?"selected":""}>Completed</option>
+<option value="Cancelled" ${appt?.status==="Cancelled"?"selected":""}>Cancelled</option>
+</select>
+</div>
+<div style="margin-bottom:12px;">
+<label><strong>Notes</strong></label>
+<textarea id="apptFormNotes" placeholder="Add notes (optional)" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;margin-top:4px;box-sizing:border-box;height:80px;">${escapeHtml(appt?.notes||"")}</textarea>
+</div>
+`;
+
+document.getElementById("appointmentFormContent").innerHTML=html;
+document.getElementById("appointmentFormTitle").textContent=title;
+document.getElementById("deleteApptButton").style.display=isEditMode?"block":"none";
+if(!isEditMode&&selectedLeadId){
+autoFillLeadData();
+}
+document.getElementById("appointmentFormModal").classList.add("show");
+}
+
+function closeAppointmentFormModal(){
+document.getElementById("appointmentFormModal").classList.remove("show");
+currentEditingAppointmentId=null;
+}
+
+async function saveAppointmentFromForm(){
+const leadId=parseInt(document.getElementById("apptFormLeadId").value);
+const customerName=document.getElementById("apptFormCustomerName").value.trim();
+const mobile=document.getElementById("apptFormMobile").value.trim();
+const date=document.getElementById("apptFormDate").value;
+const time=document.getElementById("apptFormTime").value;
+const status=document.getElementById("apptFormStatus").value;
+const notes=document.getElementById("apptFormNotes").value.trim();
+
+if(!leadId){alert("Please select a lead");return;}
+if(!customerName||!mobile||!date||!time||!status){alert("Please fill all required fields");return;}
+
+const formData={lead_id:leadId,customer_name:customerName,mobile_number:mobile,appointment_date:date,appointment_time:time,status:status,notes:notes||null};
+
+if(currentEditingAppointmentId){
+await updateAppointment(currentEditingAppointmentId,formData);
+}else{
+await saveAppointment(formData);
+}
+closeAppointmentFormModal();
+}
+
+async function deleteAppointmentFromForm(){
+if(!currentEditingAppointmentId)return;
+await deleteAppointment(currentEditingAppointmentId);
+closeAppointmentFormModal();
+}
 
 function toggleSidebar(){const sidebar=document.querySelector('.sidebar');const overlay=document.querySelector('.sidebar-overlay');sidebar.classList.toggle('show');if(sidebar.classList.contains('show')){overlay.classList.add('show')}else{overlay.classList.remove('show')}}
 function closeSidebar(){const sidebar=document.querySelector('.sidebar');const overlay=document.querySelector('.sidebar-overlay');sidebar.classList.remove('show');overlay.classList.remove('show')}
