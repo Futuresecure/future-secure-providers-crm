@@ -292,17 +292,26 @@ allPages.forEach(page=>page.classList.add("hidden"));
 document.querySelector(".sidebar").style.display="flex";
 const savedPage=localStorage.getItem("crm_active_page");
 const leadId=localStorage.getItem("crm_current_lead_id");
+const savedPreviousPage=localStorage.getItem("crm_previous_page");
 const savedSessionUser=localStorage.getItem("crm_session_user");
 const currentSessionUser=currentUser?.id||"";
 const shouldRestorePage=savedPage&&savedSessionUser&&savedSessionUser===currentSessionUser;
 const pageToShow=shouldRestorePage?savedPage:"dashboard";
 
-if(leadId&&pageToShow==="leads"){
-viewLead(leadId,previousPage);
-return;
+if(leadId&&pageToShow==="leadProfile"){
+  previousPage=savedPreviousPage||"leads";
+  viewLead(leadId,previousPage);
+  return;
 }
-if(leadId&&pageToShow!=="leads"){
-localStorage.removeItem("crm_current_lead_id");
+
+if(leadId&&pageToShow==="leads"){
+  viewLead(leadId,savedPreviousPage||previousPage);
+  return;
+}
+
+if(leadId&&pageToShow!=="leadProfile"&&pageToShow!=="leads"){
+  localStorage.removeItem("crm_current_lead_id");
+  localStorage.removeItem("crm_previous_page");
 }
 
 const target=document.getElementById(pageToShow+"Page");
@@ -335,7 +344,9 @@ window.scrollTo({top:0,behavior:"smooth"});
 }
 function backToPrevious(){
 localStorage.removeItem("crm_current_lead_id");
-showPage(previousPage,document.querySelector(`[data-page="${previousPage}"]`));if(previousPage==="pipeline")loadPipeline();else loadLeads()}
+localStorage.removeItem("crm_previous_page");
+showPage(previousPage,document.querySelector(`[data-page="${previousPage}"]`));
+if(previousPage==="pipeline")loadPipeline();else loadLeads()}
 function escapeHtml(v){return String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;")}
 function formatDate(v){if(!v)return"-";const d=new Date(v);return isNaN(d)?"-":d.toLocaleString("en-IN",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"})}
 function localDateTimeToISOString(value){
@@ -682,8 +693,11 @@ draggedLeadId=null;await loadLeads();await loadPipeline();
 }
 async function viewLead(id,fromPage){
 if(fromPage)previousPage=fromPage;
-const {data:lead,error}=await supabaseClient.from("leads").select("*").eq("id",id).maybeSingle();if(error)return alert(error?.message||"Lead not found");if(!lead){localStorage.removeItem("crm_current_lead_id");showPage("leads",document.querySelector('[data-page="leads"]'));return}
 localStorage.setItem("crm_current_lead_id",id);
+localStorage.setItem("crm_previous_page",previousPage||"leads");
+localStorage.setItem("crm_active_page","leadProfile");
+localStorage.setItem("crm_session_user",currentUser?.id||"");
+const {data:lead,error}=await supabaseClient.from("leads").select("*").eq("id",id).maybeSingle();if(error)return alert(error?.message||"Lead not found");if(!lead){localStorage.removeItem("crm_current_lead_id");showPage("leads",document.querySelector('[data-page="leads"]'));return}
 const phone=String(lead.mobile_number||"").replace(/\D/g,"");
 leadProfileContent.innerHTML=`<div class="card" id="quickStatusCard"><h3 style="margin-bottom:10px">Quick Status Update</h3><div class="actions"><select id="quickStatusSelect" style="max-width:220px"><option>New</option><option>Contacted</option><option>Follow-up</option><option>Interested</option><option>Converted</option><option>Not Interested</option></select><button class="btn-primary" onclick="quickUpdateStatus(${Number(lead.id)})">Update Status</button></div></div><div class="profile-grid"><div class="detail-box"><label>Full Name</label><strong>${escapeHtml(lead.full_name)}</strong></div><div class="detail-box"><label>Mobile Number</label><strong>${escapeHtml(lead.mobile_number)}</strong></div><div class="detail-box"><label>Current Status</label><strong>${escapeHtml(lead.status||"New")}</strong></div></div>
 <div class="profile-grid"><div class="detail-box"><label>City</label><strong>${escapeHtml(lead.city||"-")}</strong></div><div class="detail-box"><label>Lead Source</label><strong>${escapeHtml(lead.lead_source||"-")}</strong></div><div class="detail-box"><label>Next Follow-up</label><strong>${formatDate(lead.next_follow_up)}</strong></div><div class="detail-box"><label>Created</label><strong>${formatDate(lead.created_at)}</strong></div></div>
