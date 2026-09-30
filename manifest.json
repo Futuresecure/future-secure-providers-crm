@@ -46,27 +46,16 @@
       "purpose": "maskable"
     }
   ],
-  "categories": ["business", "productivity"],
-  "screenshots": [
-    {
-      "src": "./logo.jpg",
-      "type": "image/jpeg",
-      "sizes": "540x720",
-      "form_factor": "narrow"
-    },
-    {
-      "src": "./logo.jpg",
-      "type": "image/jpeg",
-      "sizes": "1280x720",
-      "form_factor": "wide"
-    }
+  "categories": [
+    "business",
+    "productivity"
   ],
   "shortcuts": [
     {
       "name": "Dashboard",
       "short_name": "Dashboard",
       "description": "View CRM dashboard",
-      "url": "/?page=dashboard",
+      "url": "./?page=dashboard",
       "icons": [
         {
           "src": "./logo.jpg",
@@ -79,7 +68,7 @@
       "name": "Leads",
       "short_name": "Leads",
       "description": "Manage leads",
-      "url": "/?page=leads",
+      "url": "./?page=leads",
       "icons": [
         {
           "src": "./logo.jpg",
