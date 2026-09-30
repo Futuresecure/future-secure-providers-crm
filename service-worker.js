@@ -1,161 +1,92 @@
 // Future Secure Providers CRM Service Worker
-// Supports: App installation, Caching, Push Notifications (architecture ready)
+const CACHE_NAME = 'fsp-crm-v2';
+const RUNTIME_CACHE = 'fsp-crm-runtime-v2';
+const APP_SHELL = ['./', './index.html', './manifest.json', './logo.jpg'];
 
-const CACHE_NAME = 'fsp-crm-v1';
-const RUNTIME_CACHE = 'fsp-crm-runtime-v1';
-
-// Files to cache for offline app shell
-const ASSETS_TO_CACHE = [
-  './',
-  './index.html',
-  './manifest.json',
-  './logo.jpg'
-];
-
-// Install event - cache app shell
 self.addEventListener('install', event => {
-  console.log('[Service Worker] Installing...');
-  
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => {
-        console.log('[Service Worker] Caching app shell...');
-        return cache.addAll(ASSETS_TO_CACHE);
-      })
-      .then(() => {
-        console.log('[Service Worker] App shell cached successfully');
-        return self.skipWaiting();
-      })
-      .catch(error => {
-        console.error('[Service Worker] Install failed:', error);
-      })
+      .then(cache => cache.addAll(APP_SHELL))
+      .then(() => self.skipWaiting())
   );
 });
 
-// Activate event - clean up old caches
 self.addEventListener('activate', event => {
-  console.log('[Service Worker] Activating...');
-  
   event.waitUntil(
     caches.keys()
-      .then(cacheNames => {
-        return Promise.all(
-          cacheNames
-            .filter(cacheName => cacheName !== CACHE_NAME && cacheName !== RUNTIME_CACHE)
-            .map(cacheName => {
-              console.log('[Service Worker] Deleting old cache:', cacheName);
-              return caches.delete(cacheName);
-            })
-        );
-      })
-      .then(() => {
-        console.log('[Service Worker] Activated successfully');
-        return self.clients.claim();
-      })
+      .then(names => Promise.all(
+        names.filter(name => name !== CACHE_NAME && name !== RUNTIME_CACHE)
+             .map(name => caches.delete(name))
+      ))
+      .then(() => self.clients.claim())
   );
 });
 
-// Fetch event - cache-first strategy for assets, network for APIs
 self.addEventListener('fetch', event => {
-  const { request } = event;
+  const request = event.request;
+  if (request.method !== 'GET') return;
+
   const url = new URL(request.url);
+  if (url.origin !== self.location.origin) return;
 
-  // Skip non-GET requests
-  if (request.method !== 'GET') {
-    return;
-  }
-
-  // Skip external API calls (Supabase, Meta APIs, etc.)
-  if (url.hostname !== self.location.hostname) {
-    return;
-  }
-
-  // Cache-first strategy for app assets
-  if (isAsset(request.url)) {
+  // Documents: network first so CRM updates are visible; cached app shell is offline fallback.
+  if (request.mode === 'navigate') {
     event.respondWith(
-      caches.match(request)
+      fetch(request)
         .then(response => {
-          if (response) {
-            console.log('[Service Worker] Serving from cache:', request.url);
-            return response;
+          if (response && response.ok) {
+            const copy = response.clone();
+            caches.open(RUNTIME_CACHE).then(cache => cache.put(request, copy));
           }
-          
-          return fetch(request)
-            .then(response => {
-              // Cache successful responses
-              if (response && response.status === 200) {
-                const responseClone = response.clone();
-                caches.open(RUNTIME_CACHE)
-                  .then(cache => cache.put(request, responseClone));
-              }
-              return response;
-            })
-            .catch(error => {
-              console.log('[Service Worker] Fetch failed for:', request.url, error);
-              // Return cached version if available
-              return caches.match(request);
-            });
+          return response;
         })
+        .catch(async () =>
+          (await caches.match(request)) ||
+          (await caches.match('./index.html')) ||
+          (await caches.match('./'))
+        )
+    );
+    return;
+  }
+
+  // Same-origin static assets: cache first, then network and refresh runtime cache.
+  if (/\.(?:js|css|png|jpg|jpeg|svg|gif|json|woff2?|ttf|eot|ico)$/i.test(url.pathname)) {
+    event.respondWith(
+      caches.match(request).then(cached => {
+        if (cached) return cached;
+        return fetch(request).then(response => {
+          if (response && response.ok) {
+            const copy = response.clone();
+            caches.open(RUNTIME_CACHE).then(cache => cache.put(request, copy));
+          }
+          return response;
+        });
+      })
     );
   }
 });
 
-// Helper function to identify assets
-function isAsset(url) {
-  return url.match(/\.(js|css|png|jpg|jpeg|svg|gif|json|woff|woff2|ttf|eot)$/i);
-}
-
-// Push notification event (architecture ready)
-// This will be implemented in Phase 3
 self.addEventListener('push', event => {
-  console.log('[Service Worker] Push notification received');
-  
-  if (event.data) {
-    const data = event.data.json();
-    const options = {
-      body: data.body || 'New notification',
-      icon: './logo.jpg',
-      badge: './logo.jpg',
-      tag: data.tag || 'fsp-crm-notification',
-      requireInteraction: data.requireInteraction || false,
-      actions: [
-        {
-          action: 'open',
-          title: 'Open CRM'
-        },
-        {
-          action: 'close',
-          title: 'Dismiss'
-        }
-      ]
-    };
-
-    event.waitUntil(
-      self.registration.showNotification(data.title || 'Future Secure Providers', options)
-    );
-  }
+  if (!event.data) return;
+  let data = {};
+  try { data = event.data.json(); } catch (_) { data = { body: event.data.text() }; }
+  event.waitUntil(self.registration.showNotification(data.title || 'Future Secure Providers CRM', {
+    body: data.body || 'New notification',
+    icon: './logo.jpg',
+    badge: './logo.jpg',
+    tag: data.tag || 'fsp-crm-notification',
+    requireInteraction: !!data.requireInteraction
+  }));
 });
 
-// Notification click event (for future use)
 self.addEventListener('notificationclick', event => {
-  console.log('[Service Worker] Notification clicked');
   event.notification.close();
-
-  if (event.action === 'open') {
-    event.waitUntil(
-      clients.matchAll({ type: 'window' })
-        .then(clientList => {
-          for (let client of clientList) {
-            if (client.url === '/' && 'focus' in client) {
-              return client.focus();
-            }
-          }
-          if (clients.openWindow) {
-            return clients.openWindow('./');
-          }
-        })
-    );
-  }
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
+      for (const client of list) {
+        if ('focus' in client) return client.focus();
+      }
+      return clients.openWindow ? clients.openWindow('./') : undefined;
+    })
+  );
 });
-
-console.log('[Service Worker] Script loaded');
