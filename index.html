@@ -1988,27 +1988,47 @@ closeAppointmentFormModal();
 }
 
 
-let currentWhatsAppWaId=null,whatsappContactsCache=[];
+let currentWhatsAppWaId=null,whatsappContactsCache=[],whatsappInboxTimer=null,whatsappSeenAt={};
 function formatWhatsAppPhone(v){const s=String(v||"");return s.startsWith("91")&&s.length===12?"+91 "+s.slice(2,7)+" "+s.slice(7):"+"+s}
 function formatWhatsAppTime(v){if(!v)return"";const d=new Date(v);return isNaN(d)?"":d.toLocaleString("en-IN",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"})}
+function waStatusLabel(m){
+ if(m.direction!=="outbound")return"";
+ const s=String(m.delivery_status||"sent").toLowerCase();
+ if(s==="read")return" · ✓✓ Read";
+ if(s==="delivered")return" · ✓✓ Delivered";
+ if(s==="failed")return" · Failed";
+ return" · ✓ Sent";
+}
 async function loadWhatsAppInbox(){
- const h=document.getElementById("waContacts");if(!h)return;h.innerHTML='<div class="empty">Loading...</div>';
+ const h=document.getElementById("waContacts");if(!h)return;
  const {data,error}=await supabaseClient.from("whatsapp_contacts").select("*").order("last_message_at",{ascending:false});
  if(error){h.innerHTML='<div class="empty">Unable to load conversations.</div>';console.error(error);return}
  whatsappContactsCache=data||[];
- h.innerHTML=whatsappContactsCache.map(x=>'<div class="wa-contact" data-wa="'+escapeHtml(x.wa_id)+'" onclick="openWhatsAppConversation(\''+escapeHtml(x.wa_id)+'\')"><div class="wa-contact-name">'+escapeHtml(x.profile_name||formatWhatsAppPhone(x.wa_id))+'</div><div class="wa-contact-meta">'+escapeHtml(formatWhatsAppPhone(x.phone_number||x.wa_id))+' · '+escapeHtml(formatWhatsAppTime(x.last_message_at))+'</div></div>').join("")||'<div class="empty">No WhatsApp conversations yet.</div>';
+ const counts={};
+ await Promise.all(whatsappContactsCache.map(async x=>{
+   let q=supabaseClient.from("whatsapp_messages").select("id",{count:"exact",head:true}).eq("wa_id",x.wa_id).eq("direction","inbound");
+   if(whatsappSeenAt[x.wa_id])q=q.gt("message_timestamp",whatsappSeenAt[x.wa_id]);
+   const {count}=await q;counts[x.wa_id]=count||0;
+ }));
+ h.innerHTML=whatsappContactsCache.map(x=>{const n=counts[x.wa_id]||0;return '<div class="wa-contact" data-wa="'+escapeHtml(x.wa_id)+'" onclick="openWhatsAppConversation(\''+escapeHtml(x.wa_id)+'\')"><div class="wa-contact-name">'+escapeHtml(x.profile_name||formatWhatsAppPhone(x.wa_id))+(n?'<span style="float:right;background:#16a34a;color:white;border-radius:999px;padding:2px 7px;font-size:11px">'+n+'</span>':'')+'</div><div class="wa-contact-meta">'+escapeHtml(formatWhatsAppPhone(x.phone_number||x.wa_id))+' · '+escapeHtml(formatWhatsAppTime(x.last_message_at))+'</div></div>'}).join("")||'<div class="empty">No WhatsApp conversations yet.</div>';
 }
 async function openWhatsAppConversation(waId){
- currentWhatsAppWaId=waId;const x=whatsappContactsCache.find(v=>v.wa_id===waId);document.getElementById("waLayout").classList.add("chat-open"); const composer=document.getElementById("waComposer");if(composer)composer.style.display="flex";
+ currentWhatsAppWaId=waId;whatsappSeenAt[waId]=new Date().toISOString();
+ const x=whatsappContactsCache.find(v=>v.wa_id===waId);document.getElementById("waLayout").classList.add("chat-open");const composer=document.getElementById("waComposer");if(composer)composer.style.display="flex";
  document.getElementById("waChatHead").innerHTML='<div style="display:flex;gap:10px;align-items:center"><button class="btn-secondary" id="waBackBtn" onclick="closeWhatsAppConversation()">←</button><div><strong>'+escapeHtml(x?.profile_name||formatWhatsAppPhone(waId))+'</strong><div class="wa-contact-meta">'+escapeHtml(formatWhatsAppPhone(waId))+'</div></div></div>';
- const b=document.getElementById("waBackBtn");if(window.innerWidth>768)b.style.display="none";
+ const back=document.getElementById("waBackBtn");if(window.innerWidth>768)back.style.display="none";
  document.querySelectorAll(".wa-contact").forEach(el=>el.classList.toggle("active",el.dataset.wa===waId));
  const box=document.getElementById("waMessages");box.innerHTML='<div class="wa-placeholder">Loading...</div>';
- const {data,error}=await supabaseClient.from("whatsapp_messages").select("direction,message_type,message_text,message_timestamp,created_at").eq("wa_id",waId).order("message_timestamp",{ascending:true});
+ const {data,error}=await supabaseClient.from("whatsapp_messages").select("direction,message_type,message_text,message_timestamp,created_at,delivery_status,status_timestamp,read_at").eq("wa_id",waId).order("message_timestamp",{ascending:true});
  if(error){box.innerHTML='<div class="wa-placeholder">Unable to load messages.</div>';console.error(error);return}
- box.innerHTML=(data||[]).map(m=>'<div class="wa-bubble '+(m.direction==="outbound"?"outbound":"")+'">'+(m.message_text?escapeHtml(m.message_text):'<em>['+escapeHtml(m.message_type)+' message]</em>')+'<span class="wa-time">'+escapeHtml(formatWhatsAppTime(m.message_timestamp||m.created_at))+'</span></div>').join("")||'<div class="wa-placeholder">No messages.</div>';box.scrollTop=box.scrollHeight;
+ box.innerHTML=(data||[]).map(m=>'<div class="wa-bubble '+(m.direction==="outbound"?"outbound":"")+'">'+(m.message_text?escapeHtml(m.message_text):'<em>['+escapeHtml(m.message_type)+' message]</em>')+'<span class="wa-time">'+escapeHtml(formatWhatsAppTime(m.message_timestamp||m.created_at))+escapeHtml(waStatusLabel(m))+'</span></div>').join("")||'<div class="wa-placeholder">No messages.</div>';box.scrollTop=box.scrollHeight;
+ await loadWhatsAppInbox();
 }
 function closeWhatsAppConversation(){document.getElementById("waLayout").classList.remove("chat-open");currentWhatsAppWaId=null;const composer=document.getElementById("waComposer");if(composer)composer.style.display="none"}
+function startWhatsAppAutoRefresh(){
+ if(whatsappInboxTimer)clearInterval(whatsappInboxTimer);
+ whatsappInboxTimer=setInterval(async()=>{const p=document.getElementById("whatsappPage");if(!p||p.classList.contains("hidden"))return;await loadWhatsAppInbox();if(currentWhatsAppWaId)await openWhatsAppConversation(currentWhatsAppWaId)},10000);
+}
 async function sendWhatsAppReply(){
  if(!currentWhatsAppWaId)return;
  const input=document.getElementById("waReplyText"),btn=document.getElementById("waSendBtn"),status=document.getElementById("waSendStatus");
@@ -2018,9 +2038,10 @@ async function sendWhatsAppReply(){
   const {data,error}=await supabaseClient.functions.invoke("whatsapp-send",{body:{wa_id:currentWhatsAppWaId,message}});
   if(error)throw error;if(!data?.ok)throw new Error(data?.error||"Send failed");
   input.value="";status.textContent="Sent";await openWhatsAppConversation(currentWhatsAppWaId);await loadWhatsAppInbox();
- }catch(e){console.error(e);status.textContent="Unable to send. Please try again.";}
- finally{btn.disabled=false;btn.textContent="Send";}
+ }catch(e){console.error(e);status.textContent="Unable to send. Please try again."}
+ finally{btn.disabled=false;btn.textContent="Send"}
 }
+startWhatsAppAutoRefresh();
 
 function toggleSidebar(){const sidebar=document.querySelector('.sidebar');const overlay=document.querySelector('.sidebar-overlay');sidebar.classList.toggle('show');if(sidebar.classList.contains('show')){overlay.classList.add('show')}else{overlay.classList.remove('show')}}
 function closeSidebar(){const sidebar=document.querySelector('.sidebar');const overlay=document.querySelector('.sidebar-overlay');sidebar.classList.remove('show');overlay.classList.remove('show')}
