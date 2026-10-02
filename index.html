@@ -1994,9 +1994,9 @@ function formatWhatsAppTime(v){if(!v)return"";const d=new Date(v);return isNaN(d
 function waStatusLabel(m){
  if(m.direction!=="outbound")return"";
  const s=String(m.delivery_status||"sent").toLowerCase();
- if(s==="read")return" · ✓✓ Read";
+ if(s==="read")return" · 🔵✓✓ Read";
  if(s==="delivered")return" · ✓✓ Delivered";
- if(s==="failed")return" · Failed";
+ if(s==="failed")return" · ⚠ Failed";
  return" · ✓ Sent";
 }
 async function loadWhatsAppInbox(){
