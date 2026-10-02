@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="FSP CRM">
 <link rel="apple-touch-icon" href="./logo.jpg">
 <link rel="icon" type="image/x-icon" href="./logo.jpg">
-<link rel="manifest" href="./manifest.json?v=7">
+<link rel="manifest" href="./manifest.json?v=8">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:Arial,sans-serif}
@@ -670,7 +670,7 @@ function clearLeadFilters(){
 async function loadLeads(){
 const {data,error}=await supabaseClient.from("leads").select("*").order("created_at",{ascending:false});
 if(error){leadsTable.innerHTML=`<tr><td colspan="8" class="empty">${escapeHtml(error.message)}</td></tr>`;return}
-const rows=data||[];allLeadsCache=rows;populateLeadFilters();applyLeadFilters();renderRecent(rows);updateDashboard(rows);renderReports(rows);loadFollowups(rows)
+const rows=data||[];allLeadsCache=rows;populateLeadFilters();applyLeadFilters();renderRecent(rows);updateDashboard(rows);renderReports(rows)
 }
 function updateDashboard(rows){totalLeads.textContent=rows.length;newLeads.textContent=rows.filter(x=>x.status==="New").length;followupCount.textContent=rows.filter(x=>x.next_follow_up).length;convertedCount.textContent=rows.filter(x=>x.status==="Converted").length;const box=document.getElementById("insuranceBusinessSummary");if(box){const types=["Health Insurance","Life Insurance","Vehicle Insurance"];box.innerHTML=types.map(t=>{const n=rows.filter(x=>getInsuranceType(x)===t).length;const c=rows.filter(x=>getInsuranceType(x)===t&&x.status==="Converted").length;return `<div class="business-card"><h3>${insuranceBadge(t)}</h3><strong>${n}</strong><p>Leads · ${c} Converted</p></div>`;}).join("")}}
 function renderRecent(rows){recentLeads.innerHTML=rows.slice(0,5).map(x=>`<tr onclick="viewLead(${Number(x.id)})" style="cursor:pointer"><td>${escapeHtml(x.full_name)}</td><td>${escapeHtml(x.mobile_number)}</td><td>${insuranceBadge(getInsuranceType(x))}</td><td>${escapeHtml(x.city||"-")}</td><td><span class="status">${escapeHtml(x.status||"New")}</span></td></tr>`).join("")||`<tr><td colspan="5" class="empty">No leads found</td></tr>`}
@@ -1598,17 +1598,9 @@ async function loadCalendar(){
   else{currentAppointments=apptData||[];}
   
   // Load follow-ups from leads table for current month
-  const {data:leadData,error:leadError}=await supabaseClient.from("leads").select("id,full_name,mobile_number,next_follow_up,status").not("next_follow_up","is",null).order("next_follow_up",{ascending:true});
+  const {data:leadData,error:leadError}=await supabaseClient.from("leads").select("id,full_name,mobile_number,next_follow_up,status").gte("next_follow_up",monthStart+"T00:00:00").lt("next_follow_up",monthEnd+"T00:00:00").order("next_follow_up",{ascending:true});
   if(leadError){console.error("Error loading follow-ups:",leadError);currentFollowups=[];}
-  else{
-    currentFollowups=(leadData||[]).filter(lead=>{
-      if(!lead.next_follow_up)return false;
-      const followUpDate=new Date(lead.next_follow_up);
-      const followUpYear=followUpDate.getFullYear();
-      const followUpMonth=String(followUpDate.getMonth()+1).padStart(2,"0");
-      return followUpYear===parseInt(year)&&followUpMonth===month;
-    });
-  }
+  else{currentFollowups=leadData||[];}
   
   renderCalendar(currentAppointments,currentFollowups);
   renderScheduleList(currentAppointments,currentFollowups);
@@ -2142,7 +2134,7 @@ document.querySelectorAll('.nav-item').forEach(item=>{item.addEventListener('cli
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', async () => {
     try {
-      const registration = await navigator.serviceWorker.register('./service-worker.js?v=7', { scope: './', updateViaCache: 'none' });
+      const registration = await navigator.serviceWorker.register('./service-worker.js?v=8', { scope: './', updateViaCache: 'none' });
       await registration.update();
       if (registration.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
       registration.addEventListener('updatefound', () => {
