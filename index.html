@@ -70,6 +70,7 @@ button{border:0;border-radius:8px;padding:10px 14px;cursor:pointer}.btn-primary{
 
 /* WHATSAPP INBOX */
 .wa-layout{display:grid;grid-template-columns:320px minmax(0,1fr);height:650px;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:#fff}.wa-list{border-right:1px solid var(--border);overflow-y:auto;background:#f8fafc}.wa-list-head{padding:16px;border-bottom:1px solid var(--border);background:#fff}.wa-contact{padding:14px 16px;border-bottom:1px solid var(--border);cursor:pointer}.wa-contact:hover,.wa-contact.active{background:#eaf6f4}.wa-contact-name{font-weight:700;margin-bottom:4px}.wa-contact-meta{font-size:12px;color:var(--muted)}.wa-chat{display:flex;flex-direction:column;min-width:0}.wa-chat-head{padding:16px 18px;border-bottom:1px solid var(--border)}.wa-messages{flex:1;overflow-y:auto;padding:20px;background:#eef2f3}.wa-bubble{max-width:78%;padding:10px 12px;border-radius:10px;margin-bottom:10px;background:#fff;white-space:pre-wrap;overflow-wrap:anywhere}.wa-bubble.outbound{margin-left:auto;background:#d9fdd3}.wa-time{display:block;text-align:right;font-size:10px;color:var(--muted);margin-top:5px}.wa-placeholder{margin:auto;color:var(--muted);text-align:center;padding:30px}@media(max-width:768px){.wa-layout{grid-template-columns:1fr;height:70vh}.wa-list{border-right:0}.wa-chat{display:none}.wa-layout.chat-open .wa-list{display:none}.wa-layout.chat-open .wa-chat{display:flex}}
+.wa-composer{display:flex;gap:10px;padding:12px;border-top:1px solid var(--border);background:#fff}.wa-composer textarea{min-height:44px;max-height:120px;resize:vertical}.wa-composer button{min-width:86px}.wa-send-status{font-size:12px;padding:0 12px 10px;background:#fff;color:var(--muted)}@media(max-width:768px){.wa-composer{padding:10px;gap:8px}.wa-composer button{min-width:70px}}
 </style>
 </head>
 <body>
@@ -258,7 +259,8 @@ button{border:0;border-radius:8px;padding:10px 14px;cursor:pointer}.btn-primary{
 <!-- IMPORTANT: PROFILE IS ALSO INSIDE .content -->
 <section id="leadProfilePage" class="page hidden"><div class="card"><div class="card-header"><h2>Lead Profile</h2><button class="btn-secondary" onclick="backToPrevious()">← Back</button></div><div id="leadProfileContent" class="empty">Select a lead to view profile.</div></div></section>
 
-<section id="whatsappPage" class="page hidden"><div class="card"><div class="card-header"><div><h2>WhatsApp Inbox</h2><p class="muted" style="margin-top:5px">Incoming WhatsApp Cloud API conversations</p></div><button class="btn-secondary" onclick="loadWhatsAppInbox()">↻ Refresh</button></div><div id="waLayout" class="wa-layout"><div class="wa-list"><div class="wa-list-head"><strong>Conversations</strong></div><div id="waContacts"><div class="empty">Loading...</div></div></div><div class="wa-chat"><div id="waChatHead" class="wa-chat-head"><strong>Select a conversation</strong></div><div id="waMessages" class="wa-messages"><div class="wa-placeholder">Select a customer to view messages.</div></div></div></div></div></section>
+<section id="whatsappPage" class="page hidden"><div class="card"><div class="card-header"><div><h2>WhatsApp Inbox</h2><p class="muted" style="margin-top:5px">Incoming WhatsApp Cloud API conversations</p></div><button class="btn-secondary" onclick="loadWhatsAppInbox()">↻ Refresh</button></div><div id="waLayout" class="wa-layout"><div class="wa-list"><div class="wa-list-head"><strong>Conversations</strong></div><div id="waContacts"><div class="empty">Loading...</div></div></div><div class="wa-chat"><div id="waChatHead" class="wa-chat-head"><strong>Select a conversation</strong></div><div id="waMessages" class="wa-messages"><div class="wa-placeholder">Select a customer to view messages.</div>
+<div id="waComposer" class="wa-composer" style="display:none"><textarea id="waReplyText" maxlength="4096" placeholder="Type a WhatsApp reply..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendWhatsAppReply()}"></textarea><button id="waSendBtn" class="btn-wa" onclick="sendWhatsAppReply()">Send</button></div><div id="waSendStatus" class="wa-send-status"></div></div></div></div></div></section>
 <section id="settingsPage" class="page hidden">
 <div class="card">
   <h2>Import / Export Leads</h2>
@@ -1995,7 +1997,7 @@ async function loadWhatsAppInbox(){
  h.innerHTML=whatsappContactsCache.map(x=>'<div class="wa-contact" data-wa="'+escapeHtml(x.wa_id)+'" onclick="openWhatsAppConversation(\''+escapeHtml(x.wa_id)+'\')"><div class="wa-contact-name">'+escapeHtml(x.profile_name||formatWhatsAppPhone(x.wa_id))+'</div><div class="wa-contact-meta">'+escapeHtml(formatWhatsAppPhone(x.phone_number||x.wa_id))+' · '+escapeHtml(formatWhatsAppTime(x.last_message_at))+'</div></div>').join("")||'<div class="empty">No WhatsApp conversations yet.</div>';
 }
 async function openWhatsAppConversation(waId){
- currentWhatsAppWaId=waId;const x=whatsappContactsCache.find(v=>v.wa_id===waId);document.getElementById("waLayout").classList.add("chat-open");
+ currentWhatsAppWaId=waId;const x=whatsappContactsCache.find(v=>v.wa_id===waId);document.getElementById("waLayout").classList.add("chat-open"); const composer=document.getElementById("waComposer");if(composer)composer.style.display="flex";
  document.getElementById("waChatHead").innerHTML='<div style="display:flex;gap:10px;align-items:center"><button class="btn-secondary" id="waBackBtn" onclick="closeWhatsAppConversation()">←</button><div><strong>'+escapeHtml(x?.profile_name||formatWhatsAppPhone(waId))+'</strong><div class="wa-contact-meta">'+escapeHtml(formatWhatsAppPhone(waId))+'</div></div></div>';
  const b=document.getElementById("waBackBtn");if(window.innerWidth>768)b.style.display="none";
  document.querySelectorAll(".wa-contact").forEach(el=>el.classList.toggle("active",el.dataset.wa===waId));
@@ -2004,7 +2006,19 @@ async function openWhatsAppConversation(waId){
  if(error){box.innerHTML='<div class="wa-placeholder">Unable to load messages.</div>';console.error(error);return}
  box.innerHTML=(data||[]).map(m=>'<div class="wa-bubble '+(m.direction==="outbound"?"outbound":"")+'">'+(m.message_text?escapeHtml(m.message_text):'<em>['+escapeHtml(m.message_type)+' message]</em>')+'<span class="wa-time">'+escapeHtml(formatWhatsAppTime(m.message_timestamp||m.created_at))+'</span></div>').join("")||'<div class="wa-placeholder">No messages.</div>';box.scrollTop=box.scrollHeight;
 }
-function closeWhatsAppConversation(){document.getElementById("waLayout").classList.remove("chat-open");currentWhatsAppWaId=null}
+function closeWhatsAppConversation(){document.getElementById("waLayout").classList.remove("chat-open");currentWhatsAppWaId=null;const composer=document.getElementById("waComposer");if(composer)composer.style.display="none"}
+async function sendWhatsAppReply(){
+ if(!currentWhatsAppWaId)return;
+ const input=document.getElementById("waReplyText"),btn=document.getElementById("waSendBtn"),status=document.getElementById("waSendStatus");
+ const message=input.value.trim();if(!message)return;
+ btn.disabled=true;btn.textContent="Sending...";status.textContent="";
+ try{
+  const {data,error}=await supabaseClient.functions.invoke("whatsapp-send",{body:{wa_id:currentWhatsAppWaId,message}});
+  if(error)throw error;if(!data?.ok)throw new Error(data?.error||"Send failed");
+  input.value="";status.textContent="Sent";await openWhatsAppConversation(currentWhatsAppWaId);await loadWhatsAppInbox();
+ }catch(e){console.error(e);status.textContent="Unable to send. Please try again.";}
+ finally{btn.disabled=false;btn.textContent="Send";}
+}
 
 function toggleSidebar(){const sidebar=document.querySelector('.sidebar');const overlay=document.querySelector('.sidebar-overlay');sidebar.classList.toggle('show');if(sidebar.classList.contains('show')){overlay.classList.add('show')}else{overlay.classList.remove('show')}}
 function closeSidebar(){const sidebar=document.querySelector('.sidebar');const overlay=document.querySelector('.sidebar-overlay');sidebar.classList.remove('show');overlay.classList.remove('show')}
