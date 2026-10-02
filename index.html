@@ -351,7 +351,18 @@ showPage(pageToShow,document.querySelector('[data-page="'+pageToShow+'"]'));
 }
 function updateHeaderForAuthenticatedUser(user){document.getElementById("currentUserDisplay").textContent=user.email||"User";document.getElementById("logoutButton").style.display="inline-block";}
 function updateHeaderForLoggedOut(){document.getElementById("currentUserDisplay").textContent="Administrator";document.getElementById("logoutButton").style.display="none";}
-async function loadCRMData(){if(!currentUser){console.warn("No authenticated user found");return;}await loadLeads();await loadPipeline();await loadSmartDashboard();}
+let crmDataLoadPromise=null,lastCRMDataLoadAt=0;
+async function loadCRMData(){
+ if(!currentUser){console.warn("No authenticated user found");return;}
+ if(crmDataLoadPromise)return crmDataLoadPromise;
+ if(Date.now()-lastCRMDataLoadAt<3000)return;
+ crmDataLoadPromise=(async()=>{
+  await loadLeads();
+  await loadSmartDashboard(allLeadsCache);
+  lastCRMDataLoadAt=Date.now();
+ })().finally(()=>{crmDataLoadPromise=null});
+ return crmDataLoadPromise;
+}
 function clearCRMData(){allLeadsCache=[];currentTasks=[];currentLeadActivities=[];document.getElementById("recentLeads").innerHTML="<tr><td colspan='4' class='empty'>No leads</td></tr>";document.getElementById("leadsTable").innerHTML="";document.getElementById("pipelineBoard").innerHTML="<div class='empty'>Loading pipeline...</div>";document.getElementById("priorityActions").innerHTML="<div class='empty'>No priority actions</div>";localStorage.removeItem("crm_active_page");localStorage.removeItem("crm_session_user");}
 let previousPage="leads";
 
@@ -727,7 +738,8 @@ async function deleteLead(id){if(!confirm("Delete this lead?"))return;const {err
 
 async function loadPipeline(){
 const board=document.getElementById("pipelineBoard");board.innerHTML='<div class="empty">Loading pipeline...</div>';
-const {data,error}=await supabaseClient.from("leads").select("*").order("created_at",{ascending:false});
+let data=allLeadsCache,error=null;
+if(!data.length){const res=await supabaseClient.from("leads").select("*").order("created_at",{ascending:false});data=res.data||[];error=res.error}
 if(error){board.innerHTML=`<div class="empty">${escapeHtml(error.message)}</div>`;return}
 const stages=[["New","🆕 New"],["Contacted","📞 Contacted"],["Follow-up","📅 Follow-up"],["Interested","🔥 Interested"],["Converted","✅ Converted"]];
 board.innerHTML=stages.map(([key,label])=>{const items=(data||[]).filter(x=>x.status===key);return `<div class="pipeline-column" data-status="${key}" ondragover="pipelineDragOver(event)" ondragleave="pipelineDragLeave(event)" ondrop="pipelineDrop(event,'${key}')"><h3><span>${label}</span><span class="pipeline-count">${items.length}</span></h3>${items.length?items.map(x=>`<div class="pipeline-card" draggable="true" ondragstart="pipelineDragStart(event,${Number(x.id)})" ondragend="pipelineDragEnd(event)" onclick="viewLead(${Number(x.id)},'pipeline')"><strong>${escapeHtml(x.full_name||"-")}</strong><div style="margin-top:7px">${insuranceBadge(getInsuranceType(x))}</div><small>📞 ${escapeHtml(x.mobile_number||"-")}</small><small>📍 ${escapeHtml(x.city||"-")}</small><small>📅 ${x.next_follow_up?formatDate(x.next_follow_up):"No follow-up"}</small></div>`).join(""):'<div class="empty">No leads</div>'}</div>`}).join("")
@@ -1115,25 +1127,10 @@ document.addEventListener("DOMContentLoaded", () => {
     initializeAuthStateListener();
     document.getElementById("loginForm").addEventListener("submit", handleLoginSubmit);
 });
-async function loadSmartDashboard() {
-
-  const leadsResult = await supabaseClient
-    .from("leads")
-    .select("*");
-
-  const tasksResult = await supabaseClient
-    .from("tasks")
-    .select("*")
-    .order("due_date", {
-      ascending: true
-    });
-
-
-  const leads =
-    leadsResult.data || [];
-
-  const tasks =
-    tasksResult.data || [];
+async function loadSmartDashboard(preloadedLeads) {
+  const leads = Array.isArray(preloadedLeads) ? preloadedLeads : (allLeadsCache.length ? allLeadsCache : ((await supabaseClient.from("leads").select("id,full_name,next_follow_up,status")).data || []));
+  const tasksResult = await supabaseClient.from("tasks").select("id,title,due_date,status,lead_id").order("due_date",{ascending:true});
+  const tasks = tasksResult.data || [];
 
 
   const now = new Date();
@@ -2007,18 +2004,16 @@ function waStatusLabel(m){
  if(s==="failed")return" · ⚠ Failed";
  return" · ✓ Sent";
 }
+let whatsappInboxLoading=false;
 async function loadWhatsAppInbox(){
- const h=document.getElementById("waContacts");if(!h)return;
- const {data,error}=await supabaseClient.from("whatsapp_contacts").select("*").order("last_message_at",{ascending:false});
- if(error){h.innerHTML='<div class="empty">Unable to load conversations.</div>';console.error(error);return}
+ const h=document.getElementById("waContacts");if(!h||whatsappInboxLoading)return;
+ whatsappInboxLoading=true;
+ const {data,error}=await supabaseClient.from("whatsapp_contacts").select("wa_id,profile_name,phone_number,last_message_at,updated_at").order("last_message_at",{ascending:false}).limit(100);
+ if(error){h.innerHTML='<div class="empty">Unable to load conversations.</div>';console.error(error);whatsappInboxLoading=false;return}
  whatsappContactsCache=data||[];
  const counts={};
- await Promise.all(whatsappContactsCache.map(async x=>{
-   let q=supabaseClient.from("whatsapp_messages").select("id",{count:"exact",head:true}).eq("wa_id",x.wa_id).eq("direction","inbound");
-   if(whatsappSeenAt[x.wa_id])q=q.gt("message_timestamp",whatsappSeenAt[x.wa_id]);
-   const {count}=await q;counts[x.wa_id]=count||0;
- }));
  h.innerHTML=whatsappContactsCache.map(x=>{const n=counts[x.wa_id]||0;return '<div class="wa-contact" data-wa="'+escapeHtml(x.wa_id)+'" onclick="openWhatsAppConversation(\''+escapeHtml(x.wa_id)+'\')"><div class="wa-contact-name">'+escapeHtml(x.profile_name||formatWhatsAppPhone(x.wa_id))+(n?'<span style="float:right;background:#16a34a;color:white;border-radius:999px;padding:2px 7px;font-size:11px">'+n+'</span>':'')+'</div><div class="wa-contact-meta">'+escapeHtml(formatWhatsAppPhone(x.phone_number||x.wa_id))+' · '+escapeHtml(formatWhatsAppTime(x.last_message_at))+'</div></div>'}).join("")||'<div class="empty">No WhatsApp conversations yet.</div>';
+ whatsappInboxLoading=false;
 }
 async function openWhatsAppConversation(waId){
  currentWhatsAppWaId=waId;whatsappSeenAt[waId]=new Date().toISOString();
@@ -2030,12 +2025,11 @@ async function openWhatsAppConversation(waId){
  const {data,error}=await supabaseClient.from("whatsapp_messages").select("direction,message_type,message_text,message_timestamp,created_at,delivery_status,status_timestamp,read_at").eq("wa_id",waId).order("message_timestamp",{ascending:true});
  if(error){box.innerHTML='<div class="wa-placeholder">Unable to load messages.</div>';console.error(error);return}
  box.innerHTML=(data||[]).map(m=>'<div class="wa-bubble '+(m.direction==="outbound"?"outbound":"")+'">'+(m.message_text?escapeHtml(m.message_text):'<em>['+escapeHtml(m.message_type)+' message]</em>')+'<span class="wa-time">'+escapeHtml(formatWhatsAppTime(m.message_timestamp||m.created_at))+escapeHtml(waStatusLabel(m))+'</span></div>').join("")||'<div class="wa-placeholder">No messages.</div>';box.scrollTop=box.scrollHeight;
- await loadWhatsAppInbox();
 }
 function closeWhatsAppConversation(){document.getElementById("waLayout").classList.remove("chat-open");currentWhatsAppWaId=null;const composer=document.getElementById("waComposer");if(composer)composer.style.display="none"}
 function startWhatsAppAutoRefresh(){
  if(whatsappInboxTimer)clearInterval(whatsappInboxTimer);
- whatsappInboxTimer=setInterval(async()=>{const p=document.getElementById("whatsappPage");if(!p||p.classList.contains("hidden"))return;await loadWhatsAppInbox();if(currentWhatsAppWaId)await openWhatsAppConversation(currentWhatsAppWaId)},10000);
+ whatsappInboxTimer=setInterval(async()=>{const p=document.getElementById("whatsappPage");if(document.hidden||!p||p.classList.contains("hidden"))return;if(currentWhatsAppWaId)await openWhatsAppConversation(currentWhatsAppWaId);else await loadWhatsAppInbox()},20000);
 }
 function openWhatsAppNewMessage(){const p=document.getElementById("waNewMessagePanel");if(p)p.style.display="block";const m=document.getElementById("waNewMobile");if(m)m.focus()}
 function closeWhatsAppNewMessage(){const p=document.getElementById("waNewMessagePanel");if(p)p.style.display="none";const s=document.getElementById("waNewStatus");if(s)s.textContent=""}
