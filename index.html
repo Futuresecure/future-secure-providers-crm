@@ -2069,8 +2069,8 @@ async function sendWhatsAppReply(){
 startWhatsAppAutoRefresh();
 
 const FSP_WA_TEMPLATES=[
- {name:"fsp_new_enquiry_received",label:"New Enquiry Received",purpose:"Confirm a new insurance enquiry",language:"Tamil"},
- {name:"fsp_appointment_confirmed",label:"Appointment Confirmed",purpose:"Confirm appointment date and time",language:"Tamil"}
+ {name:"fsp_new_enquiry_received",label:"New Enquiry Received",purpose:"Confirm a new insurance enquiry",language:"Tamil",message:"வணக்கம் {{1}},\nFuture Secure Providers-க்கு உங்கள் Insurance enquiry கிடைத்துள்ளது.\nஉங்கள் தேவையைப் புரிந்துகொண்டு தேவையான தகவல்களுடன் விரைவில் உங்களை தொடர்பு கொள்கிறோம்.\nநன்றி.",variables:"{{1}} = Customer Name"},
+ {name:"fsp_appointment_confirmed",label:"Appointment Confirmed",purpose:"Confirm appointment date and time",language:"Tamil",message:"வணக்கம் {{1}},\nFuture Secure Providers உடனான உங்கள் appointment உறுதி செய்யப்பட்டுள்ளது.\nதேதி: {{2}}\nநேரம்: {{3}}\nகுறிப்பிட்ட நேரத்தில் உங்களை தொடர்பு கொள்கிறோம்.\nநன்றி.",variables:"{{1}} = Customer Name, {{2}} = Date, {{3}} = Time"}
 ];
 let waTemplateMeta={};
 async function loadWhatsAppTemplates(){
@@ -2084,6 +2084,13 @@ async function loadWhatsAppTemplates(){
    return '<tr><td><strong>'+escapeHtml(t.label)+'</strong><div class="muted" style="font-size:11px">'+escapeHtml(t.name)+'</div></td><td>'+escapeHtml(t.purpose)+'</td><td>'+escapeHtml(t.language)+'</td><td><span class="status">'+escapeHtml(s)+'</span></td><td>'+(submitted?'<button class="btn-secondary" onclick="loadWhatsAppTemplates()">Refresh</button>':'<button class="btn-primary" onclick="submitWhatsAppTemplate(\''+t.name+'\',this)">Submit to Meta</button>')+'</td></tr>';
   }).join("");
  }catch(e){console.error(e);body.innerHTML='<tr><td colspan="5" class="empty">Unable to load template status.</td></tr>';if(status)status.textContent=e?.message||"Error";}
+}
+function viewWhatsAppTemplate(name){
+ const t=FSP_WA_TEMPLATES.find(x=>x.name===name);if(!t)return;
+ const m=waTemplateMeta[name];
+ const overlay=document.createElement("div");overlay.id="waTemplateViewModal";overlay.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px";
+ overlay.innerHTML='<div style="background:#fff;width:100%;max-width:620px;border-radius:12px;padding:22px;max-height:85vh;overflow:auto"><div style="display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:18px"><h2>'+escapeHtml(t.label)+'</h2><button class="btn-secondary" onclick="document.getElementById(\\'waTemplateViewModal\\').remove()">✕</button></div><div style="line-height:1.7"><div><strong>Template Name:</strong> '+escapeHtml(t.name)+'</div><div><strong>Language:</strong> '+escapeHtml(t.language)+'</div><div><strong>Meta Status:</strong> '+escapeHtml(m?.status||"NOT SUBMITTED")+'</div><div style="margin-top:14px"><strong>Variables:</strong><br>'+escapeHtml(t.variables)+'</div><div style="margin-top:14px"><strong>Message Preview:</strong><div style="margin-top:8px;padding:14px;background:#f8fafc;border:1px solid var(--border);border-radius:8px;white-space:pre-wrap">'+escapeHtml(t.message)+'</div></div></div></div>';
+ document.body.appendChild(overlay);
 }
 async function submitWhatsAppTemplate(name,btn){
  if(!confirm("Submit this WhatsApp template to Meta for approval?"))return;
