@@ -1,7 +1,7 @@
 // Future Secure Providers CRM Service Worker
-const CACHE_NAME = 'fsp-crm-v4';
-const RUNTIME_CACHE = 'fsp-crm-runtime-v4';
-const APP_SHELL = ['./', './index.html', './manifest.json?v=4', './logo.jpg'];
+const CACHE_NAME = 'fsp-crm-v5';
+const RUNTIME_CACHE = 'fsp-crm-runtime-v5';
+const APP_SHELL = ['./', './index.html', './manifest.json?v=5', './logo.jpg'];
 
 self.addEventListener('install', event => {
   event.waitUntil(
