@@ -1,7 +1,7 @@
 // Future Secure Providers CRM Service Worker
-const CACHE_NAME = 'fsp-crm-v7';
-const RUNTIME_CACHE = 'fsp-crm-runtime-v7';
-const APP_SHELL = ['./', './index.html', './manifest.json?v=7', './logo.jpg'];
+const CACHE_NAME = 'fsp-crm-v8';
+const RUNTIME_CACHE = 'fsp-crm-runtime-v8';
+const APP_SHELL = ['./', './index.html', './manifest.json?v=8', './logo.jpg'];
 
 self.addEventListener('message', event => {
   if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting();
@@ -33,23 +33,25 @@ self.addEventListener('fetch', event => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
-  // Documents: network first so CRM updates are visible; cached app shell is offline fallback.
+  // Documents: serve the installed app shell immediately, then refresh it in the background.
+  // Live CRM records still come directly from Supabase, so cached UI never makes business data stale.
   if (request.mode === 'navigate') {
-    event.respondWith(
-      fetch(request)
-        .then(response => {
-          if (response && response.ok) {
-            const copy = response.clone();
-            caches.open(RUNTIME_CACHE).then(cache => cache.put(request, copy));
-          }
-          return response;
-        })
-        .catch(async () =>
-          (await caches.match(request)) ||
-          (await caches.match('./index.html')) ||
-          (await caches.match('./'))
-        )
-    );
+    event.respondWith((async () => {
+      const cached = (await caches.match('./index.html')) || (await caches.match('./'));
+      const network = fetch(request).then(async response => {
+        if (response && response.ok) {
+          const cache = await caches.open(RUNTIME_CACHE);
+          await cache.put(request, response.clone());
+        }
+        return response;
+      });
+      if (cached) {
+        event.waitUntil(network.catch(() => undefined));
+        return cached;
+      }
+      try { return await network; }
+      catch (_) { return new Response('Offline', { status: 503, headers: { 'Content-Type': 'text/plain' } }); }
+    })());
     return;
   }
 
