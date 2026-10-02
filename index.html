@@ -730,9 +730,21 @@ saveLeadButton.disabled=false;
 if(result.error){showMessage("Error saving lead: "+result.error.message,"error");saveLeadButton.textContent=editId?"Update Lead":"Save Lead";return}
 const savedLeadId=editId||result.data?.id;
 if(editId)await addLeadActivity(savedLeadId,"Lead Updated","Lead details were updated.");
-else await addLeadActivity(savedLeadId,"Lead Created","Lead was added to CRM.");
+else {await addLeadActivity(savedLeadId,"Lead Created","Lead was added to CRM.");await sendAutomaticWhatsApp("new_enquiry",result.data);}
 showMessage(editId?"Lead updated successfully!":"Lead saved successfully!","success");leadForm.reset();delete leadForm.dataset.editId;saveLeadButton.textContent="Save Lead";await loadLeads();await loadPipeline();setTimeout(()=>showPage("leads",document.querySelector('[data-page="leads"]')),600)
 });
+
+async function sendAutomaticWhatsApp(kind,record){
+ try{
+  if(!record?.mobile_number)return;
+  let template_name,parameters;
+  if(kind==="new_enquiry"){template_name="fsp_new_enquiry_received";parameters=[String(record.full_name||"Customer").trim()||"Customer"];}
+  else if(kind==="appointment_confirmed"){const d=String(record.appointment_date||""),p=d.split("-"),date=p.length===3?p[2]+"-"+p[1]+"-"+p[0]:d;template_name="fsp_appointment_confirmed";parameters=[String(record.customer_name||"Customer").trim()||"Customer",date,String(record.appointment_time||"")];}
+  else return;
+  const {data,error}=await supabaseClient.functions.invoke("whatsapp-send",{body:{wa_id:record.mobile_number,type:"template",template_name,language:"ta",parameters}});
+  if(error||!data?.ok)console.error("Automatic WhatsApp failed:",error||data?.error);else console.log("Automatic WhatsApp sent:",kind,record.id);
+ }catch(e){console.error("Automatic WhatsApp error:",e)}
+}
 async function editLead(id){const {data,error}=await supabaseClient.from("leads").select("*").eq("id",id).maybeSingle();if(error)return alert(error.message);if(!data)return;leadName.value=data.full_name||"";leadPhone.value=data.mobile_number||"";leadCity.value=data.city||"";leadInsuranceType.value=getInsuranceType(data)==="Not Specified"?"":getInsuranceType(data);leadSource.value=data.lead_source||"Manual";leadStatus.value=data.status||"New";leadFollowUp.value=isoToLocalDateTime(data.next_follow_up);leadNotes.value=String(data.notes||"").replace(/^\[Insurance Type:[^\]]+\]\s*/i,"").trim();leadForm.dataset.editId=id;leadFormTitle.textContent="Update Lead";saveLeadButton.textContent="Update Lead";showPage("addLead",document.querySelector('[data-page="addLead"]'))}
 async function deleteLead(id){if(!confirm("Delete this lead?"))return;const {error}=await supabaseClient.from("leads").delete().eq("id",id);if(error)return alert(error.message);await loadLeads();await loadPipeline()}
 
@@ -1850,6 +1862,7 @@ alert("Please fill all required fields");return;}
 const payload={...formData,created_by:currentUser.id};
 const {data,error}=await supabaseClient.from("appointments").insert([payload]).select().single();
 if(error){alert("Error saving appointment: "+error.message);return;}
+await sendAutomaticWhatsApp("appointment_confirmed",data);
 showMessage("Appointment created successfully!","success");
 closeAppointmentModal();
 await loadCalendar();
