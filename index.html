@@ -2011,7 +2011,7 @@ async function loadWhatsAppInbox(){
   const {data,error}=await supabaseClient.from("whatsapp_contacts").select("*").order("last_message_at",{ascending:false}).limit(100);
   if(error)throw error;
   whatsappContactsCache=data||[];
-  h.innerHTML=whatsappContactsCache.map(x=>'<div class="wa-contact" data-wa="'+escapeHtml(x.wa_id)+'" onclick="openWhatsAppConversation(\\''+escapeHtml(x.wa_id)+'\\')"><div class="wa-contact-name">'+escapeHtml(x.profile_name||formatWhatsAppPhone(x.wa_id))+'</div><div class="wa-contact-meta">'+escapeHtml(formatWhatsAppPhone(x.phone_number||x.wa_id))+' · '+escapeHtml(formatWhatsAppTime(x.last_message_at))+'</div></div>').join("")||'<div class="empty">No WhatsApp conversations yet.</div>';
+  h.innerHTML=whatsappContactsCache.map(x=>'<div class="wa-contact" data-wa="'+escapeHtml(x.wa_id)+'" onclick="openWhatsAppConversation(\''+escapeHtml(x.wa_id)+'\')"><div class="wa-contact-name">'+escapeHtml(x.profile_name||formatWhatsAppPhone(x.wa_id))+'</div><div class="wa-contact-meta">'+escapeHtml(formatWhatsAppPhone(x.phone_number||x.wa_id))+' · '+escapeHtml(formatWhatsAppTime(x.last_message_at))+'</div></div>').join("")||'<div class="empty">No WhatsApp conversations yet.</div>';
  }catch(e){console.error("WhatsApp inbox load error",e);h.innerHTML='<div class="empty">Unable to load conversations. <button class="btn-secondary" onclick="loadWhatsAppInbox()">Retry</button></div>'}
 }
 async function openWhatsAppConversation(waId){
