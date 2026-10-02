@@ -1,0 +1,2159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Future Secure Providers CRM</title>
+<meta name="description" content="Lead management and CRM system for Future Secure Providers insurance">
+<meta name="theme-color" content="#247d78">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="application-name" content="FSP CRM">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="FSP CRM">
+<link rel="apple-touch-icon" href="./logo.jpg">
+<link rel="icon" type="image/x-icon" href="./logo.jpg">
+<link rel="manifest" href="./manifest.json?v=13">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:Arial,sans-serif}
+:root{--sidebar:#172238;--primary:#247d78;--primary-dark:#1c6763;--bg:#f4f6f9;--card:#fff;--text:#273142;--muted:#6b7280;--border:#e5e7eb;--danger:#dc2626}
+body{background:var(--bg);color:var(--text)}
+.app{display:flex;min-height:100vh}
+.sidebar{width:220px;background:var(--sidebar);color:#fff;padding:24px 10px;display:flex;flex-direction:column;min-height:100vh}
+.brand{font-size:20px;font-weight:700;padding:10px 14px 26px;border-bottom:1px solid rgba(255,255,255,.12);margin-bottom:18px;line-height:1.3}
+.brand span{display:block;font-size:11px;color:#73c7bd;letter-spacing:1px;margin-top:7px;font-weight:500}
+.menu-label{font-size:10px;letter-spacing:1px;color:#7d8aa1;padding:10px 14px}
+.nav-item{padding:13px 14px;margin-bottom:5px;border-radius:8px;cursor:pointer;color:#d2d8e2;font-size:15px}
+.nav-item:hover,.nav-item.active{background:var(--primary);color:#fff}
+.sidebar-bottom{margin-top:auto}
+.main{flex:1;min-width:0}
+.header{height:76px;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 28px}
+.header h1{font-size:25px;margin-bottom:4px}.header p{font-size:13px;color:var(--muted)}
+.admin{text-align:right}.admin strong{display:block;font-size:14px}.admin span{font-size:12px;color:var(--muted)}
+.content{padding:28px}.page.hidden{display:none}
+.card,.stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:20px}
+.card-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px;flex-wrap:wrap}
+.card-header h2{font-size:18px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:20px}
+.stat-card h3{font-size:13px;color:var(--muted);font-weight:600;margin-bottom:10px}.number{font-size:28px;font-weight:700}
+.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.form-group.full{grid-column:1/-1}
+.form-group label{display:block;font-size:13px;font-weight:600;margin-bottom:7px}
+input,select,textarea,button{font:inherit}input,select,textarea{width:100%;padding:12px;border:1px solid var(--border);border-radius:8px;background:#fff;color:var(--text)}
+textarea{min-height:95px;resize:vertical}
+button{border:0;border-radius:8px;padding:10px 14px;cursor:pointer}.btn-primary{background:var(--primary);color:#fff}.btn-primary:hover{background:var(--primary-dark)}.btn-secondary{background:#eef2f7;color:var(--text)}.btn-danger{background:var(--danger);color:#fff}.btn-edit{background:#2563eb;color:#fff}.btn-call{background:#0891b2;color:#fff}.btn-wa{background:#16a34a;color:#fff}
+.save-button{width:100%;margin-top:16px}
+.message{display:none;margin-top:14px;padding:12px;border-radius:8px}.message.success{display:block;background:#dcfce7;color:#166534}.message.error{display:block;background:#fee2e2;color:#991b1b}
+.table-wrapper{overflow:auto}table{width:100%;border-collapse:collapse;min-width:700px}th,td{padding:13px;text-align:left;border-bottom:1px solid var(--border);font-size:14px}th{color:var(--muted);font-size:12px;text-transform:uppercase}
+.empty{text-align:center;color:var(--muted);padding:30px}.status{display:inline-block;padding:5px 10px;border-radius:20px;background:#e5f6ef;color:#087f5b;font-size:12px}
+.actions{display:flex;gap:7px;flex-wrap:wrap}.search-input{width:260px;max-width:100%}
+.pipeline-board{display:flex;gap:16px;overflow-x:auto;padding-bottom:10px}.pipeline-column{min-width:260px;flex:1;background:#f8fafc;border:1px solid var(--border);border-radius:12px;padding:12px}.pipeline-column.drag-over{background:#eef7f6;border-color:var(--primary)}.pipeline-card.dragging{opacity:.45}.pipeline-column h3{display:flex;justify-content:space-between;gap:8px;margin-bottom:12px}.pipeline-count{background:#e5e7eb;padding:3px 9px;border-radius:14px;font-size:13px}.pipeline-card{background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px;cursor:pointer}.pipeline-card:hover{box-shadow:0 4px 12px rgba(0,0,0,.08);transform:translateY(-1px)}.pipeline-card small{display:block;margin-top:6px;color:var(--muted)}
+.profile-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:18px}.detail-box{background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px}.detail-box label{display:block;color:var(--muted);font-size:12px;margin-bottom:8px}.detail-box strong{font-size:17px}
+.timeline-item{border-left:3px solid #7c3aed;padding:0 0 18px 18px;margin:8px}.timeline-date{font-size:12px;color:var(--muted);margin-top:5px}
+.hamburger-btn{display:none;background:none;border:none;font-size:24px;cursor:pointer;color:var(--text);padding:8px;order:-1}
+.sidebar-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:99}
+.sidebar-overlay.show{display:block}
+@media(max-width:900px){.sidebar{width:72px;padding:20px 8px}.brand{font-size:0;padding:10px}.brand span,.menu-label{display:none}.nav-item{font-size:0;text-align:center}.nav-item::first-letter{font-size:20px}.header{padding:0 16px}.content{padding:16px}}
+@media(max-width:768px){.hamburger-btn{display:block}.app{display:flex}.sidebar{position:fixed;left:0;top:0;width:220px;height:100vh;background:var(--sidebar);z-index:100;transform:translateX(-100%);transition:transform .3s ease-in-out;overflow-y:auto}.sidebar.show{transform:translateX(0)}.sidebar.show~.sidebar-overlay{display:block}.brand{font-size:20px;padding:10px 14px 26px;display:block}.brand span{display:block}.menu-label{display:block;font-size:10px;letter-spacing:1px;color:#7d8aa1;padding:10px 14px}.nav-item{font-size:15px;text-align:left;padding:13px 14px;margin-bottom:5px}.nav-item::first-letter{font-size:inherit}.sidebar-bottom{margin-top:auto}.main{flex:1;min-width:0}.header{height:auto;padding:12px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}.header>div:first-child{flex:1;min-width:0}.header h1{font-size:20px}.header p{font-size:12px}.admin{display:block;text-align:right;width:100%;font-size:12px}.admin strong{font-size:13px}.admin span{font-size:11px}.content{padding:16px;overflow-x:hidden}}
+@media(max-width:650px){.header{padding:12px;height:auto}.content{padding:12px}.form-grid{grid-template-columns:1fr}.stats{grid-template-columns:1fr}.search-input{width:100%;max-width:100%}.admin{font-size:11px}.header h1{font-size:18px}}
+.filter-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.filter-grid label{display:block;margin-bottom:6px;font-weight:600}.filter-grid select,.filter-grid input{width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;background:#fff}.filter-result{margin-top:14px;color:var(--muted)}@media(max-width:900px){.filter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:768px){.filter-grid{grid-template-columns:1fr}}@media(max-width:560px){.filter-grid{grid-template-columns:1fr}}
+.import-export-actions{display:flex;gap:12px;flex-wrap:wrap;margin:16px 0}.file-label{display:inline-flex;align-items:center;cursor:pointer}.file-label input{display:none}.import-help{padding:14px;border:1px solid var(--border);border-radius:8px;background:#fafafa;line-height:1.7}.import-result{margin-top:14px;font-weight:600}.muted{color:var(--muted)}
+.calendar-controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.calendar-month-year{font-size:16px;font-weight:700;min-width:140px;text-align:center}.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:20px}.calendar-day-header{padding:12px;text-align:center;font-weight:700;background:#f0f0f0;border-radius:6px}.calendar-cell{border:1px solid var(--border);border-radius:8px;min-height:100px;padding:8px;background:var(--card);overflow:hidden;position:relative}.calendar-cell.other-month{background:#fafafa;color:var(--muted)}.calendar-cell.today{border:2px solid var(--primary);background:#f0f8f7}.calendar-cell-date{font-weight:700;margin-bottom:4px;font-size:14px}.calendar-cell-appointments{font-size:12px}.appointment-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:4px;margin-bottom:2px}.appointment-dot.scheduled{background:#4ade80}.appointment-dot.completed{background:#3b82f6}.appointment-dot.cancelled{background:#ef4444}.followup-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:4px;margin-bottom:2px;background:#2563eb}.appointment-badge{display:inline-block;padding:2px 6px;border-radius:4px;font-size:11px;white-space:nowrap;margin-right:3px;margin-bottom:2px}.appointment-badge.scheduled{background:#d1fae5;color:#065f46}.appointment-badge.completed{background:#dbeafe;color:#0c4a6e}.appointment-badge.cancelled{background:#fee2e2;color:#7f1d1d}.appointment-modal-body{padding:14px 0}.appointment-modal-body div{margin-bottom:12px}.appointment-modal-body strong{display:block;color:var(--muted);font-size:12px;margin-bottom:4px}@media(max-width:900px){.calendar-cell{min-height:80px}.calendar-cell-date{font-size:12px}.calendar-cell-appointments{font-size:10px}}@media(max-width:768px){.calendar-grid{gap:4px}.calendar-cell{min-height:70px;padding:6px}.calendar-day-header{padding:8px;font-size:12px}.calendar-controls{flex-direction:column;width:100%}.calendar-month-year{width:100%}}
+.login-container{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);padding:20px}.login-box{background:#fff;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.15);width:100%;max-width:420px;padding:48px;box-sizing:border-box}.login-header{text-align:center;margin-bottom:36px}.login-header h1{font-size:28px;color:var(--primary);margin-bottom:8px;font-weight:700}.login-header p{font-size:14px;color:var(--muted)}.login-form .form-group{margin-bottom:20px}.login-form .form-group label{display:block;font-size:13px;font-weight:600;margin-bottom:8px;color:var(--text)}.login-form .form-group input{width:100%;padding:12px;border:1px solid var(--border);border-radius:8px;background:#fff;color:var(--text);font-size:14px;transition:border-color 0.3s}.login-form .form-group input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(36,125,120,0.1)}.error-message{display:none;margin-top:14px;padding:12px;border-radius:8px;background:#fee2e2;color:#991b1b;font-size:13px}.error-message.show{display:block}.login-form button{width:100%;padding:12px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer;transition:background 0.3s;margin-top:8px}.login-form button:hover{background:var(--primary-dark)}.login-form button:disabled{background:#6b7280;cursor:not-allowed}.login-footer{text-align:center;margin-top:24px;font-size:12px;color:var(--muted)}.btn-logout{background:#dc2626;color:#fff;padding:8px 16px;font-size:13px;margin-left:12px}.btn-logout:hover{background:#991b1b}@media(max-width:768px){.login-box{padding:36px;max-width:100%}.login-header h1{font-size:24px}.login-footer{font-size:11px}}
+
+/* FSP PROFESSIONAL MULTI-INSURANCE ENHANCEMENTS */
+.insurance-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:999px;font-size:11px;font-weight:700;background:#eef6ff;color:#1d4ed8;white-space:nowrap}
+.insurance-badge.health{background:#ecfdf5;color:#047857}.insurance-badge.life{background:#f5f3ff;color:#6d28d9}.insurance-badge.vehicle{background:#fff7ed;color:#c2410c}.insurance-badge.other{background:#f3f4f6;color:#374151}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:20px}.kpi-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px}.kpi-card .kpi-label{font-size:12px;color:var(--muted);font-weight:600;margin-bottom:8px}.kpi-card .kpi-value{font-size:24px;font-weight:800}.kpi-card .kpi-note{font-size:11px;color:var(--muted);margin-top:5px}
+.business-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.business-card{border:1px solid var(--border);border-radius:12px;padding:16px;background:#fff}.business-card h3{font-size:14px;margin-bottom:7px}.business-card strong{font-size:24px}.business-card p{font-size:12px;color:var(--muted);margin-top:4px}
+.form-section-title{grid-column:1/-1;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:800;border-bottom:1px solid var(--border);padding-bottom:7px;margin-top:4px}
+@media(max-width:900px){.kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.business-summary{grid-template-columns:1fr}}
+@media(max-width:560px){.kpi-grid{grid-template-columns:1fr}}
+
+/* WHATSAPP INBOX */
+.wa-inbox-card{overflow:hidden}
+.wa-layout{display:grid;grid-template-columns:320px minmax(0,1fr);height:clamp(520px,calc(100dvh - 260px),720px);min-height:0;max-height:none;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:#fff}.wa-list{border-right:1px solid var(--border);overflow-y:auto;background:#f8fafc}.wa-list-head{padding:16px;border-bottom:1px solid var(--border);background:#fff}.wa-contact{padding:14px 16px;border-bottom:1px solid var(--border);cursor:pointer}.wa-contact:hover,.wa-contact.active{background:#eaf6f4}.wa-contact-name{font-weight:700;margin-bottom:4px}.wa-contact-meta{font-size:12px;color:var(--muted)}.wa-chat{display:grid;grid-template-rows:auto minmax(0,1fr) auto auto;min-width:0;min-height:0;height:100%;overflow:hidden}.wa-chat-head{padding:16px 18px;border-bottom:1px solid var(--border);min-width:0}.wa-messages{min-height:0;height:100%;overflow-y:scroll;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;padding:20px;background:#eef2f3}.wa-bubble{max-width:78%;padding:10px 12px;border-radius:10px;margin-bottom:10px;background:#fff;white-space:pre-wrap;overflow-wrap:anywhere}.wa-bubble.outbound{margin-left:auto;background:#d9fdd3}.wa-time{display:block;text-align:right;font-size:10px;color:var(--muted);margin-top:5px}.wa-placeholder{margin:auto;color:var(--muted);text-align:center;padding:30px}@media(max-width:768px){.wa-layout{grid-template-columns:1fr;height:calc(100dvh - 170px);min-height:420px;max-height:none}.wa-list{border-right:0}.wa-chat{display:none}.wa-layout.chat-open .wa-list{display:none}.wa-layout.chat-open .wa-chat{display:flex}}
+.wa-composer{display:flex;flex:0 0 auto;gap:10px;padding:12px;border-top:1px solid var(--border);background:#fff;position:relative;z-index:2}.wa-composer textarea{flex:1 1 auto;min-width:0;height:44px;min-height:44px;max-height:88px;resize:none;overflow-y:auto}.wa-composer button{min-width:86px}.wa-send-status{font-size:12px;flex:0 0 auto;background:#fff;color:var(--muted);position:relative;z-index:2}.wa-send-status:empty{display:none}.wa-send-status:not(:empty){padding:6px 12px 10px}@media(max-width:768px){.wa-composer{padding:10px;gap:8px}.wa-composer button{min-width:70px}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+<div class="brand"><img src="./logo.jpg" alt="Future Secure Providers" style="width:100%;max-width:80px;height:auto;margin-bottom:8px;border-radius:6px;">Future Secure<br>Providers<span>CRM SYSTEM</span></div>
+<div class="menu-label">MAIN MENU</div>
+<div class="nav-item active" data-page="dashboard" onclick="showPage('dashboard',this)">📊 Dashboard</div>
+<div class="nav-item" data-page="leads" onclick="showPage('leads',this);loadLeads()">👥 Leads</div>
+<div class="nav-item" data-page="addLead" onclick="openNewLead()">➕ Add New Lead</div>
+<div class="menu-label">MANAGEMENT</div>
+<div class="nav-item" data-page="followups" onclick="showPage('followups',this);loadFollowups()">📞 Follow-ups</div>
+<div class="nav-item" data-page="tasks" onclick="showPage('tasks',this);loadTasks()">🗓 Today's Tasks</div>
+<div class="nav-item" data-page="calendar" onclick="showPage('calendar',this);loadCalendar()">📅 Calendar</div>
+<div class="nav-item" data-page="whatsapp" onclick="showPage('whatsapp',this);loadWhatsAppInbox()">💬 WhatsApp Inbox</div>
+<div class="nav-item" data-page="waTemplates" onclick="showPage('waTemplates',this);loadWhatsAppTemplates()">📝 WhatsApp Templates</div>
+<div class="nav-item" data-page="reports" onclick="showPage('reports',this);loadLeads()">📊 Reports</div>
+<div class="nav-item" data-page="pipeline" onclick="showPage('pipeline',this);loadPipeline()">🎯 Pipeline</div>
+<div class="sidebar-bottom"><div class="nav-item" data-page="settings" onclick="showPage('settings',this)">⚙️ Settings</div></div>
+</aside>
+<div class="sidebar-overlay" onclick="closeSidebar()"></div>
+
+<main class="main">
+<header class="header"><button class="hamburger-btn" onclick="toggleSidebar()">☰</button><div><h1 id="pageTitle">Dashboard</h1><p id="pageSubtitle">Welcome to Future Secure Providers CRM</p></div><div class="admin"><strong id="currentUserDisplay">Administrator</strong><span>Future Secure Providers</span><button id="logoutButton" class="btn-logout" onclick="handleLogout()" style="display:none;">Logout</button></div></header>
+<div class="content">
+<section id="loginPage" class="page">
+<div class="login-container">
+<div class="login-box">
+<div class="login-header">
+<h1>Future Secure Providers</h1>
+<p>Insurance Sales CRM - Secure Login</p>
+</div>
+<form id="loginForm" class="login-form">
+<div class="form-group">
+<label>Email Address</label>
+<input id="loginEmail" type="email" required placeholder="admin@futuresecureproviders.com" autocomplete="email">
+</div>
+<div class="form-group">
+<label>Password</label>
+<input id="loginPassword" type="password" required placeholder="Enter your password" autocomplete="current-password">
+</div>
+<div id="loginErrorMessage" class="error-message"></div>
+<button type="submit" id="loginSubmitButton" style="width:100%;">Sign In</button>
+</form>
+<div class="login-footer"><small>Secure login for authorized users only</small></div>
+</div>
+</div>
+</section>
+<section id="dashboardPage" class="page">
+<div id="dashboardSmartSummary">
+<div class="stats">
+
+  <div class="stat-card">
+    <h3>Today's Follow-ups</h3>
+    <div class="number" id="todayFollowupsCount">0</div>
+  </div>
+
+  <div class="stat-card">
+    <h3>Pending Tasks</h3>
+    <div class="number" id="pendingTasksCount">0</div>
+  </div>
+
+  <div class="stat-card">
+    <h3>Overdue</h3>
+    <div class="number" id="overdueCount">0</div>
+  </div>
+
+</div>
+
+<div class="card">
+
+  <div class="card-header">
+    <h2>🔥 Priority Actions</h2>
+
+    <button
+      class="btn-secondary"
+      onclick="loadSmartDashboard()"
+    >
+      Refresh
+    </button>
+  </div>
+
+  <div id="priorityActions">
+
+    <div class="empty">
+      Loading...
+    </div>
+
+  </div>
+
+</div>
+</div>
+<div class="stats">
+<div class="stat-card"><h3>Total Leads</h3><div class="number" id="totalLeads">0</div></div>
+<div class="stat-card"><h3>New Leads</h3><div class="number" id="newLeads">0</div></div>
+<div class="stat-card"><h3>Follow-ups</h3><div class="number" id="followupCount">0</div></div>
+<div class="stat-card"><h3>Converted</h3><div class="number" id="convertedCount">0</div></div>
+</div>
+<div class="card"><div class="card-header"><h2>Insurance Business Overview</h2><span class="muted">Lead distribution by insurance category</span></div><div class="business-summary" id="insuranceBusinessSummary"></div></div>
+
+<div class="card"><div class="card-header"><h2>Recent Leads</h2><button class="btn-secondary" onclick="showPage('leads',document.querySelector('[data-page=leads]'));loadLeads()">View All</button></div><div class="table-wrapper"><table><thead><tr><th>Name</th><th>Mobile</th><th>Insurance</th><th>City</th><th>Status</th></tr></thead><tbody id="recentLeads"></tbody></table></div></div>
+</section>
+
+<section id="addLeadPage" class="page hidden"><div class="card">
+<div class="card-header"><h2 id="leadFormTitle">Add New Lead</h2></div>
+<form id="leadForm"><div class="form-grid">
+<div class="form-group"><label>Full Name *</label><input id="leadName" required placeholder="Customer name"></div>
+<div class="form-group"><label>Mobile Number *</label><input id="leadPhone" required placeholder="Mobile number"></div>
+<div class="form-group"><label>City</label><input id="leadCity" placeholder="City"></div>
+<div class="form-section-title">Insurance & Lead Details</div>
+<div class="form-group"><label>Insurance Type *</label><select id="leadInsuranceType" required><option value="">Select Insurance Type</option><option>Health Insurance</option><option>Life Insurance</option><option>Vehicle Insurance</option><option>Other Insurance</option></select></div>
+<div class="form-group"><label>Lead Source</label><select id="leadSource"><option>Manual</option><option>Website</option><option>Meta Ads</option><option>WhatsApp</option><option>Referral</option><option>Other</option></select></div>
+<div class="form-group"><label>Status</label><select id="leadStatus"><option>New</option><option>Contacted</option><option>Follow-up</option><option>Interested</option><option>Converted</option><option>Not Interested</option></select></div>
+<div class="form-group"><label>Next Follow-up</label><input type="datetime-local" id="leadFollowUp"></div>
+<div class="form-group full"><label>Notes</label><textarea id="leadNotes" placeholder="Enter customer details or notes..."></textarea></div>
+</div><button class="btn-primary save-button" id="saveLeadButton">Save Lead</button><div id="formMessage" class="message"></div></form>
+</div></section>
+
+<section id="leadsPage" class="page hidden"><div class="card"><div class="card-header"><h2>Advanced Filters</h2><button class="btn-secondary" type="button" onclick="clearLeadFilters()">Clear Filters</button></div><div class="filter-grid"><div><label>Insurance Type</label><select id="filterInsuranceType" onchange="applyLeadFilters()"><option value="">All Insurance</option><option>Health Insurance</option><option>Life Insurance</option><option>Vehicle Insurance</option><option>Other Insurance</option><option>Not Specified</option></select></div><div><label>Status</label><select id="filterStatus" onchange="applyLeadFilters()"><option value="">All Status</option><option>New</option><option>Contacted</option><option>Follow-up</option><option>Interested</option><option>Converted</option><option>Not Interested</option></select></div><div><label>City</label><select id="filterCity" onchange="applyLeadFilters()"><option value="">All Cities</option></select></div><div><label>Lead Source</label><select id="filterSource" onchange="applyLeadFilters()"><option value="">All Sources</option></select></div><div><label>Follow-up Date</label><input type="date" id="filterFollowupDate" onchange="applyLeadFilters()"></div></div><div class="filter-result">Showing <strong id="filteredLeadCount">0</strong> leads</div></div><div class="card"><div class="card-header"><h2>All Leads</h2><div class="actions"><input class="search-input" id="leadSearch" placeholder="Search name or mobile..." oninput="searchLeads(this.value)"><button class="btn-primary" onclick="openNewLead()">+ Add New Lead</button></div></div><div class="table-wrapper"><table><thead><tr><th>Name</th><th>Mobile</th><th>Insurance</th><th>City</th><th>Source</th><th>Status</th><th>Follow-up</th><th>Actions</th></tr></thead><tbody id="leadsTable"></tbody></table></div></div></section>
+
+<section id="followupsPage" class="page hidden"><div class="stats"><div class="stat-card"><h3>Today</h3><div class="number" id="todayFollowupCount">0</div></div><div class="stat-card"><h3>Tomorrow</h3><div class="number" id="tomorrowFollowupCount">0</div></div><div class="stat-card"><h3>Overdue</h3><div class="number" id="overdueFollowupCount">0</div></div></div><div class="card"><div class="card-header"><h2>Follow-ups</h2><button class="btn-primary" onclick="loadFollowups()">Refresh</button></div><div class="table-wrapper"><table><thead><tr><th>Type</th><th>Name</th><th>Mobile</th><th>Next Follow-up</th><th>Status</th><th>Action</th></tr></thead><tbody id="followupsTable"></tbody></table></div></div></section>
+
+<section id="tasksPage" class="page hidden">
+<div class="stats">
+  <div class="stat-card"><h3>Pending</h3><div class="number" id="pendingTaskCount">0</div></div>
+  <div class="stat-card"><h3>Overdue</h3><div class="number" id="overdueTaskCount">0</div></div>
+  <div class="stat-card"><h3>Today</h3><div class="number" id="todayTaskCount">0</div></div>
+  <div class="stat-card"><h3>Completed</h3><div class="number" id="completedTaskCount">0</div></div>
+</div>
+<div class="card">
+  <div class="card-header"><h2>Tasks</h2><div class="actions"><button class="btn-secondary" onclick="loadTasks()">Refresh</button><button class="btn-primary" onclick="openTaskModal()">+ Add Task</button></div></div>
+  <div class="table-wrapper"><table>
+    <thead><tr><th>Task</th><th>Lead</th><th>Due Date & Time</th><th>Priority</th><th>Status</th><th>Action</th></tr></thead>
+    <tbody id="tasksList"></tbody>
+  </table></div>
+</div>
+</section>
+
+<section id="calendarPage" class="page hidden">
+<div class="card">
+  <div class="card-header">
+    <h2>Appointment Calendar</h2>
+    <div class="calendar-controls">
+      <button class="btn-secondary" onclick="previousMonth()">← Previous</button>
+      <button class="btn-secondary" onclick="goToToday()">Today</button>
+      <button class="btn-secondary" onclick="nextMonth()">Next →</button>
+      <button class="btn-primary" onclick="openAppointmentFormModal(null)">+ New Appointment</button>
+      <span class="calendar-month-year" id="calendarMonthYear"></span>
+    </div>
+  </div>
+  
+  <div class="calendar-wrapper">
+    <div class="calendar-grid" id="calendarGrid"></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h2 id="appointmentListTitle">Appointments This Month</h2>
+  </div>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Time</th>
+          <th>Customer Name</th>
+          <th>Mobile</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="appointmentsList"></tbody>
+    </table>
+  </div>
+</div>
+</section>
+
+<section id="waTemplatesPage" class="page hidden">
+<div class="card">
+ <div class="card-header"><div><h2>WhatsApp Templates</h2><div class="muted" style="margin-top:5px">Create, preview, submit and monitor WhatsApp message templates.</div></div><div class="actions"><button class="btn-primary" onclick="openNewWhatsAppTemplate()">+ New Template</button><button class="btn-secondary" onclick="loadWhatsAppTemplates()">Refresh Status</button></div></div>
+ <div id="waTemplateStatus" class="muted" style="margin-bottom:12px"></div>
+ <div class="table-wrapper"><table><thead><tr><th>Template</th><th>Purpose</th><th>Language</th><th>Meta Status</th><th>Action</th></tr></thead><tbody id="waTemplatesBody"><tr><td colspan="5" class="empty">Loading...</td></tr></tbody></table></div>
+</div></section>
+
+<section id="reportsPage" class="page hidden">
+<div class="stats"><div class="stat-card"><h3>Conversion Rate</h3><div class="number" id="reportConversionRate">0%</div></div><div class="stat-card"><h3>Today's Leads</h3><div class="number" id="reportTodayLeads">0</div></div><div class="stat-card"><h3>This Week</h3><div class="number" id="reportWeekLeads">0</div></div><div class="stat-card"><h3>This Month</h3><div class="number" id="reportMonthLeads">0</div></div></div>
+<div class="card"><h2>Status-wise Leads</h2><div class="table-wrapper"><table><thead><tr><th>Status</th><th>Leads</th></tr></thead><tbody id="statusReportTable"></tbody></table></div></div>
+<div class="card"><h2>Lead Source Performance</h2><div class="table-wrapper"><table><thead><tr><th>Lead Source</th><th>Total Leads</th><th>Converted</th><th>Conversion Rate</th></tr></thead><tbody id="sourceReportTable"></tbody></table></div></div>
+<div class="card"><h2>Insurance-wise Performance</h2><div class="table-wrapper"><table><thead><tr><th>Insurance Type</th><th>Total Leads</th><th>Converted</th><th>Conversion Rate</th></tr></thead><tbody id="insuranceReportTable"></tbody></table></div></div>
+</section>
+
+<!-- IMPORTANT: PIPELINE IS INSIDE .content, BEFORE CLOSING MAIN -->
+<section id="pipelinePage" class="page hidden"><div class="card"><div class="card-header"><h2>Lead Pipeline</h2><button class="btn-primary" onclick="loadPipeline()">Refresh</button></div><div class="pipeline-board" id="pipelineBoard"><div class="empty">Loading pipeline...</div></div></div></section>
+
+<!-- IMPORTANT: PROFILE IS ALSO INSIDE .content -->
+<section id="leadProfilePage" class="page hidden"><div class="card"><div class="card-header"><h2>Lead Profile</h2><button class="btn-secondary" onclick="backToPrevious()">← Back</button></div><div id="leadProfileContent" class="empty">Select a lead to view profile.</div></div></section>
+
+<section id="whatsappPage" class="page hidden"><div class="card wa-inbox-card"><div class="card-header"><div><h2>WhatsApp Inbox</h2><p class="muted" style="margin-top:5px">Incoming WhatsApp Cloud API conversations</p></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn-primary" onclick="openWhatsAppNewMessage()">+ New Message</button><button class="btn-secondary" onclick="loadWhatsAppInbox()">↻ Refresh</button></div></div><div id="waNewMessagePanel" style="display:none;padding:16px;margin-bottom:14px;border:1px solid var(--border);border-radius:12px;background:#f8fafc"><div style="display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:12px"><strong>New WhatsApp Message</strong><button class="btn-secondary" type="button" onclick="closeWhatsAppNewMessage()">✕</button></div><div class="form-group"><label>Mobile Number</label><input id="waNewMobile" type="tel" inputmode="numeric" maxlength="15" placeholder="e.g. 9585905905"></div><div class="form-group" style="margin-top:10px"><label>Message Type</label><select id="waNewType" onchange="toggleWhatsAppNewMessageType()"><option value="text">Normal Message</option><option value="template">Template Message</option><option value="attachment">Attachment</option></select></div><div id="waNormalMessageFields" class="form-group" style="margin-top:10px"><label>Message</label><textarea id="waNewText" maxlength="4096" rows="4" placeholder="Type your WhatsApp message..."></textarea></div><div id="waAttachmentFields" style="display:none;margin-top:10px"><div class="form-group"><label>Attachment</label><input id="waNewAttachment" type="file" accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt"></div><div class="form-group" style="margin-top:10px"><label>Caption (optional)</label><textarea id="waAttachmentCaption" maxlength="1024" rows="3" placeholder="Add a caption..."></textarea></div><div class="muted" style="font-size:12px;margin-top:6px">Image, PDF/document or video · Maximum 16 MB</div></div><div id="waTemplateMessageFields" style="display:none;margin-top:10px"><div class="form-group"><label>Approved Template</label><select id="waSendTemplate" onchange="renderWhatsAppTemplateSendFields()"><option value="">Loading approved templates...</option></select></div><div id="waSendTemplatePreview" style="margin-top:10px"></div></div><div style="display:flex;align-items:center;gap:10px;margin-top:12px"><button id="waNewSendBtn" class="btn-wa" type="button" onclick="sendWhatsAppNewMessage()">Send Message</button><span id="waNewStatus" class="muted"></span></div><div class="muted" style="font-size:12px;margin-top:8px">Normal text messages can be sent only when WhatsApp permits the active customer service window. Otherwise an approved template is required.</div></div><div id="waLayout" class="wa-layout"><div class="wa-list"><div class="wa-list-head"><strong>Conversations</strong></div><div id="waContacts"><div class="empty">Loading...</div></div></div><div class="wa-chat"><div id="waChatHead" class="wa-chat-head"><strong>Select a conversation</strong></div><div id="waMessages" class="wa-messages"><div class="wa-placeholder">Select a customer to view messages.</div></div>
+<div id="waComposer" class="wa-composer" style="display:none"><input id="waReplyAttachment" type="file" accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt" style="display:none" onchange="sendWhatsAppConversationAttachment(this)"><button type="button" class="btn-secondary" title="Attach file" onclick="document.getElementById('waReplyAttachment').click()">📎</button><textarea id="waReplyText" maxlength="4096" placeholder="Type a WhatsApp reply..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendWhatsAppReply()}"></textarea><button id="waSendBtn" class="btn-wa" onclick="sendWhatsAppReply()">Send</button></div><div id="waSendStatus" class="wa-send-status"></div></div></div></div></section>
+<section id="settingsPage" class="page hidden">
+<div class="card">
+  <h2>Import / Export Leads</h2>
+  <p class="muted">Export all leads as CSV or import multiple leads from a CSV file.</p>
+  <div class="import-export-actions">
+    <button class="btn-primary" type="button" onclick="exportLeadsCSV()">⬇ Export Leads CSV</button>
+    <label class="btn-secondary file-label">⬆ Import CSV<input type="file" id="leadImportFile" accept=".csv,text/csv" onchange="handleLeadCSVImport(event)"></label>
+  </div>
+  <div class="import-help">
+    <strong>CSV columns:</strong> full_name, mobile_number, insurance_type, city, lead_source, status, next_follow_up, notes
+    <br><small>Only <strong>full_name</strong> and <strong>mobile_number</strong> are required. Duplicate mobile numbers will be skipped.</small>
+  </div>
+  <div id="importResult" class="import-result"></div>
+</div>
+<div class="card">
+  <h2>Backup CRM Data</h2>
+  <p class="muted">Create a complete backup of Leads, Tasks and Activity History as a JSON file.</p>
+  <div class="import-export-actions">
+    <button class="btn-primary" type="button" onclick="createCRMBackup()">💾 Create Backup</button>
+  </div>
+  <div id="backupResult" class="import-result"></div>
+</div>
+<div class="card">
+  <h2>Restore CRM Backup</h2>
+  <p class="muted">Select a Future Secure Providers CRM backup JSON file. Existing records are preserved; matching IDs are skipped to avoid accidental overwrite.</p>
+  <div class="import-export-actions">
+    <label class="btn-secondary file-label">📂 Select Backup File<input type="file" id="backupRestoreFile" accept=".json,application/json" onchange="handleBackupRestore(event)"></label>
+  </div>
+  <div id="restoreResult" class="import-result"></div>
+</div>
+</section>
+
+</div></main></div>
+
+<script>
+const SUPABASE_URL="https://cjwxirpwzluynymwjzxl.supabase.co";
+const SUPABASE_KEY="sb_publishable_jkr9U6yu6ODDa4JvHmrE4w_gIWJBsOz";
+const supabaseClient=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+let currentUser=null;
+async function initializeAuth(){try{const{data:{session},error}=await supabaseClient.auth.getSession();if(error)throw error;if(session){currentUser=session.user;updateHeaderForAuthenticatedUser(currentUser);showCRMUI();await loadCRMData();}else{showLoginPage();}}catch(err){console.error("Error initializing auth:",err);showLoginPage();}}
+async function initializeAuthStateListener(){supabaseClient.auth.onAuthStateChange((event,session)=>{if(event==="SIGNED_IN"&&session){currentUser=session.user;updateHeaderForAuthenticatedUser(currentUser);showCRMUI();loadCRMData();}else if(event==="SIGNED_OUT"){currentUser=null;clearCRMData();updateHeaderForLoggedOut();showLoginPage();}else if(event==="TOKEN_REFRESHED"){console.log("Token refreshed");}});}
+async function handleLoginSubmit(event){event.preventDefault();const email=document.getElementById("loginEmail").value.trim();const password=document.getElementById("loginPassword").value;const submitButton=document.getElementById("loginSubmitButton");const errorDiv=document.getElementById("loginErrorMessage");submitButton.disabled=true;submitButton.textContent="Signing In...";errorDiv.classList.remove("show");try{const{data,error}=await supabaseClient.auth.signInWithPassword({email,password});if(error)throw error;currentUser=data.user;updateHeaderForAuthenticatedUser(currentUser);showCRMUI();await loadCRMData();}catch(err){console.error("Sign in error:",err);showLoginError(err.message||"Sign in failed. Please check your credentials and try again.");}finally{submitButton.disabled=false;submitButton.textContent="Sign In";}}
+function showLoginError(message){const errorDiv=document.getElementById("loginErrorMessage");errorDiv.textContent=message;errorDiv.classList.add("show");}
+async function handleLogout(){try{const{error}=await supabaseClient.auth.signOut();if(error)throw error;currentUser=null;clearCRMData();updateHeaderForLoggedOut();showLoginPage();}catch(err){console.error("Sign out error:",err);alert("Error signing out: "+err.message);}}
+function showLoginPage(){const allPages=document.querySelectorAll(".page");allPages.forEach(page=>page.classList.add("hidden"));document.getElementById("loginPage").classList.remove("hidden");document.querySelector(".sidebar").style.display="none";document.querySelector(".sidebar-overlay").style.display="none";document.getElementById("logoutButton").style.display="none";}
+function showCRMUI(){
+const allPages=document.querySelectorAll(".page");
+allPages.forEach(page=>page.classList.add("hidden"));
+document.querySelector(".sidebar").style.display="flex";
+const savedPage=localStorage.getItem("crm_active_page");
+const leadId=localStorage.getItem("crm_current_lead_id");
+const savedPreviousPage=localStorage.getItem("crm_previous_page");
+const savedSessionUser=localStorage.getItem("crm_session_user");
+const currentSessionUser=currentUser?.id||"";
+const shouldRestorePage=savedPage&&savedSessionUser&&savedSessionUser===currentSessionUser;
+const pageToShow=shouldRestorePage?savedPage:"dashboard";
+
+if(leadId&&pageToShow==="leadProfile"){
+  previousPage=savedPreviousPage||"leads";
+  viewLead(leadId,previousPage);
+  return;
+}
+
+if(leadId&&pageToShow==="leads"){
+  viewLead(leadId,savedPreviousPage||previousPage);
+  return;
+}
+
+if(leadId&&pageToShow!=="leadProfile"&&pageToShow!=="leads"){
+  localStorage.removeItem("crm_current_lead_id");
+  localStorage.removeItem("crm_previous_page");
+}
+
+const target=document.getElementById(pageToShow+"Page");
+if(target)target.classList.remove("hidden");
+else document.getElementById("dashboardPage").classList.remove("hidden");
+showPage(pageToShow,document.querySelector('[data-page="'+pageToShow+'"]'));
+}
+function updateHeaderForAuthenticatedUser(user){document.getElementById("currentUserDisplay").textContent=user.email||"User";document.getElementById("logoutButton").style.display="inline-block";}
+function updateHeaderForLoggedOut(){document.getElementById("currentUserDisplay").textContent="Administrator";document.getElementById("logoutButton").style.display="none";}
+let crmDataLoadPromise=null,lastCRMDataLoadAt=0;
+async function loadCRMData(){
+ if(!currentUser){console.warn("No authenticated user found");return;}
+ if(crmDataLoadPromise)return crmDataLoadPromise;
+ if(Date.now()-lastCRMDataLoadAt<3000)return;
+ crmDataLoadPromise=(async()=>{
+  await loadLeads();
+  await loadSmartDashboard(allLeadsCache);
+  lastCRMDataLoadAt=Date.now();
+ })().finally(()=>{crmDataLoadPromise=null});
+ return crmDataLoadPromise;
+}
+function clearCRMData(){allLeadsCache=[];currentTasks=[];currentLeadActivities=[];document.getElementById("recentLeads").innerHTML="<tr><td colspan='4' class='empty'>No leads</td></tr>";document.getElementById("leadsTable").innerHTML="";document.getElementById("pipelineBoard").innerHTML="<div class='empty'>Loading pipeline...</div>";document.getElementById("priorityActions").innerHTML="<div class='empty'>No priority actions</div>";localStorage.removeItem("crm_active_page");localStorage.removeItem("crm_session_user");}
+let previousPage="leads";
+
+const pageInfo={
+dashboard:["Dashboard","Welcome to Future Secure Providers CRM"],
+leads:["Leads","Manage all customer leads"],addLead:["Add New Lead","Create or update a customer lead"],
+followups:["Follow-ups","Manage scheduled follow-ups"],tasks:["Today's Tasks","Manage your daily activities"],
+calendar:["Calendar","View and manage appointments"],
+whatsapp:["WhatsApp Inbox","View customer WhatsApp conversations"],
+reports:["Reports","View CRM performance reports"],pipeline:["Lead Pipeline","Track leads by sales stage"],
+leadProfile:["Lead Profile","Customer details and activity"],settings:["Settings","CRM configuration"]};
+
+function showPage(page,element){
+document.querySelectorAll(".page").forEach(x=>x.classList.add("hidden"));
+const target=document.getElementById(page+"Page");if(target)target.classList.remove("hidden");
+document.querySelectorAll(".nav-item").forEach(x=>x.classList.remove("active"));
+if(element)element.classList.add("active");
+if(pageInfo[page]){pageTitle.textContent=pageInfo[page][0];pageSubtitle.textContent=pageInfo[page][1]}
+if(page!=="leadProfile"){previousPage=page;localStorage.setItem("crm_active_page",page);localStorage.setItem("crm_session_user",currentUser?.id||"");}
+window.scrollTo({top:0,behavior:"smooth"});
+}
+function backToPrevious(){
+localStorage.removeItem("crm_current_lead_id");
+localStorage.removeItem("crm_previous_page");
+showPage(previousPage,document.querySelector(`[data-page="${previousPage}"]`));
+if(previousPage==="pipeline")loadPipeline();else loadLeads()}
+function escapeHtml(v){return String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;")}
+function formatDate(v){if(!v)return"-";const d=new Date(v);return isNaN(d)?"-":d.toLocaleString("en-IN",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"})}
+function localDateTimeToISOString(value){
+  if(!value)return null;
+  const d=new Date(value);
+  return isNaN(d) ? null : d.toISOString();
+}
+function isoToLocalDateTime(value){
+  if(!value)return "";
+  const d=new Date(value);
+  if(isNaN(d))return "";
+  const pad=n=>String(n).padStart(2,"0");
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+function showMessage(text,type){const m=formMessage;m.textContent=text;m.className="message "+type;setTimeout(()=>m.className="message",4000)}
+function openNewLead(){leadForm.reset();leadInsuranceType.value="";delete leadForm.dataset.editId;leadFormTitle.textContent="Add New Lead";saveLeadButton.textContent="Save Lead";showPage("addLead",document.querySelector('[data-page="addLead"]'))}
+
+async function handleBackupRestore(event){
+ const file=event.target.files?.[0],result=document.getElementById("restoreResult");
+ if(!file)return;
+ result.textContent="Reading backup...";
+ try{
+  const text=await file.text();
+  const backup=JSON.parse(text);
+  if(!backup?.data || !Array.isArray(backup.data.leads) || !Array.isArray(backup.data.tasks) || !Array.isArray(backup.data.lead_activities)){
+   throw new Error("This is not a valid Future Secure Providers CRM backup file.");
+  }
+  const leadCount=backup.data.leads.length,taskCount=backup.data.tasks.length,activityCount=backup.data.lead_activities.length;
+  if(!confirm(`Restore this backup?\n\nLeads: ${leadCount}\nTasks: ${taskCount}\nActivities: ${activityCount}\n\nExisting records will be preserved. Matching IDs will be skipped.`)){
+   result.textContent="Restore cancelled.";return;
+  }
+  result.textContent="Restoring leads...";
+  const existingLeads=(await supabaseClient.from("leads").select("id")).data||[];
+  const leadIds=new Set(existingLeads.map(x=>String(x.id)));
+  const leadsToInsert=backup.data.leads.filter(x=>x.id==null||!leadIds.has(String(x.id)));
+  let leadsAdded=0,tasksAdded=0,activitiesAdded=0,skippedLeads=leadCount-leadsToInsert.length,skippedTasks=0,skippedActivities=0;
+
+  // Preserve IDs only when possible; otherwise insert without id so Supabase generates one.
+  for(const row of leadsToInsert){
+   const payload={...row};
+   delete payload.id;
+   if(!payload.created_by){payload.created_by=currentUser.id;}
+   const {error}=await supabaseClient.from("leads").insert([payload]);
+   if(error)throw new Error("Lead restore failed: "+error.message);
+   leadsAdded++;
+  }
+
+  result.textContent="Restoring tasks...";
+  const existingTasks=(await supabaseClient.from("tasks").select("id")).data||[];
+  const taskIds=new Set(existingTasks.map(x=>String(x.id)));
+  for(const row of backup.data.tasks){
+   if(row.id!=null&&taskIds.has(String(row.id))){skippedTasks++;continue}
+   const payload={...row};delete payload.id;
+   if(!payload.created_by){payload.created_by=currentUser.id;}
+   const {error}=await supabaseClient.from("tasks").insert([payload]);
+   if(error){skippedTasks++;continue}
+   tasksAdded++;
+  }
+
+  result.textContent="Restoring activity history...";
+  const existingActivities=(await supabaseClient.from("lead_activities").select("id")).data||[];
+  const activityIds=new Set(existingActivities.map(x=>String(x.id)));
+  for(const row of backup.data.lead_activities){
+   if(row.id!=null&&activityIds.has(String(row.id))){skippedActivities++;continue}
+   const payload={...row};delete payload.id;
+   if(!payload.created_by){payload.created_by=currentUser.id;}
+   const {error}=await supabaseClient.from("lead_activities").insert([payload]);
+   if(error){skippedActivities++;continue}
+   activitiesAdded++;
+  }
+
+  await loadLeads();await loadPipeline();await loadTasks();
+  result.textContent=`Restore complete: ${leadsAdded} leads, ${tasksAdded} tasks, ${activitiesAdded} activities added. Skipped: ${skippedLeads} leads, ${skippedTasks} tasks, ${skippedActivities} activities.`;
+ }catch(err){result.textContent="Restore failed: "+(err.message||err)}
+ finally{event.target.value=""}
+}
+async function createCRMBackup(){
+ const result=document.getElementById("backupResult");
+ result.textContent="Creating backup...";
+ try{
+  const [leadsRes,tasksRes,activitiesRes]=await Promise.all([
+   supabaseClient.from("leads").select("*").order("id"),
+   supabaseClient.from("tasks").select("*").order("id"),
+   supabaseClient.from("lead_activities").select("*").order("id")
+  ]);
+  if(leadsRes.error)throw leadsRes.error;
+  if(tasksRes.error)throw tasksRes.error;
+  if(activitiesRes.error)throw activitiesRes.error;
+  const backup={
+   app:"Future Secure Providers CRM",
+   backup_created_at:new Date().toISOString(),
+   version:"1.0",
+   data:{
+    leads:leadsRes.data||[],
+    tasks:tasksRes.data||[],
+    lead_activities:activitiesRes.data||[]
+   }
+  };
+  const blob=new Blob([JSON.stringify(backup,null,2)],{type:"application/json"});
+  const url=URL.createObjectURL(blob),a=document.createElement("a");
+  a.href=url;
+  a.download=`future-secure-providers-crm-backup-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();URL.revokeObjectURL(url);
+  result.textContent=`Backup created successfully: ${(backup.data.leads||[]).length} leads, ${(backup.data.tasks||[]).length} tasks, ${(backup.data.lead_activities||[]).length} activities.`;
+ }catch(err){result.textContent="Backup failed: "+(err.message||err)}
+}
+function csvEscape(value){
+ const text=String(value??"");
+ return `"${text.replace(/"/g,'""')}"`;
+}
+function exportLeadsCSV(){
+ const rows=allLeadsCache||[];
+ if(!rows.length){alert("No leads available to export.");return}
+ const headers=["id","full_name","mobile_number","insurance_type","city","lead_source","status","next_follow_up","notes","created_at"];
+ const csv=[headers.join(","),...rows.map(x=>headers.map(h=>csvEscape(h==="insurance_type"?getInsuranceType(x):x[h]??"")).join(","))].join("\n");
+ const blob=new Blob([csv],{type:"text/csv;charset=utf-8;"});
+ const url=URL.createObjectURL(blob),a=document.createElement("a");
+ a.href=url;a.download=`future-secure-providers-leads-${new Date().toISOString().slice(0,10)}.csv`;a.click();URL.revokeObjectURL(url);
+}
+function parseCSV(text){
+ const rows=[];let row=[],cell="",quoted=false;
+ for(let i=0;i<text.length;i++){
+  const c=text[i],n=text[i+1];
+  if(c==='"'){if(quoted&&n==='"'){cell+='"';i++}else quoted=!quoted}
+  else if(c===","&&!quoted){row.push(cell.trim());cell=""}
+  else if((c==="\n"||c==="\r")&&!quoted){
+   if(c==="\r"&&n==="\n")i++;
+   row.push(cell.trim());cell="";
+   if(row.some(v=>v!==""))rows.push(row);row=[];
+  }else cell+=c;
+ }
+ row.push(cell.trim());if(row.some(v=>v!==""))rows.push(row);
+ if(!rows.length)return [];
+ const headers=rows[0].map(h=>h.replace(/^\uFEFF/,"").trim().toLowerCase());
+ return rows.slice(1).map(r=>Object.fromEntries(headers.map((h,i)=>[h,r[i]??""])));
+}
+async function handleLeadCSVImport(event){
+ const file=event.target.files?.[0];const result=document.getElementById("importResult");
+ if(!file)return;
+ result.textContent="Reading CSV...";
+ try{
+  const text=await file.text(),items=parseCSV(text);
+  if(!items.length)throw new Error("No lead rows found in CSV.");
+  const {data:existing,error}=await supabaseClient.from("leads").select("mobile_number");
+  if(error)throw error;
+  const existingMobiles=new Set((existing||[]).map(x=>String(x.mobile_number||"").trim()));
+  let added=0,skipped=0,invalid=0;
+  for(const item of items){
+   const name=(item.full_name||item.name||"").trim();
+   const mobile=(item.mobile_number||item.mobile||item.phone||"").trim();
+   if(!name||!mobile){invalid++;continue}
+   if(existingMobiles.has(mobile)){skipped++;continue}
+   const payload={
+    full_name:name,mobile_number:mobile,city:(item.city||"").trim()||null,
+    lead_source:(item.lead_source||"CSV Import").trim()||"CSV Import",
+    status:(item.status||"New").trim()||"New",
+    next_follow_up:(item.next_follow_up||"").trim()||null,
+    notes:buildLeadNotes((item.insurance_type||item.insurance||"").trim() || "Not Specified", (item.notes||"").trim()),
+    created_by:currentUser.id
+   };
+   const {data,error:insertError}=await supabaseClient.from("leads").insert([payload]).select().single();
+   if(insertError){invalid++;continue}
+   existingMobiles.add(mobile);added++;
+   await addLeadActivity(data.id,"Lead Imported","Lead was imported from CSV.");
+  }
+  await loadLeads();await loadPipeline();
+  result.textContent=`Import complete: ${added} added, ${skipped} duplicate skipped, ${invalid} invalid/failed.`;
+ }catch(err){result.textContent="Import failed: "+(err.message||err)}
+ finally{event.target.value=""}
+}
+let allLeadsCache=[];
+function getLocalDateKey(value){if(!value)return "";const d=new Date(value);if(isNaN(d))return "";const p=n=>String(n).padStart(2,"0");return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;}
+function normalizeInsuranceType(value){const v=String(value||"").trim().toLowerCase();if(!v)return "Not Specified";if(v.includes("health")||v.includes("medical"))return "Health Insurance";if(v.includes("life"))return "Life Insurance";if(v.includes("vehicle")||v.includes("motor")||v.includes("car")||v.includes("bike"))return "Vehicle Insurance";if(v.includes("other"))return "Other Insurance";return String(value).trim()||"Not Specified";}
+function getInsuranceType(lead){
+  if(!lead)return "Not Specified";
+  const direct=[lead.insurance_type,lead.insuranceType,lead.product,lead.policy_type,lead.policyType,lead.purpose].find(v=>String(v||"").trim());
+  if(direct)return normalizeInsuranceType(direct);
+  const notes=String(lead.notes||"");
+  const m=notes.match(/\[Insurance Type:\s*([^\]]+)\]/i);
+  if(m)return normalizeInsuranceType(m[1]);
+  const p=notes.match(/(?:^|\|)\s*Product:\s*([^|\n]+)/i);
+  if(p)return normalizeInsuranceType(p[1]);
+  if(/\b(health|medical|mediclaim|hospital|family floater|senior citizen)\b/i.test(notes))return "Health Insurance";
+  if(/\b(life|term plan|term insurance|endowment|ulip)\b/i.test(notes))return "Life Insurance";
+  if(/\b(vehicle|motor|car|bike|two wheeler|four wheeler|renewal)\b/i.test(notes))return "Vehicle Insurance";
+  return "Not Specified";
+}
+function buildLeadNotes(type,notes){const clean=String(notes||"").replace(/^\[Insurance Type:[^\]]+\]\s*/i,"").trim();const normalized=normalizeInsuranceType(type);return normalized==="Not Specified"?(clean||null):(`[Insurance Type: ${normalized}]`+(clean?`\n${clean}`:""));}
+function insuranceBadge(type){const t=normalizeInsuranceType(type);const c=t.toLowerCase().split(" ")[0];const icon=t.startsWith("Health")?"🏥":t.startsWith("Life")?"🛡️":t.startsWith("Vehicle")?"🚗":"📋";return `<span class="insurance-badge ${c}">${icon} ${escapeHtml(t)}</span>`;}
+function populateLeadFilters(){const city=document.getElementById("filterCity"),source=document.getElementById("filterSource");if(!city||!source)return;const cv=city.value,sv=source.value;const cities=[...new Set(allLeadsCache.map(x=>(x.city||"").trim()).filter(Boolean))].sort();const sources=[...new Set(allLeadsCache.map(x=>(x.lead_source||"").trim()).filter(Boolean))].sort();city.innerHTML='<option value="">All Cities</option>'+cities.map(x=>`<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join("");source.innerHTML='<option value="">All Sources</option>'+sources.map(x=>`<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join("");city.value=cv;source.value=sv;}
+function applyLeadFilters() {
+
+    const search = (
+        document.getElementById("leadSearch")?.value || ""
+    ).trim().toLowerCase();
+
+    const insuranceType =
+        document.getElementById("filterInsuranceType")?.value || "";
+
+    const status =
+        document.getElementById("filterStatus")?.value || "";
+
+    const city =
+        document.getElementById("filterCity")?.value || "";
+
+    const source =
+        document.getElementById("filterSource")?.value || "";
+
+    const date =
+        document.getElementById("filterFollowupDate")?.value || "";
+
+    const rows = allLeadsCache.filter(x => {
+
+        const name = (x.full_name || "").toLowerCase();
+
+        const mobile = String(
+            x.mobile_number || ""
+        ).toLowerCase();
+
+        const matchesSearch =
+            !search ||
+            name.includes(search) ||
+            mobile.includes(search);
+
+        const matchesInsurance =
+            !insuranceType ||
+            getInsuranceType(x) === insuranceType;
+
+        const matchesStatus =
+            !status ||
+            (x.status || "New") === status;
+
+        const matchesCity =
+            !city ||
+            (x.city || "").trim() === city;
+
+        const matchesSource =
+            !source ||
+            (x.lead_source || "").trim() === source;
+
+        const matchesDate =
+            !date ||
+            getLocalDateKey(x.next_follow_up) === date;
+
+        return (
+            matchesSearch &&
+            matchesInsurance &&
+            matchesStatus &&
+            matchesCity &&
+            matchesSource &&
+            matchesDate
+        );
+    });
+
+    const count =
+        document.getElementById("filteredLeadCount");
+
+    if (count) {
+        count.textContent = rows.length;
+    }
+
+    renderLeads(rows);
+}
+function clearLeadFilters(){
+  const insuranceFilter=document.getElementById("filterInsuranceType");
+  if(insuranceFilter)insuranceFilter.value="";
+  filterStatus.value="";
+  filterCity.value="";
+  filterSource.value="";
+  filterFollowupDate.value="";
+  
+  const s=document.getElementById("leadSearch");
+  if(s)s.value="";
+  
+  applyLeadFilters();
+}
+async function loadLeads(){
+const {data,error}=await supabaseClient.from("leads").select("*").order("created_at",{ascending:false});
+if(error){leadsTable.innerHTML=`<tr><td colspan="8" class="empty">${escapeHtml(error.message)}</td></tr>`;return}
+const rows=data||[];allLeadsCache=rows;populateLeadFilters();applyLeadFilters();renderRecent(rows);updateDashboard(rows);renderReports(rows)
+}
+function updateDashboard(rows){totalLeads.textContent=rows.length;newLeads.textContent=rows.filter(x=>x.status==="New").length;followupCount.textContent=rows.filter(x=>x.next_follow_up).length;convertedCount.textContent=rows.filter(x=>x.status==="Converted").length;const box=document.getElementById("insuranceBusinessSummary");if(box){const types=["Health Insurance","Life Insurance","Vehicle Insurance"];box.innerHTML=types.map(t=>{const n=rows.filter(x=>getInsuranceType(x)===t).length;const c=rows.filter(x=>getInsuranceType(x)===t&&x.status==="Converted").length;return `<div class="business-card"><h3>${insuranceBadge(t)}</h3><strong>${n}</strong><p>Leads · ${c} Converted</p></div>`;}).join("")}}
+function renderRecent(rows){recentLeads.innerHTML=rows.slice(0,5).map(x=>`<tr onclick="viewLead(${Number(x.id)})" style="cursor:pointer"><td>${escapeHtml(x.full_name)}</td><td>${escapeHtml(x.mobile_number)}</td><td>${insuranceBadge(getInsuranceType(x))}</td><td>${escapeHtml(x.city||"-")}</td><td><span class="status">${escapeHtml(x.status||"New")}</span></td></tr>`).join("")||`<tr><td colspan="5" class="empty">No leads found</td></tr>`}
+function renderLeads(rows){leadsTable.innerHTML=rows.map(x=>`<tr><td><strong>${escapeHtml(x.full_name)}</strong></td><td>${escapeHtml(x.mobile_number)}</td><td>${insuranceBadge(getInsuranceType(x))}</td><td>${escapeHtml(x.city||"-")}</td><td>${escapeHtml(x.lead_source||"-")}</td><td><span class="status">${escapeHtml(x.status||"New")}</span></td><td>${formatDate(x.next_follow_up)}</td><td><div class="actions"><button class="btn-secondary" onclick="viewLead(${Number(x.id)})">View</button><button class="btn-edit" onclick="editLead(${Number(x.id)})">Edit</button><button class="btn-danger" onclick="deleteLead(${Number(x.id)})">Delete</button></div></td></tr>`).join("")||`<tr><td colspan="8" class="empty">No leads found</td></tr>`}
+function searchLeads(v) {
+    applyLeadFilters();
+}
+
+async function addLeadActivity(leadId,activityType,description){
+  if(!leadId)return;
+  const {error}=await supabaseClient.from("lead_activities").insert([{
+    lead_id:leadId,activity_type:activityType,description:description||null,created_by:currentUser.id
+  }]);
+  if(error)console.error("Activity log error:",error.message);
+}
+async function loadLeadActivities(leadId){
+  const box=document.getElementById("leadActivityTimeline");
+  if(!box)return;
+  const {data,error}=await supabaseClient.from("lead_activities").select("*").eq("lead_id",leadId).order("created_at",{ascending:false});
+  if(error){box.innerHTML=`<div class="empty">Unable to load activity history</div>`;return}
+  box.innerHTML=(data||[]).map(a=>`<div class="detail-box" style="margin-bottom:8px"><strong>${escapeHtml(a.activity_type||"Activity")}</strong><div style="margin-top:4px">${escapeHtml(a.description||"-")}</div><small style="display:block;margin-top:6px;color:var(--muted)">${formatDate(a.created_at)}</small></div>`).join("")||'<div class="empty">No activity history yet</div>';
+}
+// Get lead source from URL query parameter (for website quote forms)
+function getLeadSourceFromURL(){
+  const params=new URLSearchParams(window.location.search);
+  const source=params.get("source");
+  if(source==="MetaAds")return "Meta Ads";
+  return "Website";
+}
+
+leadForm.addEventListener("submit",async e=>{
+e.preventDefault();
+const editId=leadForm.dataset.editId;
+
+// For NEW leads: read URL parameter directly
+let leadSourceValue=leadSource.value;
+if(!editId){
+  const urlParams=new URLSearchParams(window.location.search);
+  const sourceParam=urlParams.get("source");
+  if(sourceParam==="MetaAds"){
+    leadSourceValue="Meta Ads";
+  }else{
+    leadSourceValue="Website";
+  }
+}
+
+const urlParams=new URLSearchParams(window.location.search);
+const autoInsurance=normalizeInsuranceType(urlParams.get("insurance_type")||urlParams.get("insurance")||urlParams.get("product")||urlParams.get("purpose")||"");
+const insuranceTypeValue=autoInsurance!=="Not Specified"?autoInsurance:normalizeInsuranceType(leadInsuranceType.value);
+const payload={full_name:leadName.value.trim(),mobile_number:leadPhone.value.trim(),city:leadCity.value.trim()||null,lead_source:leadSourceValue,status:leadStatus.value,next_follow_up:localDateTimeToISOString(leadFollowUp.value),notes:buildLeadNotes(insuranceTypeValue,leadNotes.value.trim())};
+if(!payload.full_name||!payload.mobile_number)return showMessage("Please enter customer name and mobile number.","error");
+const {data:duplicates,error:duplicateError}=await supabaseClient.from("leads").select("id,full_name,mobile_number").eq("mobile_number",payload.mobile_number);
+if(duplicateError)return showMessage("Error checking duplicate mobile: "+duplicateError.message,"error");
+const duplicate=(duplicates||[]).find(x=>String(x.id)!==String(editId||""));
+if(duplicate)return showMessage(`Duplicate mobile number! ${duplicate.full_name} already exists with ${duplicate.mobile_number}.`,"error");
+saveLeadButton.disabled=true;saveLeadButton.textContent=editId?"Updating...":"Saving...";
+let result;if(editId){result=await supabaseClient.from("leads").update(payload).eq("id",editId).select().single()}else{const insertPayload={...payload,created_by:currentUser.id};result=await supabaseClient.from("leads").insert([insertPayload]).select().single()}
+saveLeadButton.disabled=false;
+if(result.error){showMessage("Error saving lead: "+result.error.message,"error");saveLeadButton.textContent=editId?"Update Lead":"Save Lead";return}
+const savedLeadId=editId||result.data?.id;
+if(editId)await addLeadActivity(savedLeadId,"Lead Updated","Lead details were updated.");
+else {await addLeadActivity(savedLeadId,"Lead Created","Lead was added to CRM.");await processWhatsAppAutomationQueue();}
+showMessage(editId?"Lead updated successfully!":"Lead saved successfully!","success");leadForm.reset();delete leadForm.dataset.editId;saveLeadButton.textContent="Save Lead";await loadLeads();await loadPipeline();setTimeout(()=>showPage("leads",document.querySelector('[data-page="leads"]')),600)
+});
+
+async function processWhatsAppAutomationQueue(){
+ try{const {data,error}=await supabaseClient.functions.invoke("whatsapp-automation-worker",{body:{action:"process"}});if(error||!data?.ok)console.error("WhatsApp automation worker:",error||data);return data;}catch(e){console.error("WhatsApp automation worker error:",e)}}
+async function editLead(id){const {data,error}=await supabaseClient.from("leads").select("*").eq("id",id).maybeSingle();if(error)return alert(error.message);if(!data)return;leadName.value=data.full_name||"";leadPhone.value=data.mobile_number||"";leadCity.value=data.city||"";leadInsuranceType.value=getInsuranceType(data)==="Not Specified"?"":getInsuranceType(data);leadSource.value=data.lead_source||"Manual";leadStatus.value=data.status||"New";leadFollowUp.value=isoToLocalDateTime(data.next_follow_up);leadNotes.value=String(data.notes||"").replace(/^\[Insurance Type:[^\]]+\]\s*/i,"").trim();leadForm.dataset.editId=id;leadFormTitle.textContent="Update Lead";saveLeadButton.textContent="Update Lead";showPage("addLead",document.querySelector('[data-page="addLead"]'))}
+async function deleteLead(id){if(!confirm("Delete this lead?"))return;const {error}=await supabaseClient.from("leads").delete().eq("id",id);if(error)return alert(error.message);await loadLeads();await loadPipeline()}
+
+async function loadPipeline(){
+const board=document.getElementById("pipelineBoard");board.innerHTML='<div class="empty">Loading pipeline...</div>';
+let data=allLeadsCache,error=null;
+if(!data.length){const res=await supabaseClient.from("leads").select("*").order("created_at",{ascending:false});data=res.data||[];error=res.error}
+if(error){board.innerHTML=`<div class="empty">${escapeHtml(error.message)}</div>`;return}
+const stages=[["New","🆕 New"],["Contacted","📞 Contacted"],["Follow-up","📅 Follow-up"],["Interested","🔥 Interested"],["Converted","✅ Converted"]];
+board.innerHTML=stages.map(([key,label])=>{const items=(data||[]).filter(x=>x.status===key);return `<div class="pipeline-column" data-status="${key}" ondragover="pipelineDragOver(event)" ondragleave="pipelineDragLeave(event)" ondrop="pipelineDrop(event,'${key}')"><h3><span>${label}</span><span class="pipeline-count">${items.length}</span></h3>${items.length?items.map(x=>`<div class="pipeline-card" draggable="true" ondragstart="pipelineDragStart(event,${Number(x.id)})" ondragend="pipelineDragEnd(event)" onclick="viewLead(${Number(x.id)},'pipeline')"><strong>${escapeHtml(x.full_name||"-")}</strong><div style="margin-top:7px">${insuranceBadge(getInsuranceType(x))}</div><small>📞 ${escapeHtml(x.mobile_number||"-")}</small><small>📍 ${escapeHtml(x.city||"-")}</small><small>📅 ${x.next_follow_up?formatDate(x.next_follow_up):"No follow-up"}</small></div>`).join(""):'<div class="empty">No leads</div>'}</div>`}).join("")
+}
+
+let draggedLeadId=null;
+function pipelineDragStart(event,id){draggedLeadId=id;event.currentTarget.classList.add("dragging");event.dataTransfer.effectAllowed="move";event.dataTransfer.setData("text/plain",String(id))}
+function pipelineDragEnd(event){event.currentTarget.classList.remove("dragging");document.querySelectorAll(".pipeline-column").forEach(x=>x.classList.remove("drag-over"));draggedLeadId=null}
+function pipelineDragOver(event){event.preventDefault();event.currentTarget.classList.add("drag-over");event.dataTransfer.dropEffect="move"}
+function pipelineDragLeave(event){event.currentTarget.classList.remove("drag-over")}
+async function pipelineDrop(event,newStatus){
+event.preventDefault();event.currentTarget.classList.remove("drag-over");
+const id=draggedLeadId||Number(event.dataTransfer.getData("text/plain"));
+if(!id)return;
+const {data:lead,error:getError}=await supabaseClient.from("leads").select("id,status").eq("id",id).maybeSingle();
+if(getError)return alert("Error loading lead: "+getError.message);
+if(!lead)return;
+if(lead.status===newStatus){draggedLeadId=null;return}
+const oldStatus=lead.status||"New";
+const {error}=await supabaseClient.from("leads").update({status:newStatus}).eq("id",id);
+if(error)return alert("Error updating pipeline: "+error.message);
+await addLeadActivity(id,"Pipeline Status Changed",`Status changed from ${oldStatus} to ${newStatus}.`);
+draggedLeadId=null;await loadLeads();await loadPipeline();
+}
+async function viewLead(id,fromPage){
+if(fromPage)previousPage=fromPage;
+localStorage.setItem("crm_current_lead_id",id);
+localStorage.setItem("crm_previous_page",previousPage||"leads");
+localStorage.setItem("crm_active_page","leadProfile");
+localStorage.setItem("crm_session_user",currentUser?.id||"");
+const {data:lead,error}=await supabaseClient.from("leads").select("*").eq("id",id).maybeSingle();if(error)return alert(error?.message||"Lead not found");if(!lead){localStorage.removeItem("crm_current_lead_id");showPage("leads",document.querySelector('[data-page="leads"]'));return}
+const phone=String(lead.mobile_number||"").replace(/\D/g,"");
+leadProfileContent.innerHTML=`<div class="card" id="quickStatusCard"><h3 style="margin-bottom:10px">Quick Status Update</h3><div class="actions"><select id="quickStatusSelect" style="max-width:220px"><option>New</option><option>Contacted</option><option>Follow-up</option><option>Interested</option><option>Converted</option><option>Not Interested</option></select><button class="btn-primary" onclick="quickUpdateStatus(${Number(lead.id)})">Update Status</button></div></div><div class="profile-grid"><div class="detail-box"><label>Full Name</label><strong>${escapeHtml(lead.full_name)}</strong></div><div class="detail-box"><label>Mobile Number</label><strong>${escapeHtml(lead.mobile_number)}</strong></div><div class="detail-box"><label>Insurance Type</label><strong>${insuranceBadge(getInsuranceType(lead))}</strong></div><div class="detail-box"><label>Current Status</label><strong>${escapeHtml(lead.status||"New")}</strong></div></div>
+<div class="profile-grid"><div class="detail-box"><label>City</label><strong>${escapeHtml(lead.city||"-")}</strong></div><div class="detail-box"><label>Lead Source</label><strong>${escapeHtml(lead.lead_source||"-")}</strong></div><div class="detail-box"><label>Next Follow-up</label><strong>${formatDate(lead.next_follow_up)}</strong></div><div class="detail-box"><label>Created</label><strong>${formatDate(lead.created_at)}</strong></div></div>
+<div class="card"><h3 style="margin-bottom:10px">Notes</h3><div>${escapeHtml(lead.notes||"No notes added").replace(/\n/g,"<br>")}</div></div><div class="card"><h3 style="margin-bottom:10px">Activity History</h3><div id="leadActivityTimeline"><div class="empty">Loading activity history...</div></div></div>
+<div class="actions">
+  <button class="btn-call" onclick="logCall(${Number(lead.id)},'${phone}')">Call</button>
+  <button class="btn-wa" onclick="logWhatsApp(${Number(lead.id)},'${phone}')">WhatsApp</button>
+  <button class="btn-edit" onclick="editLead(${Number(lead.id)})">Edit Lead</button>
+  <button class="btn-primary" onclick="completeFollowup(${Number(lead.id)})">Complete Follow-up</button>
+  <button class="btn-secondary" onclick="rescheduleFollowup(${Number(lead.id)})">Reschedule</button>
+  <button class="btn-danger" onclick="noResponseFollowup(${Number(lead.id)})">No Response</button>
+</div>`;
+const quick=document.getElementById("quickStatusSelect");if(quick)quick.value=lead.status||"New";
+showPage("leadProfile",null);
+await loadLeadActivities(id);
+}
+
+async function quickUpdateStatus(id){
+const status=document.getElementById("quickStatusSelect").value;
+const {data:current,error:currentError}=await supabaseClient.from("leads").select("status").eq("id",id).maybeSingle();
+if(currentError)return alert("Unable to read current status: "+currentError.message);
+if(!current)return alert("Lead not found");
+const oldStatus=current.status||"New";
+const {error}=await supabaseClient.from("leads").update({status}).eq("id",id);
+if(error)return alert("Error updating status: "+error.message);
+if(oldStatus!==status)await addLeadActivity(id,"Quick Status Changed",`Status changed from ${oldStatus} to ${status}.`);
+await loadLeads();await loadPipeline();
+await viewLead(id,previousPage);
+}
+async function logCall(leadId,mobile){
+  await addLeadActivity(
+    leadId,
+    "Call Initiated",
+    `Call initiated to ${mobile}`
+  );
+  window.location.href=`tel:${mobile}`;
+}
+
+async function logWhatsApp(leadId,mobile){
+  await addLeadActivity(
+    leadId,
+    "WhatsApp Opened",
+    `WhatsApp opened for ${mobile}`
+  );
+  window.open(`https://wa.me/91${mobile}`,"_blank");
+}
+async function loadFollowups(preloaded){let rows=preloaded;if(!rows){const {data,error}=await supabaseClient.from("leads").select("*").not("next_follow_up","is",null).order("next_follow_up",{ascending:true});if(error){followupsTable.innerHTML=`<tr><td colspan="6" class="empty">${escapeHtml(error.message)}</td></tr>`;return}rows=data||[]}rows=rows.filter(x=>x.next_follow_up);const now=new Date(),today=new Date(now.getFullYear(),now.getMonth(),now.getDate()),tomorrow=new Date(today),dayAfter=new Date(today);tomorrow.setDate(tomorrow.getDate()+1);dayAfter.setDate(dayAfter.getDate()+2);const type=x=>{const d=new Date(x.next_follow_up);if(d<today)return"Overdue";if(d>=today&&d<tomorrow)return"Today";if(d>=tomorrow&&d<dayAfter)return"Tomorrow";return"Upcoming"};todayFollowupCount.textContent=rows.filter(x=>type(x)==="Today").length;tomorrowFollowupCount.textContent=rows.filter(x=>type(x)==="Tomorrow").length;overdueFollowupCount.textContent=rows.filter(x=>type(x)==="Overdue").length;followupsTable.innerHTML=rows.map(x=>`<tr><td><span class="status">${type(x)}</span></td><td>${escapeHtml(x.full_name)}</td><td>${escapeHtml(x.mobile_number)}</td><td>${formatDate(x.next_follow_up)}</td><td>${escapeHtml(x.status||"New")}</td><td><div class="actions"><button class="btn-primary" onclick="completeFollowup(${Number(x.id)})">Complete</button><button class="btn-secondary" onclick="viewLead(${Number(x.id)},'followups')">View</button></div></td></tr>`).join("")||`<tr><td colspan="6" class="empty">No follow-ups scheduled</td></tr>`}
+let followupLeadId=null;
+
+function completeFollowup(id){
+  followupLeadId=id;
+  document.getElementById("followupModal").classList.add("show");
+  document.getElementById("followupResult").value="Spoke";
+  document.getElementById("followupNote").value="";
+  document.getElementById("nextFollowup").value="";
+}
+
+function closeFollowupModal(){
+  document.getElementById("followupModal").classList.remove("show");
+  followupLeadId=null;
+}
+function rescheduleFollowup(id){
+    followupLeadId = id;
+    document.getElementById("followupModal").classList.add("show");
+    document.getElementById("followupResult").value = "Reschedule";
+    document.getElementById("followupNote").value = "";
+    document.getElementById("nextFollowup").value = "";
+}
+
+function noResponseFollowup(id){
+    followupLeadId = id;
+    document.getElementById("followupModal").classList.add("show");
+    document.getElementById("followupResult").value = "No Answer";
+    document.getElementById("followupNote").value = "";
+    document.getElementById("nextFollowup").value = "";
+}
+async function saveFollowup(){
+
+  if(!followupLeadId) return;
+
+  const { data: lead, error } = await supabaseClient
+    .from("leads")
+    .select("*")
+    .eq("id", followupLeadId)
+    .maybeSingle();
+
+  if(error || !lead){
+    return alert(error?.message || "Lead not found");
+  }
+
+  const result = document.getElementById("followupResult").value;
+
+  const note = document
+    .getElementById("followupNote")
+    .value
+    .trim();
+
+  const next = document
+    .getElementById("nextFollowup")
+    .value;
+
+  const nextValue = localDateTimeToISOString(next);
+
+  // Save follow-up history
+  const stamp = new Date().toLocaleString("en-IN");
+
+  const activity =
+    `[Follow-up completed | ${stamp}] ` +
+    `Result: ${result || "-"}` +
+    `${note ? ` | Note: ${note}` : ""}`;
+
+  const notes = [lead.notes, activity]
+    .filter(Boolean)
+    .join("\n");
+
+  const update = {
+    next_follow_up: nextValue,
+    notes: notes
+  };
+
+  if(
+    lead.status === "New" ||
+    lead.status === "Contacted"
+  ){
+    update.status = "Follow-up";
+  }
+
+  // Update lead
+  const { error: updateError } = await supabaseClient
+    .from("leads")
+    .update(update)
+    .eq("id", followupLeadId);
+
+  if(updateError){
+    return alert(
+      "Error completing follow-up: " +
+      updateError.message
+    );
+  }
+
+  // Add activity
+  const followupDescription =
+    `Result: ${result || "-"}` +
+    `${note ? ` | Note: ${note}` : ""}` +
+    `${
+      nextValue
+        ? ` | Next follow-up: ${formatDate(nextValue)}`
+        : " | No next follow-up scheduled."
+    }`;
+
+  await addLeadActivity(
+    followupLeadId,
+    "Follow-up Completed",
+    followupDescription
+  );
+
+  // Create next task automatically
+  if(nextValue){
+
+    const taskPayload = {
+      title: `Follow-up: ${lead.full_name || "Customer"}`,
+
+      description:
+        `Previous Result: ${result || "-"}` +
+        `${note ? ` | Note: ${note}` : ""}`,
+
+      lead_id: Number(followupLeadId),
+
+      due_date: nextValue,
+
+      priority:
+  result === "Interested"
+    ? "High"
+    : "Medium",
+
+status: "Pending",
+created_by: currentUser.id
+};
+    const { error: taskError } = await supabaseClient
+      .from("tasks")
+      .insert([taskPayload]);
+
+    if(taskError){
+
+      console.error(
+        "Next task creation error:",
+        taskError
+      );
+
+      alert(
+        "Follow-up saved, but next task could not be created: " +
+        taskError.message
+      );
+
+    } else {
+
+      await addLeadActivity(
+        followupLeadId,
+        "Next Follow-up Task Created",
+        `Task scheduled for ${formatDate(nextValue)}`
+      );
+
+    }
+  }
+// Complete the original task only after follow-up is successfully saved
+if (window.pendingCompleteTaskId) {
+
+    const { error: completeError } = await supabaseClient
+        .from("tasks")
+        .update({
+            status: "Completed",
+            completed_at: new Date().toISOString()
+        })
+        .eq("id", window.pendingCompleteTaskId);
+
+    if (completeError) {
+        return alert("Follow-up saved, but task could not be completed: " + completeError.message);
+    }
+
+    window.pendingCompleteTaskId = null;
+    window.pendingCompleteTask = null;
+}
+  // Close popup
+  closeFollowupModal();
+
+  // Refresh all CRM sections
+  await loadLeads();
+  await loadPipeline();
+  await loadFollowups();
+  await loadTasks();
+
+  if(nextValue){
+
+    alert(
+      "Follow-up saved successfully.\n\n" +
+      "Next follow-up task created for:\n" +
+      formatDate(nextValue)
+    );
+
+  } else {
+
+    alert("Follow-up saved successfully.");
+
+  }
+}
+function renderReports(rows){
+const now=new Date(),today=new Date(now.getFullYear(),now.getMonth(),now.getDate()),tomorrow=new Date(today);tomorrow.setDate(tomorrow.getDate()+1);
+const week=new Date(today);week.setDate(week.getDate()-((week.getDay()+6)%7));
+const month=new Date(now.getFullYear(),now.getMonth(),1);
+const d=x=>x.created_at?new Date(x.created_at):null;
+const conv=rows.filter(x=>x.status==="Converted").length;
+reportConversionRate.textContent=(rows.length?(conv/rows.length*100).toFixed(1):0)+"%";
+reportTodayLeads.textContent=rows.filter(x=>{const z=d(x);return z&&z>=today&&z<tomorrow}).length;
+reportWeekLeads.textContent=rows.filter(x=>{const z=d(x);return z&&z>=week}).length;
+reportMonthLeads.textContent=rows.filter(x=>{const z=d(x);return z&&z>=month}).length;
+const statuses=["New","Contacted","Follow-up","Interested","Converted","Not Interested"];
+statusReportTable.innerHTML=statuses.map(st=>`<tr><td>${st}</td><td><strong>${rows.filter(x=>x.status===st).length}</strong></td></tr>`).join("");
+const sources=[...new Set(rows.map(x=>(x.lead_source||"Unknown").trim()||"Unknown"))].sort((a,b)=>a.localeCompare(b));
+sourceReportTable.innerHTML=sources.map(source=>{
+ const sourceRows=rows.filter(x=>((x.lead_source||"Unknown").trim()||"Unknown")===source);
+ const converted=sourceRows.filter(x=>x.status==="Converted").length;
+ const rate=sourceRows.length?(converted/sourceRows.length*100).toFixed(1):"0.0";
+ return `<tr><td><strong>${escapeHtml(source)}</strong></td><td>${sourceRows.length}</td><td>${converted}</td><td>${rate}%</td></tr>`;
+}).join("")||'<tr><td colspan="4" class="empty">No lead source data available</td></tr>';
+const insuranceTypes=["Health Insurance","Life Insurance","Vehicle Insurance","Other Insurance","Not Specified"];
+insuranceReportTable.innerHTML=insuranceTypes.map(type=>{const typeRows=rows.filter(x=>getInsuranceType(x)===type);const converted=typeRows.filter(x=>x.status==="Converted").length;const rate=typeRows.length?(converted/typeRows.length*100).toFixed(1):"0.0";return `<tr><td>${insuranceBadge(type)}</td><td>${typeRows.length}</td><td>${converted}</td><td>${rate}%</td></tr>`;}).join("");
+}
+let currentTasks=[];
+async function loadTasks(){
+  const {data,error}=await supabaseClient.from("tasks").select("*, leads(full_name,mobile_number)").order("status",{ascending:true}).order("due_date",{ascending:true});
+  if(error){tasksList.innerHTML=`<tr><td colspan="6" class="empty">${escapeHtml(error.message)}</td></tr>`;return}
+  currentTasks=data||[];
+  const now=new Date(), startToday=new Date(now.getFullYear(),now.getMonth(),now.getDate()), tomorrow=new Date(startToday);tomorrow.setDate(tomorrow.getDate()+1);
+  const pending=currentTasks.filter(t=>t.status==="Pending");
+  const completed=currentTasks.filter(t=>t.status==="Completed");
+  const overdue=pending.filter(t=>t.due_date&&new Date(t.due_date)<now);
+  const today=pending.filter(t=>{if(!t.due_date)return false;const d=new Date(t.due_date);return d>=startToday&&d<tomorrow});
+  pendingTaskCount.textContent=pending.length;
+  overdueTaskCount.textContent=overdue.length;
+  todayTaskCount.textContent=today.length;
+  completedTaskCount.textContent=completed.length;
+  tasksList.innerHTML=currentTasks.map(t=>{
+    const lead=t.leads?.full_name||"-";
+    const priorityClass=`priority-${String(t.priority||"Medium").toLowerCase()}`;
+    return `<tr class="${t.status==="Completed"?"task-completed":""}">
+      <td><strong>${escapeHtml(t.title||"-")}</strong>${t.description?`<div class="small-muted">${escapeHtml(t.description)}</div>`:""}</td>
+      <td>${escapeHtml(lead)}</td>
+      <td>${t.due_date?formatDate(t.due_date):"-"}</td>
+      <td><span class="${priorityClass}">${escapeHtml(t.priority||"Medium")}</span></td>
+      <td>${t.status==="Completed"?"✅ Completed":"⏳ Pending"}</td>
+      <td><div class="actions">${t.status==="Pending"?`<button class="btn-primary" onclick="completeTask(${Number(t.id)})">Complete</button>`:""}<button class="btn-secondary" onclick="deleteTask(${Number(t.id)})">Delete</button></div></td>
+    </tr>`;
+  }).join("")||`<tr><td colspan="6" class="empty">No tasks yet</td></tr>`;
+}
+async function openTaskModal(){
+  taskTitle.value="";taskDescription.value="";taskDueDate.value="";taskPriority.value="Medium";taskLead.innerHTML='<option value="">No lead selected</option>';
+  const {data,error}=await supabaseClient.from("leads").select("id,full_name,mobile_number").order("full_name",{ascending:true});
+  if(error)return alert("Unable to load leads: "+error.message);
+  (data||[]).forEach(l=>{const o=document.createElement("option");o.value=l.id;o.textContent=`${l.full_name||"Unnamed"}${l.mobile_number?" - "+l.mobile_number:""}`;taskLead.appendChild(o)});
+  document.getElementById("taskModal").classList.add("show");
+}
+function closeTaskModal(){document.getElementById("taskModal").classList.remove("show")}
+async function saveTask(){
+  const title=taskTitle.value.trim();if(!title)return alert("Please enter task title.");
+  const payload={title,description:taskDescription.value.trim()||null,lead_id:taskLead.value?Number(taskLead.value):null,due_date:localDateTimeToISOString(taskDueDate.value),priority:taskPriority.value,status:"Pending",created_by:currentUser.id};
+  const {data,error}=await supabaseClient.from("tasks").insert([payload]).select().single();
+  if(error)return alert("Error saving task: "+error.message);
+  if(payload.lead_id)await addLeadActivity(payload.lead_id,"Task Created",`Task: ${title}${payload.due_date?` | Due: ${formatDate(payload.due_date)}`:""}`);
+  closeTaskModal();await loadTasks();alert("Task saved successfully.");
+}
+async function completeTask(id) {
+    const task = currentTasks.find(t => Number(t.id) === Number(id));
+
+    if (!task) {
+        return alert("Task not found");
+    }
+
+    // Task ID and task details temporarily store
+    window.pendingCompleteTaskId = id;
+    window.pendingCompleteTask = task;
+
+    // If linked lead exists, open follow-up popup first
+    if (task.lead_id) {
+        completeFollowup(task.lead_id);
+        return;
+    }
+
+    // Only tasks without a linked lead can be completed directly
+    const { error } = await supabaseClient
+        .from("tasks")
+        .update({
+            status: "Completed",
+            completed_at: new Date().toISOString()
+        })
+        .eq("id", id);
+
+    if (error) {
+        return alert("Error completing task: " + error.message);
+    }
+
+    await loadTasks();
+    await loadSmartDashboard();
+}
+async function deleteTask(id){
+  const task=currentTasks.find(t=>Number(t.id)===Number(id));
+  if(!confirm("Delete this task?"))return;
+  const {error}=await supabaseClient.from("tasks").delete().eq("id",id);
+  if(error)return alert("Error deleting task: "+error.message);
+  if(task?.lead_id)await addLeadActivity(task.lead_id,"Task Deleted",`Task deleted: ${task.title||"-"}.`);
+  await loadTasks();
+}
+document.addEventListener("DOMContentLoaded", () => {
+    initializeAuth();
+    initializeAuthStateListener();
+    document.getElementById("loginForm").addEventListener("submit", handleLoginSubmit);
+});
+async function loadSmartDashboard(preloadedLeads) {
+  const leads = Array.isArray(preloadedLeads) ? preloadedLeads : (allLeadsCache.length ? allLeadsCache : ((await supabaseClient.from("leads").select("id,full_name,next_follow_up,status")).data || []));
+  const tasksResult = await supabaseClient.from("tasks").select("id,title,due_date,status,lead_id").order("due_date",{ascending:true});
+  const tasks = tasksResult.data || [];
+
+
+  const now = new Date();
+
+  const today = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate()
+  );
+
+  const tomorrow = new Date(today);
+
+  tomorrow.setDate(
+    tomorrow.getDate() + 1
+  );
+
+
+  function isToday(value) {
+
+    if (!value) return false;
+
+    const date =
+      new Date(value);
+
+    return (
+      date >= today &&
+      date < tomorrow
+    );
+
+  }
+
+
+  function isOverdue(value) {
+
+    if (!value) return false;
+
+    return new Date(value) < today;
+
+  }
+
+
+  const todayFollowups =
+    leads.filter(function(lead) {
+
+      return isToday(
+        lead.next_follow_up
+      );
+
+    });
+
+
+  const overdueFollowups =
+    leads.filter(function(lead) {
+
+      return isOverdue(
+        lead.next_follow_up
+      );
+
+    });
+
+
+  const pendingTasks =
+    tasks.filter(function(task) {
+
+      return task.status !==
+        "Completed";
+
+    });
+
+
+  const overdueTasks =
+    pendingTasks.filter(function(task) {
+
+      return isOverdue(
+        task.due_date
+      );
+
+    });
+
+
+  document.getElementById(
+    "todayFollowupsCount"
+  ).textContent =
+    todayFollowups.length;
+
+
+  document.getElementById(
+    "pendingTasksCount"
+  ).textContent =
+    pendingTasks.length;
+
+
+  document.getElementById(
+    "overdueCount"
+  ).textContent =
+    overdueFollowups.length +
+    overdueTasks.length;
+
+
+  const actions = [];
+
+
+  overdueFollowups.forEach(function(lead) {
+
+    actions.push({
+
+      type: "followup",
+
+      priority: 1,
+
+      title:
+        lead.full_name ||
+        "Unnamed Lead",
+
+      subtitle:
+        "⚠️ Overdue Follow-up • " +
+        formatDate(
+          lead.next_follow_up
+        ),
+
+      leadId: lead.id
+
+    });
+
+  });
+
+
+  overdueTasks.forEach(function(task) {
+
+    actions.push({
+
+      type: "task",
+
+      priority: 2,
+
+      title:
+        task.title ||
+        "Task",
+
+      subtitle:
+        "⚠️ Overdue Task • " +
+        formatDate(
+          task.due_date
+        ),
+
+      taskId: task.id
+
+    });
+
+  });
+
+
+  todayFollowups.forEach(function(lead) {
+
+    actions.push({
+
+      type: "followup",
+
+      priority: 3,
+
+      title:
+        lead.full_name ||
+        "Unnamed Lead",
+
+      subtitle:
+        "📞 Follow-up Today • " +
+        formatDate(
+          lead.next_follow_up
+        ),
+
+      leadId: lead.id
+
+    });
+
+  });
+
+
+  pendingTasks
+    .filter(function(task) {
+
+      return isToday(
+        task.due_date
+      );
+
+    })
+    .forEach(function(task) {
+
+      actions.push({
+
+        type: "task",
+
+        priority: 4,
+
+        title:
+          task.title ||
+          "Task",
+
+        subtitle:
+          "📋 Task Today • " +
+          formatDate(
+            task.due_date
+          ),
+
+        taskId: task.id
+
+      });
+
+    });
+
+
+  actions.sort(function(a, b) {
+
+    return a.priority - b.priority;
+
+  });
+
+
+  const container =
+    document.getElementById(
+      "priorityActions"
+    );
+
+
+  if (!actions.length) {
+
+    container.innerHTML = `
+
+      <div class="empty">
+
+        🎉 No urgent actions.
+        You are all caught up!
+
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+
+  container.innerHTML =
+    actions
+      .slice(0, 10)
+      .map(function(item) {
+
+        let button = "";
+
+
+        if (
+          item.type ===
+          "followup"
+        ) {
+
+          button = `
+
+            <button
+              class="btn-primary"
+              onclick="
+                completeFollowup(
+                  ${Number(item.leadId)}
+                )
+              "
+            >
+              Follow-up
+            </button>
+
+          `;
+
+        } else {
+
+          button = `
+
+            <button
+              class="btn-primary"
+              onclick="
+                completeTask(
+                  ${Number(item.taskId)}
+                )
+              "
+            >
+              Complete
+            </button>
+
+          `;
+
+        }
+
+
+        return `
+
+          <div
+            style="
+              display:flex;
+              justify-content:space-between;
+              align-items:center;
+              gap:15px;
+              padding:14px 0;
+              border-bottom:1px solid #eee;
+            "
+          >
+
+            <div>
+
+              <strong>
+                ${escapeHtml(item.title)}
+              </strong>
+
+              <div
+                class="muted"
+                style="margin-top:4px"
+              >
+
+                ${escapeHtml(
+                  item.subtitle
+                )}
+
+              </div>
+
+            </div>
+
+            ${button}
+
+          </div>
+
+        `;
+
+      })
+      .join("");
+
+}
+</script>
+
+<div id="followupModal" class="followup-modal">
+  <div class="followup-modal-box">
+    <div class="followup-modal-header">
+      <h3>Complete Follow-up</h3>
+      <button type="button" class="modal-close" onclick="closeFollowupModal()">×</button>
+    </div>
+
+    <label>Follow-up Result</label>
+    <select id="followupResult">
+      <option value="Spoke">Spoke</option>
+      <option value="No Answer">No Answer</option>
+      <option value="Interested">Interested</option>
+      <option value="Call Later">Call Later</option>
+      <option value="Not Interested">Not Interested</option>
+    </select>
+
+    <label>Follow-up Note <span>(Optional)</span></label>
+    <textarea id="followupNote" placeholder="Add follow-up note..."></textarea>
+
+    <label>Next Follow-up Date & Time <span>(Optional)</span></label>
+    <input type="datetime-local" id="nextFollowup">
+
+    <div class="followup-modal-actions">
+      <button type="button" class="btn-secondary" onclick="closeFollowupModal()">Cancel</button>
+      <button type="button" class="btn-primary" onclick="saveFollowup()">Save Follow-up</button>
+    </div>
+  </div>
+</div>
+
+<style>
+.followup-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;padding:20px}
+.followup-modal.show{display:flex}
+.followup-modal-box{width:min(480px,100%);background:#fff;border-radius:16px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.28)}
+.followup-modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.followup-modal-header h3{margin:0;font-size:21px}
+.modal-close{border:0;background:transparent;font-size:30px;line-height:1;cursor:pointer}
+.followup-modal-box label{display:block;font-weight:600;margin:14px 0 7px}
+.followup-modal-box label span{font-weight:400;color:#777}
+.followup-modal-box select,.followup-modal-box textarea,.followup-modal-box input{width:100%;box-sizing:border-box;border:1px solid #d7dce3;border-radius:9px;padding:12px;font:inherit;background:#fff}
+.followup-modal-box textarea{min-height:88px;resize:vertical}
+.followup-modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:22px}
+</style>
+
+<div id="taskModal" class="followup-modal">
+  <div class="followup-modal-box">
+    <div class="followup-modal-header"><h3>Add Task</h3><button type="button" class="modal-close" onclick="closeTaskModal()">×</button></div>
+    <label>Task Title</label><input id="taskTitle" placeholder="Enter task title">
+    <label>Description <span>(Optional)</span></label><textarea id="taskDescription" placeholder="Add task details..."></textarea>
+    <label>Linked Lead <span>(Optional)</span></label><select id="taskLead"><option value="">No lead selected</option></select>
+    <label>Due Date & Time <span>(Optional)</span></label><input type="datetime-local" id="taskDueDate">
+    <label>Priority</label><select id="taskPriority"><option value="Low">Low</option><option value="Medium" selected>Medium</option><option value="High">High</option></select>
+    <div class="followup-modal-actions"><button type="button" class="btn-secondary" onclick="closeTaskModal()">Cancel</button><button type="button" class="btn-primary" onclick="saveTask()">Save Task</button></div>
+  </div>
+</div>
+<style>
+.priority-high{font-weight:700}.priority-medium{font-weight:600}.priority-low{font-weight:500}
+.task-completed{text-decoration:line-through;opacity:.65}
+</style>
+
+<div id="appointmentModal" class="followup-modal">
+  <div class="followup-modal-box">
+    <div class="followup-modal-header">
+      <h3>Appointment Details</h3>
+      <button type="button" class="modal-close" onclick="closeAppointmentModal()">×</button>
+    </div>
+    <div id="appointmentModalContent" class="appointment-modal-body">
+      <!-- Populated by JavaScript -->
+    </div>
+    <div class="followup-modal-actions">
+      <button type="button" class="btn-secondary" onclick="closeAppointmentModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<div id="appointmentFormModal" class="followup-modal hidden">
+  <div class="followup-modal-box">
+    <div class="followup-modal-header">
+      <h3 id="appointmentFormTitle">New Appointment</h3>
+      <button type="button" class="modal-close" onclick="closeAppointmentFormModal()">×</button>
+    </div>
+    <div class="followup-modal-body" id="appointmentFormContent">
+      <!-- Populated by JavaScript -->
+    </div>
+    <div class="followup-modal-actions">
+      <button type="button" class="btn-primary" onclick="saveAppointmentFromForm()">Save Appointment</button>
+      <button type="button" class="btn-danger" id="deleteApptButton" style="display:none;" onclick="deleteAppointmentFromForm()">Delete Appointment</button>
+      <button type="button" class="btn-secondary" onclick="closeAppointmentFormModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="dateScheduleModal" class="followup-modal hidden">
+  <div class="followup-modal-box">
+    <div class="followup-modal-header">
+      <h3 id="dateScheduleTitle">Schedule – Date</h3>
+      <button type="button" class="modal-close" onclick="closeDateScheduleModal()">×</button>
+    </div>
+    <div id="dateScheduleContent" class="appointment-modal-body">
+    </div>
+    <div class="followup-modal-actions">
+      <button type="button" class="btn-secondary" onclick="closeDateScheduleModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== CALENDAR MODULE (Phase 3A - MOCK DATA ONLY) =====
+// Global variables for appointments
+let currentAppointments=[];
+let currentFollowups=[];
+let currentCalendarMonth=new Date();
+let currentEditingAppointmentId=null;
+
+async function loadCalendar(){
+  if(!currentUser){console.warn("No authenticated user");return;}
+  const year=currentCalendarMonth.getFullYear();
+  const month=String(currentCalendarMonth.getMonth()+1).padStart(2,"0");
+  const monthStart=`${year}-${month}-01`;
+  const nextMonthDate=new Date(currentCalendarMonth.getFullYear(),currentCalendarMonth.getMonth()+1,1);
+  const nextYear=nextMonthDate.getFullYear();
+  const nextMonth=String(nextMonthDate.getMonth()+1).padStart(2,"0");
+  const monthEnd=`${nextYear}-${nextMonth}-01`;
+  
+  // Load appointments
+  const {data:apptData,error:apptError}=await supabaseClient.from("appointments").select("*").gte("appointment_date",monthStart).lt("appointment_date",monthEnd).order("appointment_date",{ascending:true});
+  if(apptError){console.error("Error loading appointments:",apptError);currentAppointments=[];}
+  else{currentAppointments=apptData||[];}
+  
+  // Load follow-ups from leads table for current month
+  const {data:leadData,error:leadError}=await supabaseClient.from("leads").select("id,full_name,mobile_number,next_follow_up,status").gte("next_follow_up",monthStart+"T00:00:00").lt("next_follow_up",monthEnd+"T00:00:00").order("next_follow_up",{ascending:true});
+  if(leadError){console.error("Error loading follow-ups:",leadError);currentFollowups=[];}
+  else{currentFollowups=leadData||[];}
+  
+  renderCalendar(currentAppointments,currentFollowups);
+  renderScheduleList(currentAppointments,currentFollowups);
+}
+function previousMonth(){currentCalendarMonth.setMonth(currentCalendarMonth.getMonth()-1);loadCalendar();}
+function nextMonth(){currentCalendarMonth.setMonth(currentCalendarMonth.getMonth()+1);loadCalendar();}
+function goToToday(){currentCalendarMonth=new Date();loadCalendar();}
+
+function renderCalendar(appointments,followups){
+const year=currentCalendarMonth.getFullYear(),month=currentCalendarMonth.getMonth();
+document.getElementById("calendarMonthYear").textContent=new Date(year,month).toLocaleString("en-IN",{month:"long",year:"numeric"});
+const firstDay=new Date(year,month,1),lastDay=new Date(year,month+1,0),prevLastDay=new Date(year,month,0);
+const firstDayOfWeek=firstDay.getDay(),lastDateOfMonth=lastDay.getDate(),lastDateOfPrevMonth=prevLastDay.getDate(),prevMonthDays=firstDayOfWeek;
+
+let html='<div class="calendar-day-header">Sun</div><div class="calendar-day-header">Mon</div><div class="calendar-day-header">Tue</div><div class="calendar-day-header">Wed</div><div class="calendar-day-header">Thu</div><div class="calendar-day-header">Fri</div><div class="calendar-day-header">Sat</div>';
+
+for(let x=prevMonthDays;x>0;x--){
+const date=lastDateOfPrevMonth-x+1;
+html+=`<div class="calendar-cell other-month"><div class="calendar-cell-date">${date}</div></div>`;
+}
+
+for(let date=1;date<=lastDateOfMonth;date++){
+const dateStr=`${year}-${String(month+1).padStart(2,"0")}-${String(date).padStart(2,"0")}`;
+const dayAppts=(appointments||[]).filter(a=>a.appointment_date===dateStr);
+const dayFollowups=(followups||[]).filter(f=>{
+  if(!f.next_follow_up)return false;
+  const fDate=new Date(f.next_follow_up).toISOString().split('T')[0];
+  return fDate===dateStr;
+});
+const totalItems=dayAppts.length+dayFollowups.length;
+const isToday=new Date().toDateString()===new Date(year,month,date).toDateString();
+html+=`<div class="calendar-cell ${isToday?"today":""}" onclick="handleDateClick('${dateStr}')">
+<div class="calendar-cell-date">${date}</div>
+<div class="calendar-cell-appointments">
+${dayAppts.map(a=>`<span class="appointment-dot ${a.status.toLowerCase()}"></span>`).join("")}
+${dayFollowups.map(f=>`<span class="followup-dot"></span>`).join("")}
+${totalItems>0?`<div style="margin-top:4px;font-size:10px;">${totalItems} item${totalItems>1?"s":""}</div>`:""}
+</div>
+</div>`;
+}
+
+const totalCells=prevMonthDays+lastDateOfMonth,nextMonthDays=42-totalCells;
+for(let date=1;date<=nextMonthDays;date++){
+html+=`<div class="calendar-cell other-month"><div class="calendar-cell-date">${date}</div></div>`;
+}
+
+document.getElementById("calendarGrid").innerHTML=html;
+}
+
+function renderScheduleList(appointments,followups){
+const year=currentCalendarMonth.getFullYear(),month=String(currentCalendarMonth.getMonth()+1).padStart(2,"0");
+const monthAppts=(appointments||[]).filter(a=>a.appointment_date.startsWith(`${year}-${month}`));
+const monthFollowups=(followups||[]).filter(f=>{
+  if(!f.next_follow_up)return false;
+  const fDate=new Date(f.next_follow_up).toISOString().split('T')[0];
+  return fDate.startsWith(`${year}-${month}`);
+});
+
+// Combine appointments and follow-ups
+const combined=[];
+monthAppts.forEach(a=>{
+  combined.push({type:'appointment',data:a});
+});
+monthFollowups.forEach(f=>{
+  combined.push({type:'followup',data:f});
+});
+
+// Sort by date and time
+combined.sort((a,b)=>{
+  const aDate=a.type==='appointment'?a.data.appointment_date:new Date(a.data.next_follow_up).toISOString().split('T')[0];
+  const bDate=b.type==='appointment'?b.data.appointment_date:new Date(b.data.next_follow_up).toISOString().split('T')[0];
+  if(aDate!==bDate)return new Date(aDate)-new Date(bDate);
+  const aTime=a.type==='appointment'?a.data.appointment_time:new Date(a.data.next_follow_up).toISOString().split('T')[1].substring(0,5);
+  const bTime=b.type==='appointment'?b.data.appointment_time:new Date(b.data.next_follow_up).toISOString().split('T')[1].substring(0,5);
+  return aTime.localeCompare(bTime);
+});
+
+const html=combined.map(item=>{
+  if(item.type==='appointment'){
+    const a=item.data;
+    const dateObj=new Date(a.appointment_date);
+    const formattedDate=dateObj.toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"});
+    const statusClass=a.status.toLowerCase();
+    return `<tr onclick="openAppointmentModal(${a.id});" style="cursor:pointer;">
+<td>${escapeHtml(formattedDate)}</td>
+<td>${escapeHtml(a.appointment_time)}</td>
+<td><span style="color:#059669;font-weight:bold;">🟢</span> ${escapeHtml(a.customer_name)}</td>
+<td>${escapeHtml(a.mobile_number)}</td>
+<td><span class="appointment-badge ${statusClass}">${escapeHtml(a.status)}</span></td>
+<td><button class="btn-secondary" onclick="event.stopPropagation();openAppointmentModal(${a.id});">View</button></td>
+</tr>`;
+  }else{
+    const f=item.data;
+    const followupDate=new Date(f.next_follow_up);
+    const formattedDate=followupDate.toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"});
+    const followupTime=followupDate.toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit",hour12:false});
+    return `<tr onclick="viewLead(${f.id},'calendar');" style="cursor:pointer;">
+<td>${escapeHtml(formattedDate)}</td>
+<td>${escapeHtml(followupTime)}</td>
+<td><span style="color:#2563eb;font-weight:bold;">🔵</span> ${escapeHtml(f.full_name)}</td>
+<td>${escapeHtml(f.mobile_number)}</td>
+<td><span class="appointment-badge">${escapeHtml(f.status||"Pending")}</span></td>
+<td><button class="btn-secondary" onclick="event.stopPropagation();viewLead(${f.id},'calendar');">View</button></td>
+</tr>`;
+  }
+}).join("")||(combined.length===0?`<tr><td colspan="6" class="empty">No appointments or follow-ups this month</td></tr>`:"");
+
+document.getElementById("appointmentsList").innerHTML=html;
+}
+
+function handleDateClick(dateStr){
+const appts=currentAppointments.filter(a=>a.appointment_date===dateStr);
+const followups=currentFollowups.filter(f=>{
+  if(!f.next_follow_up)return false;
+  const fDate=new Date(f.next_follow_up).toISOString().split('T')[0];
+  return fDate===dateStr;
+});
+const totalItems=appts.length+followups.length;
+
+if(totalItems===0){alert("No appointments or follow-ups on this date");return}
+if(totalItems===1){
+  if(appts.length===1){openAppointmentModal(appts[0].id);return}
+  if(followups.length===1){viewLead(followups[0].id,'calendar');return}
+}
+
+// Multiple items - open date schedule modal
+openDateScheduleModal(dateStr);
+}
+
+function openAppointmentModal(id){
+const appt=currentAppointments.find(a=>a.id===id);
+if(!appt)return;
+currentEditingAppointmentId=id;
+const dateObj=new Date(appt.appointment_date);
+const formattedDate=dateObj.toLocaleDateString("en-IN",{weekday:"long",day:"2-digit",month:"long",year:"numeric"});
+const statusBg={"scheduled":"#d1fae5","completed":"#dbeafe","cancelled":"#fee2e2"}[appt.status.toLowerCase()]||"#f0f0f0";
+const statusColor={"scheduled":"#065f46","completed":"#0c4a6e","cancelled":"#7f1d1d"}[appt.status.toLowerCase()]||"#333";
+
+const html=`
+<div style="margin-bottom:16px;">
+<strong>Date & Time</strong>
+<div>${escapeHtml(formattedDate)}</div>
+<div style="font-size:14px;margin-top:4px;">${escapeHtml(appt.appointment_time)}</div>
+</div>
+<div style="margin-bottom:16px;">
+<strong>Customer Name</strong>
+<div>${escapeHtml(appt.customer_name)}</div>
+</div>
+<div style="margin-bottom:16px;">
+<strong>Mobile Number</strong>
+<div>${escapeHtml(appt.mobile_number)}</div>
+</div>
+<div style="margin-bottom:16px;">
+<strong>Status</strong>
+<div style="display:inline-block;padding:6px 12px;border-radius:6px;background:${statusBg};color:${statusColor};font-weight:600;">${escapeHtml(appt.status)}</div>
+</div>
+<div style="margin-bottom:16px;">
+<strong>Notes</strong>
+<div>${escapeHtml(appt.notes||"-")}</div>
+</div>
+<div style="margin-top:20px;display:flex;gap:8px;">
+<button class="btn-primary" onclick="editAppointment(${id})">✏️ Edit</button>
+<button class="btn-danger" onclick="confirmDeleteAppointment(${id})">🗑️ Delete</button>
+</div>
+`;
+document.getElementById("appointmentModalContent").innerHTML=html;
+document.getElementById("appointmentModal").classList.add("show");
+}
+
+function closeAppointmentModal(){
+document.getElementById("appointmentModal").classList.remove("show");
+currentEditingAppointmentId=null;
+}
+
+function openDateScheduleModal(dateStr){
+const appts=currentAppointments.filter(a=>a.appointment_date===dateStr);
+const followups=currentFollowups.filter(f=>{
+  if(!f.next_follow_up)return false;
+  const fDate=new Date(f.next_follow_up).toISOString().split('T')[0];
+  return fDate===dateStr;
+});
+
+// Combine and sort by time
+const combined=[];
+appts.forEach(a=>combined.push({type:'appointment',data:a}));
+followups.forEach(f=>combined.push({type:'followup',data:f}));
+combined.sort((a,b)=>{
+  const aTime=a.type==='appointment'?a.data.appointment_time:new Date(a.data.next_follow_up).toISOString().split('T')[1].substring(0,5);
+  const bTime=b.type==='appointment'?b.data.appointment_time:new Date(b.data.next_follow_up).toISOString().split('T')[1].substring(0,5);
+  return aTime.localeCompare(bTime);
+});
+
+// Format date title
+const dateObj=new Date(dateStr);
+const dateTitle=dateObj.toLocaleDateString("en-IN",{weekday:"long",day:"2-digit",month:"long",year:"numeric"});
+document.getElementById("dateScheduleTitle").textContent=`Schedule – ${dateTitle}`;
+
+// Build content HTML
+const contentHtml=combined.map(item=>{
+  if(item.type==='appointment'){
+    const a=item.data;
+    return `<div style="margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border);">
+<div style="display:flex;align-items:flex-start;gap:10px;">
+<span style="color:#059669;font-weight:bold;font-size:16px;">🟢</span>
+<div style="flex:1;">
+<div style="font-weight:600;color:var(--text);">${escapeHtml(a.customer_name)}</div>
+<div style="font-size:13px;color:var(--muted);margin-top:4px;">🕐 ${escapeHtml(a.appointment_time)}</div>
+<div style="font-size:13px;color:var(--muted);margin-top:2px;">📞 ${escapeHtml(a.mobile_number)}</div>
+<div style="margin-top:6px;"><span class="appointment-badge ${a.status.toLowerCase()}">${escapeHtml(a.status)}</span></div>
+<button class="btn-secondary" style="margin-top:8px;padding:4px 12px;font-size:12px;" onclick="openAppointmentModal(${a.id});closeDateScheduleModal();">View Appointment</button>
+</div>
+</div>
+</div>`;
+  }else{
+    const f=item.data;
+    const followupTime=new Date(f.next_follow_up).toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit",hour12:false});
+    return `<div style="margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border);">
+<div style="display:flex;align-items:flex-start;gap:10px;">
+<span style="color:#2563eb;font-weight:bold;font-size:16px;">🔵</span>
+<div style="flex:1;">
+<div style="font-weight:600;color:var(--text);">${escapeHtml(f.full_name)}</div>
+<div style="font-size:13px;color:var(--muted);margin-top:4px;">🕐 ${escapeHtml(followupTime)}</div>
+<div style="font-size:13px;color:var(--muted);margin-top:2px;">📞 ${escapeHtml(f.mobile_number)}</div>
+<div style="margin-top:6px;"><span class="appointment-badge">${escapeHtml(f.status||"Pending")}</span></div>
+<button class="btn-secondary" style="margin-top:8px;padding:4px 12px;font-size:12px;" onclick="viewLead(${f.id},'calendar');closeDateScheduleModal();">View Lead</button>
+</div>
+</div>
+</div>`;
+  }
+}).join("");
+
+document.getElementById("dateScheduleContent").innerHTML=contentHtml;
+document.getElementById("dateScheduleModal").classList.add("show");
+}
+
+function closeDateScheduleModal(){
+document.getElementById("dateScheduleModal").classList.remove("show");
+}
+
+async function saveAppointment(formData){
+if(!currentUser){alert("Not authenticated");return;}
+if(!formData.lead_id||!formData.customer_name||!formData.mobile_number||!formData.appointment_date||!formData.appointment_time||!formData.status){
+alert("Please fill all required fields");return;}
+const payload={...formData,created_by:currentUser.id};
+const {data,error}=await supabaseClient.from("appointments").insert([payload]).select().single();
+if(error){alert("Error saving appointment: "+error.message);return;}
+await processWhatsAppAutomationQueue();
+showMessage("Appointment created successfully!","success");
+closeAppointmentModal();
+await loadCalendar();
+}
+
+async function updateAppointment(id,formData){
+if(!currentUser){alert("Not authenticated");return;}
+if(!formData.customer_name||!formData.mobile_number||!formData.appointment_date||!formData.appointment_time){
+alert("Please fill all required fields");return;}
+const updatePayload={customer_name:formData.customer_name,mobile_number:formData.mobile_number,appointment_date:formData.appointment_date,appointment_time:formData.appointment_time,status:formData.status,notes:formData.notes};
+const {error}=await supabaseClient.from("appointments").update(updatePayload).eq("id",id);
+if(error){alert("Error updating appointment: "+error.message);return;}
+showMessage("Appointment updated successfully!","success");
+closeAppointmentModal();
+await loadCalendar();
+}
+
+async function deleteAppointment(id){
+if(!confirm("Are you sure you want to delete this appointment?"))return;
+const {error}=await supabaseClient.from("appointments").delete().eq("id",id);
+if(error){alert("Error deleting appointment: "+error.message);return;}
+showMessage("Appointment deleted successfully!","success");
+closeAppointmentModal();
+await loadCalendar();
+}
+
+function editAppointment(id){
+const appt=currentAppointments.find(a=>a.id===id);
+if(!appt)return;
+openAppointmentFormModal(appt.lead_id,id);
+}
+
+function confirmDeleteAppointment(id){
+deleteAppointment(id);
+}
+
+function autoFillLeadData(){
+const leadIdInput=document.getElementById("apptFormLeadId");
+if(!leadIdInput)return;
+const leadId=parseInt(leadIdInput.value);
+if(!leadId){
+document.getElementById("apptFormCustomerName").value="";
+document.getElementById("apptFormMobile").value="";
+return;
+}
+const leads=allLeadsCache||[];
+const selectedLead=leads.find(l=>l.id===leadId);
+if(selectedLead){
+document.getElementById("apptFormCustomerName").value=escapeHtml(selectedLead.full_name||"");
+document.getElementById("apptFormMobile").value=escapeHtml(selectedLead.mobile_number||"");
+}
+}
+
+function openAppointmentFormModal(leadId,appointmentId){
+const appt=appointmentId?currentAppointments.find(a=>a.id===appointmentId):null;
+const title=appt?"Edit Appointment":"New Appointment";
+const isEditMode=!!appt;
+const selectedLeadId=isEditMode?appt.lead_id:leadId;
+
+const leads=allLeadsCache||[];
+const leadsOptions=leads.map(l=>`<option value="${l.id}" ${selectedLeadId===l.id?"selected":""}>${escapeHtml(l.full_name)}</option>`).join("");
+
+const html=`
+<div style="margin-bottom:12px;">
+<label><strong>Lead</strong> <span style="color:red;">*</span></label>
+<select id="apptFormLeadId" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;margin-top:4px;" ${isEditMode?"disabled":""} ${isEditMode?"":"onchange=\"autoFillLeadData()\""}>
+<option value="">Select a lead</option>
+${leadsOptions}
+</select>
+</div>
+<div style="margin-bottom:12px;">
+<label><strong>Customer Name</strong> <span style="color:red;">*</span></label>
+<input type="text" id="apptFormCustomerName" value="${escapeHtml(appt?.customer_name||"")}" placeholder="Full name" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;margin-top:4px;box-sizing:border-box;" ${isEditMode?"":"readonly"}>
+</div>
+<div style="margin-bottom:12px;">
+<label><strong>Mobile Number</strong> <span style="color:red;">*</span></label>
+<input type="text" id="apptFormMobile" value="${escapeHtml(appt?.mobile_number||"")}" placeholder="10-digit number" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;margin-top:4px;box-sizing:border-box;" ${isEditMode?"":"readonly"}>
+</div>
+<div style="margin-bottom:12px;">
+<label><strong>Date</strong> <span style="color:red;">*</span></label>
+<input type="date" id="apptFormDate" value="${appt?.appointment_date||""}" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;margin-top:4px;box-sizing:border-box;">
+</div>
+<div style="margin-bottom:12px;">
+<label><strong>Time</strong> <span style="color:red;">*</span></label>
+<input type="time" id="apptFormTime" value="${appt?.appointment_time||""}" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;margin-top:4px;box-sizing:border-box;">
+</div>
+<div style="margin-bottom:12px;">
+<label><strong>Status</strong> <span style="color:red;">*</span></label>
+<select id="apptFormStatus" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;margin-top:4px;">
+<option value="Scheduled" ${appt?.status==="Scheduled"?"selected":""}>Scheduled</option>
+<option value="Completed" ${appt?.status==="Completed"?"selected":""}>Completed</option>
+<option value="Cancelled" ${appt?.status==="Cancelled"?"selected":""}>Cancelled</option>
+</select>
+</div>
+<div style="margin-bottom:12px;">
+<label><strong>Notes</strong></label>
+<textarea id="apptFormNotes" placeholder="Add notes (optional)" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;margin-top:4px;box-sizing:border-box;height:80px;">${escapeHtml(appt?.notes||"")}</textarea>
+</div>
+`;
+
+document.getElementById("appointmentFormContent").innerHTML=html;
+document.getElementById("appointmentFormTitle").textContent=title;
+document.getElementById("deleteApptButton").style.display=isEditMode?"block":"none";
+if(!isEditMode&&selectedLeadId){
+autoFillLeadData();
+}
+document.getElementById("appointmentFormModal").classList.add("show");
+}
+
+function closeAppointmentFormModal(){
+document.getElementById("appointmentFormModal").classList.remove("show");
+currentEditingAppointmentId=null;
+}
+
+async function saveAppointmentFromForm(){
+const leadId=parseInt(document.getElementById("apptFormLeadId").value);
+const customerName=document.getElementById("apptFormCustomerName").value.trim();
+const mobile=document.getElementById("apptFormMobile").value.trim();
+const date=document.getElementById("apptFormDate").value;
+const time=document.getElementById("apptFormTime").value;
+const status=document.getElementById("apptFormStatus").value;
+const notes=document.getElementById("apptFormNotes").value.trim();
+
+if(!leadId){alert("Please select a lead");return;}
+if(!customerName||!mobile||!date||!time||!status){alert("Please fill all required fields");return;}
+
+const formData={lead_id:leadId,customer_name:customerName,mobile_number:mobile,appointment_date:date,appointment_time:time,status:status,notes:notes||null};
+
+if(currentEditingAppointmentId){
+await updateAppointment(currentEditingAppointmentId,formData);
+}else{
+await saveAppointment(formData);
+}
+closeAppointmentFormModal();
+}
+
+async function deleteAppointmentFromForm(){
+if(!currentEditingAppointmentId)return;
+await deleteAppointment(currentEditingAppointmentId);
+closeAppointmentFormModal();
+}
+
+
+let currentWhatsAppWaId=null,whatsappContactsCache=[],whatsappInboxTimer=null,whatsappSeenAt={};
+function formatWhatsAppPhone(v){const s=String(v||"");return s.startsWith("91")&&s.length===12?"+91 "+s.slice(2,7)+" "+s.slice(7):"+"+s}
+function formatWhatsAppTime(v){if(!v)return"";const d=new Date(v);return isNaN(d)?"":d.toLocaleString("en-IN",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"})}
+function waStatusLabel(m){
+ if(m.direction!=="outbound")return"";
+ const s=String(m.delivery_status||"sent").toLowerCase();
+ if(s==="read")return" · 🔵✓✓ Read";
+ if(s==="delivered")return" · ✓✓ Delivered";
+ if(s==="failed")return" · ⚠ Failed";
+ return" · ✓ Sent";
+}
+async function loadWhatsAppInbox(){
+ const h=document.getElementById("waContacts");if(!h)return;
+ h.innerHTML='<div class="empty">Loading conversations...</div>';
+ try{
+  const {data,error}=await supabaseClient.from("whatsapp_contacts").select("*").order("last_message_at",{ascending:false}).limit(100);
+  if(error)throw error;
+  whatsappContactsCache=data||[];
+  h.innerHTML=whatsappContactsCache.map(x=>'<div class="wa-contact" data-wa="'+escapeHtml(x.wa_id)+'" onclick="openWhatsAppConversation(\''+escapeHtml(x.wa_id)+'\')"><div class="wa-contact-name">'+escapeHtml(x.profile_name||formatWhatsAppPhone(x.wa_id))+'</div><div class="wa-contact-meta">'+escapeHtml(formatWhatsAppPhone(x.phone_number||x.wa_id))+' · '+escapeHtml(formatWhatsAppTime(x.last_message_at))+'</div></div>').join("")||'<div class="empty">No WhatsApp conversations yet.</div>';
+ }catch(e){console.error("WhatsApp inbox load error",e);h.innerHTML='<div class="empty">Unable to load conversations. <button class="btn-secondary" onclick="loadWhatsAppInbox()">Retry</button></div>'}
+}
+async function openWhatsAppConversation(waId){
+ currentWhatsAppWaId=waId;whatsappSeenAt[waId]=new Date().toISOString();
+ const x=whatsappContactsCache.find(v=>v.wa_id===waId);document.getElementById("waLayout").classList.add("chat-open");const composer=document.getElementById("waComposer");if(composer)composer.style.display="flex";
+ document.getElementById("waChatHead").innerHTML='<div style="display:flex;gap:10px;align-items:center"><button class="btn-secondary" id="waBackBtn" onclick="closeWhatsAppConversation()">←</button><div><strong>'+escapeHtml(x?.profile_name||formatWhatsAppPhone(waId))+'</strong><div class="wa-contact-meta">'+escapeHtml(formatWhatsAppPhone(waId))+'</div></div></div>';
+ const back=document.getElementById("waBackBtn");if(window.innerWidth>768)back.style.display="none";
+ document.querySelectorAll(".wa-contact").forEach(el=>el.classList.toggle("active",el.dataset.wa===waId));
+ const box=document.getElementById("waMessages");box.innerHTML='<div class="wa-placeholder">Loading...</div>';
+ const {data,error}=await supabaseClient.from("whatsapp_messages").select("direction,message_type,message_text,message_timestamp,created_at,delivery_status,status_timestamp,read_at").eq("wa_id",waId).order("message_timestamp",{ascending:true});
+ if(error){box.innerHTML='<div class="wa-placeholder">Unable to load messages.</div>';console.error(error);return}
+ box.innerHTML=(data||[]).map(m=>'<div class="wa-bubble '+(m.direction==="outbound"?"outbound":"")+'">'+(m.message_text?escapeHtml(m.message_text):'<em>['+escapeHtml(m.message_type)+' message]</em>')+'<span class="wa-time">'+escapeHtml(formatWhatsAppTime(m.message_timestamp||m.created_at))+escapeHtml(waStatusLabel(m))+'</span></div>').join("")||'<div class="wa-placeholder">No messages.</div>';box.scrollTop=box.scrollHeight;
+}
+function closeWhatsAppConversation(){document.getElementById("waLayout").classList.remove("chat-open");currentWhatsAppWaId=null;const composer=document.getElementById("waComposer");if(composer)composer.style.display="none"}
+function startWhatsAppAutoRefresh(){
+ if(whatsappInboxTimer)clearInterval(whatsappInboxTimer);
+ whatsappInboxTimer=setInterval(async()=>{const p=document.getElementById("whatsappPage");if(document.hidden||!p||p.classList.contains("hidden"))return;if(currentWhatsAppWaId)await openWhatsAppConversation(currentWhatsAppWaId);else await loadWhatsAppInbox()},20000);
+}
+async function openWhatsAppNewMessage(){const p=document.getElementById("waNewMessagePanel");if(p)p.style.display="block";const m=document.getElementById("waNewMobile");if(m)m.focus();if(document.getElementById("waNewType")?.value==="template")await loadApprovedTemplatesForSend()}
+function toggleWhatsAppNewMessageType(){const t=document.getElementById("waNewType").value;document.getElementById("waNormalMessageFields").style.display=t==="text"?"block":"none";document.getElementById("waTemplateMessageFields").style.display=t==="template"?"block":"none";document.getElementById("waAttachmentFields").style.display=t==="attachment"?"block":"none";if(t==="template")loadApprovedTemplatesForSend()}
+async function loadApprovedTemplatesForSend(){const s=document.getElementById("waSendTemplate");if(!s)return;s.innerHTML='<option value="">Loading approved templates...</option>';try{const {data,error}=await supabaseClient.functions.invoke("whatsapp-templates",{body:{action:"list"}});if(error)throw error;waTemplateMeta={};(data?.templates||[]).forEach(x=>waTemplateMeta[x.name]=x);const approved=(data?.templates||[]).filter(x=>x.status==="APPROVED");s.innerHTML='<option value="">Select approved template</option>'+approved.map(x=>'<option value="'+escapeHtml(x.name)+'">'+escapeHtml(x.name)+' · '+escapeHtml(x.language)+'</option>').join("");}catch(e){s.innerHTML='<option value="">Unable to load templates</option>'}}
+function renderWhatsAppTemplateSendFields(){const name=document.getElementById("waSendTemplate").value,p=document.getElementById("waSendTemplatePreview"),t=waTemplateMeta[name];if(!t){p.innerHTML="";return}const body=(t.components||[]).find(x=>x.type==="BODY"),msg=body?.text||"",nums=[...msg.matchAll(/\{\{(\d+)\}\}/g)].map(x=>Number(x[1])),count=nums.length?Math.max(...nums):0;p.innerHTML='<div style="padding:12px;background:#fff;border:1px solid var(--border);border-radius:8px;white-space:pre-wrap">'+escapeHtml(msg)+'</div>'+(count?'<div style="margin-top:10px">'+Array.from({length:count},(_,i)=>'<div class="form-group" style="margin-top:8px"><label>Value for {{'+(i+1)+'}}</label><input class="wa-template-param" data-index="'+i+'" placeholder="Enter value"></div>').join("")+'</div>':'');}
+function closeWhatsAppNewMessage(){const p=document.getElementById("waNewMessagePanel");if(p)p.style.display="none";const s=document.getElementById("waNewStatus");if(s)s.textContent=""}
+function normalizeWhatsAppNumber(v){let n=String(v||"").replace(/\D/g,"");if(n.startsWith("0"))n=n.slice(1);if(n.length===10)n="91"+n;return n}
+function whatsappMediaType(file){if(file.type.startsWith("image/"))return"image";if(file.type.startsWith("video/"))return"video";return"document"}
+function fileToBase64(file){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(String(r.result).split(",")[1]||"");r.onerror=()=>reject(r.error);r.readAsDataURL(file)})}
+async function buildWhatsAppMediaRequest(waId,file,caption=""){if(!file)throw new Error("Select an attachment.");if(file.size>16*1024*1024)throw new Error("Attachment must be 16 MB or less.");const allowed=/^(image\/|video\/|application\/pdf$|text\/plain$|application\/(msword|vnd\.openxmlformats-officedocument\.wordprocessingml\.document|vnd\.ms-excel|vnd\.openxmlformats-officedocument\.spreadsheetml\.sheet|vnd\.ms-powerpoint|vnd\.openxmlformats-officedocument\.presentationml\.presentation)$)/;if(file.type&&!allowed.test(file.type))throw new Error("Unsupported attachment type.");return{wa_id:waId,type:"media",media_type:whatsappMediaType(file),file_name:file.name,mime_type:file.type||"application/octet-stream",caption:String(caption||"").trim(),file_base64:await fileToBase64(file)}}
+async function sendWhatsAppNewMessage(){
+ const mobile=document.getElementById("waNewMobile"),btn=document.getElementById("waNewSendBtn"),status=document.getElementById("waNewStatus"),waId=normalizeWhatsAppNumber(mobile.value),type=document.getElementById("waNewType")?.value||"text";
+ if(!/^91[6-9]\d{9}$/.test(waId)){status.textContent="Enter a valid 10-digit Indian mobile number.";mobile.focus();return}
+ let request={wa_id:waId};
+ if(type==="attachment"){const file=document.getElementById("waNewAttachment")?.files?.[0],caption=document.getElementById("waAttachmentCaption")?.value||"";try{request=await buildWhatsAppMediaRequest(waId,file,caption)}catch(e){status.textContent=e.message;return}}
+ else if(type==="template"){const name=document.getElementById("waSendTemplate").value,t=waTemplateMeta[name];if(!name||!t){status.textContent="Select an approved template.";return}const params=[...document.querySelectorAll(".wa-template-param")].map(x=>x.value.trim());if(params.some(x=>!x)){status.textContent="Fill all template variable values.";return}request={wa_id:waId,type:"template",template_name:name,language:t.language,parameters:params};}
+ else{const input=document.getElementById("waNewText"),message=input.value.trim();if(!message){status.textContent="Enter a message.";input.focus();return}request.message=message;}
+ btn.disabled=true;btn.textContent="Sending...";status.textContent="";
+ try{const {data,error}=await supabaseClient.functions.invoke("whatsapp-send",{body:request});if(error)throw error;if(!data?.ok)throw new Error(data?.error||"Send failed");status.textContent="Sent";mobile.value="";if(document.getElementById("waNewText"))document.getElementById("waNewText").value="";if(document.getElementById("waNewAttachment"))document.getElementById("waNewAttachment").value="";if(document.getElementById("waAttachmentCaption"))document.getElementById("waAttachmentCaption").value="";await loadWhatsAppInbox();currentWhatsAppWaId=waId;await openWhatsAppConversation(waId);closeWhatsAppNewMessage();}
+ catch(e){console.error(e);status.textContent=e?.message||"Unable to send. Please try again."}finally{btn.disabled=false;btn.textContent="Send Message"}
+}
+async function sendWhatsAppConversationAttachment(input){
+ if(!currentWhatsAppWaId||!input?.files?.[0])return;const status=document.getElementById("waSendStatus"),file=input.files[0];status.textContent="Sending attachment...";
+ try{const request=await buildWhatsAppMediaRequest(currentWhatsAppWaId,file,"");const {data,error}=await supabaseClient.functions.invoke("whatsapp-send",{body:request});if(error)throw error;if(!data?.ok)throw new Error(data?.error||"Send failed");status.textContent="Attachment sent";await openWhatsAppConversation(currentWhatsAppWaId);await loadWhatsAppInbox();}
+ catch(e){console.error(e);status.textContent=e?.message||"Unable to send attachment."}finally{input.value=""}
+}
+async function sendWhatsAppReply(){
+ if(!currentWhatsAppWaId)return;
+ const input=document.getElementById("waReplyText"),btn=document.getElementById("waSendBtn"),status=document.getElementById("waSendStatus");
+ const message=input.value.trim();if(!message)return;
+ btn.disabled=true;btn.textContent="Sending...";status.textContent="";
+ try{
+  const {data,error}=await supabaseClient.functions.invoke("whatsapp-send",{body:{wa_id:currentWhatsAppWaId,message}});
+  if(error)throw error;if(!data?.ok)throw new Error(data?.error||"Send failed");
+  input.value="";status.textContent="Sent";await openWhatsAppConversation(currentWhatsAppWaId);await loadWhatsAppInbox();
+ }catch(e){console.error(e);status.textContent="Unable to send. Please try again."}
+ finally{btn.disabled=false;btn.textContent="Send"}
+}
+startWhatsAppAutoRefresh();
+
+const FSP_WA_TEMPLATES=[
+{name:"fsp_new_enquiry_received",label:"New Enquiry Received",purpose:"Confirm a new insurance enquiry",language:"Tamil",message:`வணக்கம் {{1}},
+Future Secure Providers-க்கு உங்கள் Insurance enquiry கிடைத்துள்ளது.
+உங்கள் தேவையைப் புரிந்துகொண்டு தேவையான தகவல்களுடன் விரைவில் உங்களை தொடர்பு கொள்கிறோம்.
+நன்றி.`,variables:"{{1}} = Customer Name"},
+{name:"fsp_appointment_confirmed",label:"Appointment Confirmed",purpose:"Confirm appointment date and time",language:"Tamil",message:`வணக்கம் {{1}},
+Future Secure Providers உடனான உங்கள் appointment உறுதி செய்யப்பட்டுள்ளது.
+தேதி: {{2}}
+நேரம்: {{3}}
+குறிப்பிட்ட நேரத்தில் உங்களை தொடர்பு கொள்கிறோம்.
+நன்றி.`,variables:"{{1}} = Customer Name, {{2}} = Date, {{3}} = Time"}
+];
+let waTemplateMeta={};
+async function loadWhatsAppTemplates(){
+ const body=document.getElementById("waTemplatesBody"),status=document.getElementById("waTemplateStatus");if(!body)return;
+ body.innerHTML='<tr><td colspan="5" class="empty">Loading Meta status...</td></tr>';if(status)status.textContent="";
+ try{
+  const {data,error}=await supabaseClient.functions.invoke("whatsapp-templates",{body:{action:"list"}});
+  if(error)throw error;if(!data?.ok)throw new Error(data?.error||"Unable to load templates");
+  waTemplateMeta={};(data.templates||[]).forEach(x=>waTemplateMeta[x.name]=x);
+  const known=new Set(FSP_WA_TEMPLATES.map(x=>x.name));(data.templates||[]).filter(x=>!known.has(x.name)).forEach(x=>{const body=(x.components||[]).find(c=>c.type==="BODY");FSP_WA_TEMPLATES.push({name:x.name,label:x.name.replace(/_/g," "),purpose:x.category||"Custom template",language:x.language||"",message:body?.text||"",variables:"Defined in message body"});});
+  body.innerHTML=FSP_WA_TEMPLATES.map(t=>{const m=waTemplateMeta[t.name],s=m?.status||"NOT SUBMITTED";const submitted=!!m;
+   return '<tr><td><strong>'+escapeHtml(t.label)+'</strong><div class="muted" style="font-size:11px">'+escapeHtml(t.name)+'</div></td><td>'+escapeHtml(t.purpose)+'</td><td>'+escapeHtml(t.language)+'</td><td><span class="status">'+escapeHtml(s)+'</span></td><td>'+(submitted?'<button class="btn-secondary" onclick="viewWhatsAppTemplate(\''+t.name+'\')">View</button> <button class="btn-secondary" onclick="loadWhatsAppTemplates()">Refresh</button>':'<button class="btn-secondary" onclick="viewWhatsAppTemplate(\''+t.name+'\')">View</button> <button class="btn-primary" onclick="submitWhatsAppTemplate(\''+t.name+'\',this)">Submit to Meta</button>')+'</td></tr>';
+  }).join("");
+ }catch(e){console.error(e);body.innerHTML='<tr><td colspan="5" class="empty">Unable to load template status.</td></tr>';if(status)status.textContent=e?.message||"Error";}
+}
+function openNewWhatsAppTemplate(){
+ const overlay=document.createElement("div");overlay.id="waNewTemplateModal";overlay.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px";
+ overlay.innerHTML='<div style="background:#fff;width:100%;max-width:650px;border-radius:12px;padding:22px;max-height:90vh;overflow:auto"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px"><h2>New WhatsApp Template</h2><button class="btn-secondary" onclick="document.getElementById(\'waNewTemplateModal\').remove()">✕</button></div><div class="form-grid"><div class="form-group full"><label>Template Name</label><input id="waTplName" placeholder="example: policy_renewal_reminder"><small class="muted">Lowercase letters, numbers and underscores only.</small></div><div class="form-group"><label>Category</label><select id="waTplCategory"><option value="UTILITY">Utility</option><option value="MARKETING">Marketing</option></select></div><div class="form-group"><label>Language</label><select id="waTplLanguage"><option value="ta">Tamil</option><option value="en_US">English (US)</option></select></div><div class="form-group full"><label>Message Body</label><textarea id="waTplMessage" style="min-height:180px" placeholder="வணக்கம் {{1}}, ..."></textarea><small class="muted">Variables: {{1}}, {{2}}, {{3}} ...</small></div></div><div id="waTplCreateStatus" class="muted" style="margin:12px 0"></div><div class="actions" style="justify-content:flex-end"><button class="btn-secondary" onclick="previewNewWhatsAppTemplate()">Preview</button><button id="waTplCreateBtn" class="btn-primary" onclick="createWhatsAppTemplate()">Submit to Meta</button></div><div id="waTplPreview" style="display:none;margin-top:14px;padding:14px;background:#f8fafc;border:1px solid var(--border);border-radius:8px;white-space:pre-wrap"></div></div>';
+ document.body.appendChild(overlay);
+}
+function previewNewWhatsAppTemplate(){const p=document.getElementById("waTplPreview"),m=document.getElementById("waTplMessage").value.trim();p.style.display="block";p.textContent=m||"Enter a message body to preview."}
+async function createWhatsAppTemplate(){
+ const name=document.getElementById("waTplName").value.trim().toLowerCase(),category=document.getElementById("waTplCategory").value,language=document.getElementById("waTplLanguage").value,message=document.getElementById("waTplMessage").value.trim(),status=document.getElementById("waTplCreateStatus"),btn=document.getElementById("waTplCreateBtn");
+ if(!/^[a-z0-9_]{3,512}$/.test(name)){status.textContent="Use lowercase letters, numbers and underscores only.";return}if(!message){status.textContent="Enter the message body.";return}
+ if(!confirm("Submit this new template to Meta for review?"))return;btn.disabled=true;btn.textContent="Submitting...";status.textContent="";
+ try{const {data,error}=await supabaseClient.functions.invoke("whatsapp-templates",{body:{action:"create",name,category,language,message}});if(error)throw error;if(!data?.ok)throw new Error(data?.error||"Submission failed");status.textContent="Submitted to Meta successfully.";setTimeout(async()=>{document.getElementById("waNewTemplateModal")?.remove();await loadWhatsAppTemplates()},700)}
+ catch(e){console.error(e);status.textContent=e?.message||"Unable to submit template.";btn.disabled=false;btn.textContent="Submit to Meta"}
+}
+function viewWhatsAppTemplate(name){
+ const t=FSP_WA_TEMPLATES.find(x=>x.name===name);if(!t)return;
+ const m=waTemplateMeta[name];
+ const overlay=document.createElement("div");overlay.id="waTemplateViewModal";overlay.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px";
+ overlay.innerHTML='<div style="background:#fff;width:100%;max-width:620px;border-radius:12px;padding:22px;max-height:85vh;overflow:auto"><div style="display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:18px"><h2>'+escapeHtml(t.label)+'</h2><button class="btn-secondary" onclick="document.getElementById(\'waTemplateViewModal\').remove()">✕</button></div><div style="line-height:1.7"><div><strong>Template Name:</strong> '+escapeHtml(t.name)+'</div><div><strong>Language:</strong> '+escapeHtml(t.language)+'</div><div><strong>Meta Status:</strong> '+escapeHtml(m?.status||"NOT SUBMITTED")+'</div><div style="margin-top:14px"><strong>Variables:</strong><br>'+escapeHtml(t.variables)+'</div><div style="margin-top:14px"><strong>Message Preview:</strong><div style="margin-top:8px;padding:14px;background:#f8fafc;border:1px solid var(--border);border-radius:8px;white-space:pre-wrap">'+escapeHtml(t.message)+'</div></div></div></div>';
+ document.body.appendChild(overlay);
+}
+async function submitWhatsAppTemplate(name,btn){
+ if(!confirm("Submit this WhatsApp template to Meta for approval?"))return;
+ const status=document.getElementById("waTemplateStatus");btn.disabled=true;btn.textContent="Submitting...";if(status)status.textContent="";
+ try{
+  const {data,error}=await supabaseClient.functions.invoke("whatsapp-templates",{body:{action:"submit",name}});
+  if(error)throw error;if(!data?.ok)throw new Error(data?.error||"Submission failed");
+  if(status)status.textContent="Submitted to Meta. Approval status may remain Pending until Meta completes review.";
+  await loadWhatsAppTemplates();
+ }catch(e){console.error(e);if(status)status.textContent=e?.message||"Unable to submit template.";btn.disabled=false;btn.textContent="Submit to Meta";}
+}
+
+function toggleSidebar(){const sidebar=document.querySelector('.sidebar');const overlay=document.querySelector('.sidebar-overlay');sidebar.classList.toggle('show');if(sidebar.classList.contains('show')){overlay.classList.add('show')}else{overlay.classList.remove('show')}}
+function closeSidebar(){const sidebar=document.querySelector('.sidebar');const overlay=document.querySelector('.sidebar-overlay');sidebar.classList.remove('show');overlay.classList.remove('show')}
+document.querySelectorAll('.nav-item').forEach(item=>{item.addEventListener('click',()=>{if(window.innerWidth<=768){closeSidebar()}})})
+</script>
+
+<!-- PWA Service Worker Registration -->
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', async () => {
+    try {
+      const registration = await navigator.serviceWorker.register('./service-worker.js?v=13', { scope: './', updateViaCache: 'none' });
+      await registration.update();
+      if (registration.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+      registration.addEventListener('updatefound', () => {
+        const worker = registration.installing;
+        if (!worker) return;
+        worker.addEventListener('statechange', () => {
+          if (worker.state === 'installed' && navigator.serviceWorker.controller) {
+            worker.postMessage({ type: 'SKIP_WAITING' });
+          }
+        });
+      });
+      console.log('[PWA] Service Worker ready:', registration.scope);
+    } catch (error) {
+      console.error('[PWA] Service Worker registration failed:', error);
+    }
+  });
+}
+</script>
+
+</body>
+</html>
