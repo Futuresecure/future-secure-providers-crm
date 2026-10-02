@@ -1,7 +1,7 @@
 // Future Secure Providers CRM Service Worker
-const CACHE_NAME = 'fsp-crm-v6';
-const RUNTIME_CACHE = 'fsp-crm-runtime-v6';
-const APP_SHELL = ['./', './index.html', './manifest.json?v=6', './logo.jpg'];
+const CACHE_NAME = 'fsp-crm-v7';
+const RUNTIME_CACHE = 'fsp-crm-runtime-v7';
+const APP_SHELL = ['./', './index.html', './manifest.json?v=7', './logo.jpg'];
 
 self.addEventListener('message', event => {
   if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting();
