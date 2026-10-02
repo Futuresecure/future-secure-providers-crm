@@ -86,6 +86,7 @@ button{border:0;border-radius:8px;padding:10px 14px;cursor:pointer}.btn-primary{
 <div class="nav-item" data-page="tasks" onclick="showPage('tasks',this);loadTasks()">🗓 Today's Tasks</div>
 <div class="nav-item" data-page="calendar" onclick="showPage('calendar',this);loadCalendar()">📅 Calendar</div>
 <div class="nav-item" data-page="whatsapp" onclick="showPage('whatsapp',this);loadWhatsAppInbox()">💬 WhatsApp Inbox</div>
+<div class="nav-item" data-page="waTemplates" onclick="showPage('waTemplates',this);loadWhatsAppTemplates()">📝 WhatsApp Templates</div>
 <div class="nav-item" data-page="reports" onclick="showPage('reports',this);loadLeads()">📊 Reports</div>
 <div class="nav-item" data-page="pipeline" onclick="showPage('pipeline',this);loadPipeline()">🎯 Pipeline</div>
 <div class="sidebar-bottom"><div class="nav-item" data-page="settings" onclick="showPage('settings',this)">⚙️ Settings</div></div>
@@ -247,6 +248,13 @@ button{border:0;border-radius:8px;padding:10px 14px;cursor:pointer}.btn-primary{
   </div>
 </div>
 </section>
+
+<section id="waTemplatesPage" class="page hidden">
+<div class="card">
+ <div class="card-header"><div><h2>WhatsApp Templates</h2><div class="muted" style="margin-top:5px">Only the two approved FSP workflow templates are managed here.</div></div><button class="btn-secondary" onclick="loadWhatsAppTemplates()">Refresh Status</button></div>
+ <div id="waTemplateStatus" class="muted" style="margin-bottom:12px"></div>
+ <div class="table-wrapper"><table><thead><tr><th>Template</th><th>Purpose</th><th>Language</th><th>Meta Status</th><th>Action</th></tr></thead><tbody id="waTemplatesBody"><tr><td colspan="5" class="empty">Loading...</td></tr></tbody></table></div>
+</div></section>
 
 <section id="reportsPage" class="page hidden">
 <div class="stats"><div class="stat-card"><h3>Conversion Rate</h3><div class="number" id="reportConversionRate">0%</div></div><div class="stat-card"><h3>Today's Leads</h3><div class="number" id="reportTodayLeads">0</div></div><div class="stat-card"><h3>This Week</h3><div class="number" id="reportWeekLeads">0</div></div><div class="stat-card"><h3>This Month</h3><div class="number" id="reportMonthLeads">0</div></div></div>
@@ -2059,6 +2067,34 @@ async function sendWhatsAppReply(){
  finally{btn.disabled=false;btn.textContent="Send"}
 }
 startWhatsAppAutoRefresh();
+
+const FSP_WA_TEMPLATES=[
+ {name:"fsp_new_enquiry_received",label:"New Enquiry Received",purpose:"Confirm a new insurance enquiry",language:"Tamil"},
+ {name:"fsp_appointment_confirmed",label:"Appointment Confirmed",purpose:"Confirm appointment date and time",language:"Tamil"}
+];
+let waTemplateMeta={};
+async function loadWhatsAppTemplates(){
+ const body=document.getElementById("waTemplatesBody"),status=document.getElementById("waTemplateStatus");if(!body)return;
+ body.innerHTML='<tr><td colspan="5" class="empty">Loading Meta status...</td></tr>';if(status)status.textContent="";
+ try{
+  const {data,error}=await supabaseClient.functions.invoke("whatsapp-templates",{body:{action:"list"}});
+  if(error)throw error;if(!data?.ok)throw new Error(data?.error||"Unable to load templates");
+  waTemplateMeta={};(data.templates||[]).forEach(x=>waTemplateMeta[x.name]=x);
+  body.innerHTML=FSP_WA_TEMPLATES.map(t=>{const m=waTemplateMeta[t.name],s=m?.status||"NOT SUBMITTED";const submitted=!!m;
+   return '<tr><td><strong>'+escapeHtml(t.label)+'</strong><div class="muted" style="font-size:11px">'+escapeHtml(t.name)+'</div></td><td>'+escapeHtml(t.purpose)+'</td><td>'+escapeHtml(t.language)+'</td><td><span class="status">'+escapeHtml(s)+'</span></td><td>'+(submitted?'<button class="btn-secondary" onclick="loadWhatsAppTemplates()">Refresh</button>':'<button class="btn-primary" onclick="submitWhatsAppTemplate(\''+t.name+'\',this)">Submit to Meta</button>')+'</td></tr>';
+  }).join("");
+ }catch(e){console.error(e);body.innerHTML='<tr><td colspan="5" class="empty">Unable to load template status.</td></tr>';if(status)status.textContent=e?.message||"Error";}
+}
+async function submitWhatsAppTemplate(name,btn){
+ if(!confirm("Submit this WhatsApp template to Meta for approval?"))return;
+ const status=document.getElementById("waTemplateStatus");btn.disabled=true;btn.textContent="Submitting...";if(status)status.textContent="";
+ try{
+  const {data,error}=await supabaseClient.functions.invoke("whatsapp-templates",{body:{action:"submit",name}});
+  if(error)throw error;if(!data?.ok)throw new Error(data?.error||"Submission failed");
+  if(status)status.textContent="Submitted to Meta. Approval status may remain Pending until Meta completes review.";
+  await loadWhatsAppTemplates();
+ }catch(e){console.error(e);if(status)status.textContent=e?.message||"Unable to submit template.";btn.disabled=false;btn.textContent="Submit to Meta";}
+}
 
 function toggleSidebar(){const sidebar=document.querySelector('.sidebar');const overlay=document.querySelector('.sidebar-overlay');sidebar.classList.toggle('show');if(sidebar.classList.contains('show')){overlay.classList.add('show')}else{overlay.classList.remove('show')}}
 function closeSidebar(){const sidebar=document.querySelector('.sidebar');const overlay=document.querySelector('.sidebar-overlay');sidebar.classList.remove('show');overlay.classList.remove('show')}
