@@ -251,7 +251,7 @@ button{border:0;border-radius:8px;padding:10px 14px;cursor:pointer}.btn-primary{
 
 <section id="waTemplatesPage" class="page hidden">
 <div class="card">
- <div class="card-header"><div><h2>WhatsApp Templates</h2><div class="muted" style="margin-top:5px">Only the two approved FSP workflow templates are managed here.</div></div><button class="btn-secondary" onclick="loadWhatsAppTemplates()">Refresh Status</button></div>
+ <div class="card-header"><div><h2>WhatsApp Templates</h2><div class="muted" style="margin-top:5px">Create, preview, submit and monitor WhatsApp message templates.</div></div><div class="actions"><button class="btn-primary" onclick="openNewWhatsAppTemplate()">+ New Template</button><button class="btn-secondary" onclick="loadWhatsAppTemplates()">Refresh Status</button></div></div>
  <div id="waTemplateStatus" class="muted" style="margin-bottom:12px"></div>
  <div class="table-wrapper"><table><thead><tr><th>Template</th><th>Purpose</th><th>Language</th><th>Meta Status</th><th>Action</th></tr></thead><tbody id="waTemplatesBody"><tr><td colspan="5" class="empty">Loading...</td></tr></tbody></table></div>
 </div></section>
@@ -2080,10 +2080,24 @@ async function loadWhatsAppTemplates(){
   const {data,error}=await supabaseClient.functions.invoke("whatsapp-templates",{body:{action:"list"}});
   if(error)throw error;if(!data?.ok)throw new Error(data?.error||"Unable to load templates");
   waTemplateMeta={};(data.templates||[]).forEach(x=>waTemplateMeta[x.name]=x);
+  const known=new Set(FSP_WA_TEMPLATES.map(x=>x.name));(data.templates||[]).filter(x=>!known.has(x.name)).forEach(x=>{const body=(x.components||[]).find(c=>c.type==="BODY");FSP_WA_TEMPLATES.push({name:x.name,label:x.name.replace(/_/g," "),purpose:x.category||"Custom template",language:x.language||"",message:body?.text||"",variables:"Defined in message body"});});
   body.innerHTML=FSP_WA_TEMPLATES.map(t=>{const m=waTemplateMeta[t.name],s=m?.status||"NOT SUBMITTED";const submitted=!!m;
    return '<tr><td><strong>'+escapeHtml(t.label)+'</strong><div class="muted" style="font-size:11px">'+escapeHtml(t.name)+'</div></td><td>'+escapeHtml(t.purpose)+'</td><td>'+escapeHtml(t.language)+'</td><td><span class="status">'+escapeHtml(s)+'</span></td><td>'+(submitted?'<button class="btn-secondary" onclick="loadWhatsAppTemplates()">Refresh</button>':'<button class="btn-primary" onclick="submitWhatsAppTemplate(\''+t.name+'\',this)">Submit to Meta</button>')+'</td></tr>';
   }).join("");
  }catch(e){console.error(e);body.innerHTML='<tr><td colspan="5" class="empty">Unable to load template status.</td></tr>';if(status)status.textContent=e?.message||"Error";}
+}
+function openNewWhatsAppTemplate(){
+ const overlay=document.createElement("div");overlay.id="waNewTemplateModal";overlay.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px";
+ overlay.innerHTML='<div style="background:#fff;width:100%;max-width:650px;border-radius:12px;padding:22px;max-height:90vh;overflow:auto"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px"><h2>New WhatsApp Template</h2><button class="btn-secondary" onclick="document.getElementById(\\'waNewTemplateModal\\').remove()">✕</button></div><div class="form-grid"><div class="form-group full"><label>Template Name</label><input id="waTplName" placeholder="example: policy_renewal_reminder"><small class="muted">Lowercase letters, numbers and underscores only.</small></div><div class="form-group"><label>Category</label><select id="waTplCategory"><option value="UTILITY">Utility</option><option value="MARKETING">Marketing</option></select></div><div class="form-group"><label>Language</label><select id="waTplLanguage"><option value="ta">Tamil</option><option value="en_US">English (US)</option></select></div><div class="form-group full"><label>Message Body</label><textarea id="waTplMessage" style="min-height:180px" placeholder="வணக்கம் {{1}}, ..."></textarea><small class="muted">Variables: {{1}}, {{2}}, {{3}} ...</small></div></div><div id="waTplCreateStatus" class="muted" style="margin:12px 0"></div><div class="actions" style="justify-content:flex-end"><button class="btn-secondary" onclick="previewNewWhatsAppTemplate()">Preview</button><button id="waTplCreateBtn" class="btn-primary" onclick="createWhatsAppTemplate()">Submit to Meta</button></div><div id="waTplPreview" style="display:none;margin-top:14px;padding:14px;background:#f8fafc;border:1px solid var(--border);border-radius:8px;white-space:pre-wrap"></div></div>';
+ document.body.appendChild(overlay);
+}
+function previewNewWhatsAppTemplate(){const p=document.getElementById("waTplPreview"),m=document.getElementById("waTplMessage").value.trim();p.style.display="block";p.textContent=m||"Enter a message body to preview."}
+async function createWhatsAppTemplate(){
+ const name=document.getElementById("waTplName").value.trim().toLowerCase(),category=document.getElementById("waTplCategory").value,language=document.getElementById("waTplLanguage").value,message=document.getElementById("waTplMessage").value.trim(),status=document.getElementById("waTplCreateStatus"),btn=document.getElementById("waTplCreateBtn");
+ if(!/^[a-z0-9_]{3,512}$/.test(name)){status.textContent="Use lowercase letters, numbers and underscores only.";return}if(!message){status.textContent="Enter the message body.";return}
+ if(!confirm("Submit this new template to Meta for review?"))return;btn.disabled=true;btn.textContent="Submitting...";status.textContent="";
+ try{const {data,error}=await supabaseClient.functions.invoke("whatsapp-templates",{body:{action:"create",name,category,language,message}});if(error)throw error;if(!data?.ok)throw new Error(data?.error||"Submission failed");status.textContent="Submitted to Meta successfully.";setTimeout(async()=>{document.getElementById("waNewTemplateModal")?.remove();await loadWhatsAppTemplates()},700)}
+ catch(e){console.error(e);status.textContent=e?.message||"Unable to submit template.";btn.disabled=false;btn.textContent="Submit to Meta"}
 }
 function viewWhatsAppTemplate(name){
  const t=FSP_WA_TEMPLATES.find(x=>x.name===name);if(!t)return;
