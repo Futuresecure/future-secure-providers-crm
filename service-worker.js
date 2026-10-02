@@ -1,7 +1,7 @@
 // Future Secure Providers CRM Service Worker
-const CACHE_NAME = 'fsp-crm-v3';
-const RUNTIME_CACHE = 'fsp-crm-runtime-v3';
-const APP_SHELL = ['./', './index.html', './manifest.json', './logo.jpg'];
+const CACHE_NAME = 'fsp-crm-v4';
+const RUNTIME_CACHE = 'fsp-crm-runtime-v4';
+const APP_SHELL = ['./', './index.html', './manifest.json?v=4', './logo.jpg'];
 
 self.addEventListener('install', event => {
   event.waitUntil(
@@ -46,6 +46,15 @@ self.addEventListener('fetch', event => {
           (await caches.match('./'))
         )
     );
+    return;
+  }
+
+  // Manifest: network first so install metadata never gets stuck on an old cached version.
+  if (url.pathname.endsWith('/manifest.json')) {
+    event.respondWith(fetch(request).then(response => {
+      if (response && response.ok) caches.open(RUNTIME_CACHE).then(cache => cache.put(request, response.clone()));
+      return response;
+    }).catch(() => caches.match(request)));
     return;
   }
 
