@@ -2004,16 +2004,15 @@ function waStatusLabel(m){
  if(s==="failed")return" · ⚠ Failed";
  return" · ✓ Sent";
 }
-let whatsappInboxLoading=false;
 async function loadWhatsAppInbox(){
- const h=document.getElementById("waContacts");if(!h||whatsappInboxLoading)return;
- whatsappInboxLoading=true;
- const {data,error}=await supabaseClient.from("whatsapp_contacts").select("wa_id,profile_name,phone_number,last_message_at,updated_at").order("last_message_at",{ascending:false}).limit(100);
- if(error){h.innerHTML='<div class="empty">Unable to load conversations.</div>';console.error(error);whatsappInboxLoading=false;return}
- whatsappContactsCache=data||[];
- const counts={};
- h.innerHTML=whatsappContactsCache.map(x=>{const n=counts[x.wa_id]||0;return '<div class="wa-contact" data-wa="'+escapeHtml(x.wa_id)+'" onclick="openWhatsAppConversation(\''+escapeHtml(x.wa_id)+'\')"><div class="wa-contact-name">'+escapeHtml(x.profile_name||formatWhatsAppPhone(x.wa_id))+(n?'<span style="float:right;background:#16a34a;color:white;border-radius:999px;padding:2px 7px;font-size:11px">'+n+'</span>':'')+'</div><div class="wa-contact-meta">'+escapeHtml(formatWhatsAppPhone(x.phone_number||x.wa_id))+' · '+escapeHtml(formatWhatsAppTime(x.last_message_at))+'</div></div>'}).join("")||'<div class="empty">No WhatsApp conversations yet.</div>';
- whatsappInboxLoading=false;
+ const h=document.getElementById("waContacts");if(!h)return;
+ h.innerHTML='<div class="empty">Loading conversations...</div>';
+ try{
+  const {data,error}=await supabaseClient.from("whatsapp_contacts").select("*").order("last_message_at",{ascending:false}).limit(100);
+  if(error)throw error;
+  whatsappContactsCache=data||[];
+  h.innerHTML=whatsappContactsCache.map(x=>'<div class="wa-contact" data-wa="'+escapeHtml(x.wa_id)+'" onclick="openWhatsAppConversation(\\''+escapeHtml(x.wa_id)+'\\')"><div class="wa-contact-name">'+escapeHtml(x.profile_name||formatWhatsAppPhone(x.wa_id))+'</div><div class="wa-contact-meta">'+escapeHtml(formatWhatsAppPhone(x.phone_number||x.wa_id))+' · '+escapeHtml(formatWhatsAppTime(x.last_message_at))+'</div></div>').join("")||'<div class="empty">No WhatsApp conversations yet.</div>';
+ }catch(e){console.error("WhatsApp inbox load error",e);h.innerHTML='<div class="empty">Unable to load conversations. <button class="btn-secondary" onclick="loadWhatsAppInbox()">Retry</button></div>'}
 }
 async function openWhatsAppConversation(waId){
  currentWhatsAppWaId=waId;whatsappSeenAt[waId]=new Date().toISOString();
