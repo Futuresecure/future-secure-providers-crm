@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="FSP CRM">
 <link rel="apple-touch-icon" href="./logo.jpg">
 <link rel="icon" type="image/x-icon" href="./logo.jpg">
-<link rel="manifest" href="./manifest.json?v=14">
+<link rel="manifest" href="./manifest.json?v=15">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:Arial,sans-serif}
@@ -172,7 +172,7 @@ button{border:0;border-radius:8px;padding:10px 14px;cursor:pointer}.btn-primary{
 <div class="stat-card"><h3>Follow-ups</h3><div class="number" id="followupCount">0</div></div>
 <div class="stat-card"><h3>Converted</h3><div class="number" id="convertedCount">0</div></div>
 </div>
-<div class="card"><div class="card-header"><h2>Insurance Business Overview</h2><span class="muted">Lead distribution by insurance category</span></div><div class="business-summary" id="insuranceBusinessSummary"></div></div>
+<div class="card"><div class="card-header"><h2>Insurance Business Overview</h2><span class="muted">Lead distribution by insurance category</span></div><div class="business-summary" id="insuranceBusinessSummary"><div class="business-card"><h3><span class="insurance-badge health">🏥 Health Insurance</span></h3><strong>0</strong><p>Leads · 0 Converted</p></div><div class="business-card"><h3><span class="insurance-badge women">🌸 Women Care Insurance</span></h3><strong>0</strong><p>Leads · 0 Converted</p></div><div class="business-card"><h3><span class="insurance-badge super">➕ Super Top-Up Insurance</span></h3><strong>0</strong><p>Leads · 0 Converted</p></div><div class="business-card"><h3><span class="insurance-badge life">🛡️ Life Insurance</span></h3><strong>0</strong><p>Leads · 0 Converted</p></div><div class="business-card"><h3><span class="insurance-badge vehicle">🚗 Vehicle Insurance</span></h3><strong>0</strong><p>Leads · 0 Converted</p></div></div></div>
 
 <div class="card"><div class="card-header"><h2>Recent Leads</h2><button class="btn-secondary" onclick="showPage('leads',document.querySelector('[data-page=leads]'));loadLeads()">View All</button></div><div class="table-wrapper"><table><thead><tr><th>Name</th><th>Mobile</th><th>Insurance</th><th>City</th><th>Status</th></tr></thead><tbody id="recentLeads"></tbody></table></div></div>
 </section>
@@ -2135,7 +2135,7 @@ document.querySelectorAll('.nav-item').forEach(item=>{item.addEventListener('cli
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', async () => {
     try {
-      const registration = await navigator.serviceWorker.register('./service-worker.js?v=14', { scope: './', updateViaCache: 'none' });
+      const registration = await navigator.serviceWorker.register('./service-worker.js?v=15', { scope: './', updateViaCache: 'none' });
       await registration.update();
       if (registration.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
       registration.addEventListener('updatefound', () => {
