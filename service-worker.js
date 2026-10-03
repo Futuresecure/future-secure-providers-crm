@@ -1,7 +1,7 @@
 // Future Secure Providers CRM Service Worker
-const CACHE_NAME = 'fsp-crm-v13';
-const RUNTIME_CACHE = 'fsp-crm-runtime-v13';
-const APP_SHELL = ['./', './index.html', './manifest.json?v=13', './logo.jpg'];
+const CACHE_NAME = 'fsp-crm-v14';
+const RUNTIME_CACHE = 'fsp-crm-runtime-v14';
+const APP_SHELL = ['./', './index.html', './manifest.json?v=14', './logo.jpg'];
 
 self.addEventListener('message', event => {
   if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting();
@@ -33,24 +33,24 @@ self.addEventListener('fetch', event => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
-  // Documents: serve the installed app shell immediately, then refresh it in the background.
-  // Live CRM records still come directly from Supabase, so cached UI never makes business data stale.
+  // Documents: network first so CRM UI updates deploy immediately.
   if (request.mode === 'navigate') {
     event.respondWith((async () => {
-      const cached = (await caches.match('./index.html')) || (await caches.match('./'));
-      const network = fetch(request).then(async response => {
+      try {
+        const response = await fetch(request, { cache: 'no-store' });
         if (response && response.ok) {
           const cache = await caches.open(RUNTIME_CACHE);
           await cache.put(request, response.clone());
+          if (url.pathname.endsWith('/crm/') || url.pathname.endsWith('/crm/index.html')) {
+            await cache.put('./index.html', response.clone());
+          }
         }
         return response;
-      });
-      if (cached) {
-        event.waitUntil(network.catch(() => undefined));
-        return cached;
+      } catch (_) {
+        return (await caches.match(request)) ||
+               (await caches.match('./index.html')) ||
+               new Response('Offline', { status: 503, headers: { 'Content-Type': 'text/plain' } });
       }
-      try { return await network; }
-      catch (_) { return new Response('Offline', { status: 503, headers: { 'Content-Type': 'text/plain' } }); }
     })());
     return;
   }
