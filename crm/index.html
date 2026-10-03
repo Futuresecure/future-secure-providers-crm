@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="FSP CRM">
 <link rel="apple-touch-icon" href="./logo.jpg">
 <link rel="icon" type="image/x-icon" href="./logo.jpg">
-<link rel="manifest" href="./manifest.json?v=36">
+<link rel="manifest" href="./manifest.json?v=37">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:Arial,sans-serif}
@@ -564,7 +564,7 @@ async function handleLeadCSVImport(event){
 }
 let allLeadsCache=[];
 function getLocalDateKey(value){if(!value)return "";const d=new Date(value);if(isNaN(d))return "";const p=n=>String(n).padStart(2,"0");return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;}
-function normalizeInsuranceType(value){const v=String(value||"").trim().toLowerCase();if(!v)return "Not Specified";if(v.includes("super top-up")||v.includes("super topup")||v.includes("super surplus"))return "Super Top-Up Insurance";if(v.includes("women care")||v.includes("womens care")||v.includes("women-care"))return "Women Care Insurance";if(v.includes("health")||v.includes("medical"))return "Health Insurance";if(v.includes("life"))return "Life Insurance";if(v.includes("vehicle")||v.includes("motor")||v.includes("car")||v.includes("bike"))return "Vehicle Insurance";if(v.includes("other"))return "Other Insurance";return String(value).trim()||"Not Specified";}
+function normalizeInsuranceType(value){const v=String(value||"").trim().toLowerCase();if(!v)return "Not Specified";if(v.includes("super top-up")||v.includes("super topup")||v.includes("super surplus"))return "Super Top-Up Insurance";if(v.includes("women care")||v.includes("womens care")||v.includes("women-care")||v.includes("women's care"))return "Women Care Insurance";if(v.includes("health")||v.includes("medical"))return "Health Insurance";if(v.includes("life"))return "Life Insurance";if(v.includes("vehicle")||v.includes("motor")||v.includes("car")||v.includes("bike"))return "Vehicle Insurance";if(v.includes("other"))return "Other Insurance";return String(value).trim()||"Not Specified";}
 function getInsuranceType(lead){
   if(!lead)return "Not Specified";
   const direct=[lead.insurance_type,lead.insuranceType,lead.product,lead.policy_type,lead.policyType,lead.purpose].find(v=>String(v||"").trim());
@@ -2135,7 +2135,7 @@ document.querySelectorAll('.nav-item').forEach(item=>{item.addEventListener('cli
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', async () => {
     try {
-      const registration = await navigator.serviceWorker.register('./service-worker.js?v=36', { scope: './', updateViaCache: 'none' });
+      const registration = await navigator.serviceWorker.register('./service-worker.js?v=37', { scope: './', updateViaCache: 'none' });
       await registration.update();
       if (registration.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
       registration.addEventListener('updatefound', () => {
