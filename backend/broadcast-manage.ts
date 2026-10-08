@@ -1,6 +1,18 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.57.4";
 
+// Meta requires server-side App Secret Proof for this app's Graph requests.
+async function metaFetch(input:string,options:RequestInit={}){
+ const url=new URL(input),authorization=new Headers(options.headers).get("Authorization")||"";
+ const token=authorization.replace(/^Bearer\s+/i,""),secret=Deno.env.get("WHATSAPP_APP_SECRET")||Deno.env.get("META_APP_SECRET");
+ if(url.hostname==="graph.facebook.com"&&token&&secret){
+  const key=await crypto.subtle.importKey("raw",new TextEncoder().encode(secret),{name:"HMAC",hash:"SHA-256"},false,["sign"]);
+  const proof=[...new Uint8Array(await crypto.subtle.sign("HMAC",key,new TextEncoder().encode(token)))].map(x=>x.toString(16).padStart(2,"0")).join("");
+  url.searchParams.set("appsecret_proof",proof);
+ }
+ return fetch(url.toString(),options);
+}
+
 const H = {"content-type":"application/json","access-control-allow-origin":"*","access-control-allow-headers":"authorization,x-client-info,apikey,content-type","access-control-allow-methods":"POST,OPTIONS"};
 const reply=(body:unknown,status=200)=>new Response(JSON.stringify(body),{status,headers:H});
 const normalize=(v:unknown)=>{let s=String(v||"").replace(/\D/g,"");if(s.length===10)s="91"+s;return /^91[6-9]\d{9}$/.test(s)?s:"";};
@@ -73,7 +85,7 @@ Deno.serve(async req=>{
    const {data:settings}=await db.from("broadcast_settings").select("send_enabled,mode").eq("id",true).maybeSingle();
    if(!settings?.send_enabled||settings.mode!=="live")return reply({error:"Broadcast sending is disabled until the Meta test-number validation passes."},409);
    if(!(Deno.env.get("WHATSAPP_APP_SECRET")||Deno.env.get("META_APP_SECRET")))return reply({error:"Webhook signature secret is required before live sending"},409);
-   const tr=await fetch("https://graph.facebook.com/v23.0/922433197569331/message_templates?fields=name,status,language,category,components&limit=100",{headers:{Authorization:"Bearer "+(Deno.env.get("WHATSAPP_ACCESS_TOKEN")||"")}});
+   const tr=await metaFetch("https://graph.facebook.com/v23.0/922433197569331/message_templates?fields=name,status,language,category,components&limit=100",{headers:{Authorization:"Bearer "+(Deno.env.get("WHATSAPP_ACCESS_TOKEN")||"")}});
    const tj=await tr.json(),tpl=(tj.data||[]).find((x:any)=>x.name===campaign.template_name&&x.language===campaign.template_language&&x.status==="APPROVED"&&x.category==="MARKETING");
    if(!tr.ok||!tpl)return reply({error:"An approved Meta marketing template is required"},422);
    const comps=tpl.components||[],body=String(comps.find((x:any)=>x.type==="BODY")?.text||""),nums=[...new Set([...body.matchAll(/\{\{(\d+)\}\}/g)].map(m=>Number(m[1])))].sort((a,b)=>a-b);
@@ -93,3 +105,4 @@ Deno.serve(async req=>{
   return reply({error:"Unknown action"},400);
  }catch(e){console.error(e);return reply({error:"Request failed"},500)}
 });
+
