@@ -1,21 +1,18 @@
-# WhatsApp Broadcast — isolated implementation plan
+# WhatsApp Broadcast — release status
 
-Status: DEVELOPMENT ONLY. No live send enabled.
+Status: implemented on the isolated feature branch; live sending remains disabled.
 
-## Isolation
-- Keep main branch, current webhook, whatsapp-send, templates, automation worker and existing database tables unchanged.
-- Broadcast uses dedicated campaign, recipient, consent and send-log tables. Enable RLS and deny client writes by default.
-- No new sender is deployed until Meta template, explicit marketing opt-in and authenticated server-side authorization are verified.
+## Delivered
+- CRM page for creating campaigns, registering evidenced marketing opt-ins, selecting eligible contacts, scheduling, cancellation and per-contact delivery reports.
+- Authenticated `broadcast-manage` Edge Function (v2) with campaign-owner checks, approved marketing-template validation, duplicate prevention, consent/opt-out filtering and server-side reporting.
+- Additive broadcast tables and indexes. Client roles cannot read consent records or write campaign/recipient records.
+- Existing WhatsApp webhook (v17) records delivery/read/failure states for broadcast messages, handles STOP and common opt-out keywords, and processes due campaigns through the existing scheduled worker.
+- A database feature gate (`broadcast_settings.send_enabled=false`, mode=`test`) prevents all broadcast sends by default.
 
-## Workflow
-1. Select opted-in CRM contacts; normalize Indian phone numbers and deduplicate per campaign.
-2. Choose an approved marketing template and preview personalization.
-3. Draft campaign and optionally schedule it.
-4. Explicit approval to queue; worker uses rate limits, idempotency keys, retry backoff, opt-out and quiet-hour rules.
-5. Track queued, submitted, delivered, read, failed; reconcile existing webhook statuses without modifying the webhook until tested.
+## Existing setup
+- The CRM source change is isolated in `feature/whatsapp-broadcast-isolated`; `main` was not changed.
+- The existing inbox, sender, template service, automation queue and scheduler remain in place. Broadcast processing is additive and is called only by the existing internal worker.
+- The database change only adds broadcast consent/settings fields, indexes and access restrictions; existing lead, appointment, calendar, inbox and automation records were not migrated.
 
-## Release gates
-- Test in isolation with own opted-in number.
-- Check existing lead capture, inbox, automation, appointment/calendar and Google Sheets workflows.
-- Verify RLS, secret isolation, template eligibility, error handling and rollback.
-- Feature flag OFF by default. No live sending before explicit approval.
+## Release gate
+Live sending is not enabled. The configured WhatsApp sender is the production sender, and no separate Meta test-number credentials are available in this session. Do not turn `broadcast_settings.send_enabled` on until a test number is configured and an end-to-end test confirms template acceptance, message delivery, webhook status updates, opt-out handling, and inbox/report consistency. After that gate passes, publish the feature branch CRM UI and enable live sending.
