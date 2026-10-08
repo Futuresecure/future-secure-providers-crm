@@ -1,18 +1,9 @@
-# WhatsApp Broadcast — release status
-
-Status: implemented on the isolated feature branch; live sending remains disabled.
-
-## Delivered
-- CRM page for creating campaigns, registering evidenced marketing opt-ins, selecting eligible contacts, scheduling, cancellation and per-contact delivery reports.
-- Authenticated `broadcast-manage` Edge Function (v3) with campaign-owner checks, approved marketing-template validation, duplicate prevention, consent/opt-out filtering and server-side reporting.
-- Additive broadcast tables and indexes. Client roles cannot read consent records or write campaign/recipient records.
-- Existing WhatsApp webhook (v19) records delivery/read/failure states for broadcast messages, handles STOP and common opt-out keywords, and processes due campaigns through the existing scheduled worker.
-- A database feature gate (`broadcast_settings.send_enabled=false`, mode=`test`) prevents all broadcast sends by default.
-
-## Existing setup
-- The CRM source change is isolated in `feature/whatsapp-broadcast-isolated`; `main` was not changed.
-- The existing inbox, sender, template service, automation queue and scheduler remain in place. Broadcast processing is additive and is called only by the existing internal worker.
-- The database change only adds broadcast consent/settings fields, indexes and access restrictions; existing lead, appointment, calendar, inbox and automation records were not migrated.
-
-## Release gate
-Live sending is not enabled. The configured WhatsApp sender is the production sender, and no separate Meta test-number credentials are available in this session. Do not turn `broadcast_settings.send_enabled` on until a test number is configured and an end-to-end test confirms template acceptance, message delivery, webhook status updates, opt-out handling, and inbox/report consistency. After that gate passes, publish the feature branch CRM UI and enable live sending.
+# WhatsApp Broadcast release — 2026-10-08
+Implemented: CRM main-menu page, consent evidence, opt-out management, campaign drafts, manual queueing, India-time scheduling, cancellation, report refresh, sent/delivered/read timestamps and inbox integration.
+Security: administrator allowlist, campaign ownership, RLS, service-only atomic consent RPCs, unique request/recipient/message identifiers, conditional worker claims, no retry after uncertain provider outcomes, signed webhook verification when App Secret is configured. Live approval and dispatch refuse to send without App Secret.
+Supported templates: approved MARKETING templates with a text body; static headers/buttons allowed. Media or dynamic header/URL parameters are rejected before approval.
+Tests: 40 automated checks passed (node tests/broadcast.test.cjs). Shared dispatch code sent one manual and one scheduled hello_world message from Meta test sender +1 555-183-0040 to the owner's verified 9585905905 only. Both reached sent/delivered/read via the actual webhook. Re-running sent no duplicates. Future campaigns did not send early. A cancelled campaign did not send. Atomic opt-out revoked consent and skipped pending recipients. RLS and RPC execute grants verified.
+Regression: inbox, template, lead, calendar, login/logout frontend functions and existing lead/appointment automation handler unchanged. Broadcast-only additive schema changes.
+Cleanup: temporary test cron removed, test runner disabled with JWT verification ON, temporary test consent revoked. No production customers received test messages.
+Pending release gates: WHATSAPP_APP_SECRET (or META_APP_SECRET) is absent. Authenticated desktop/mobile UI testing still requires a CRM browser login. Responsive CSS and script syntax checked; those are not a substitute for authenticated device testing.
+Live state: send_enabled=false, mode=test. Do not enable until pending gates pass. UI may be published while live dispatch remains OFF.
