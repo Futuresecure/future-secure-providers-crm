@@ -28,6 +28,23 @@ Deno.serve(async req=>{
   if(user.id!=="4bd1c093-0912-4e63-a062-21d8fd759357")return reply({error:"Forbidden"},403);
   const db=createClient(url,secret),input=await req.json(),action=String(input.action||"");
   if(action==="config"){const {data,error:e}=await db.from("broadcast_settings").select("send_enabled,mode").eq("id",true).maybeSingle();if(e)throw e;return reply({config:data||{send_enabled:false,mode:"test"}});}
+  if(action==="contacts_import"){
+   const rows=input.rows;if(!Array.isArray(rows)||!rows.length||rows.length>500||JSON.stringify(rows).length>600000)return reply({error:"Import 1-500 rows per file"},400);
+   if(input.commit===true&&input.consent_confirmed!==true)return reply({error:"Confirm verified consent before importing"},400);
+   const seen=new Set<string>();
+   const checked=rows.map((r:any,i:number)=>{
+    const phone=normalize(r.phone),name=String(r.name||"").trim(),reference=String(r.reference||"").trim(),at=String(r.consent_at||"");
+    let status="ready";
+    if(!phone)status="invalid_mobile";
+    else if(seen.has(phone))status="duplicate";
+    else if(![true,"yes","true","1"].includes(typeof r.optin==="string"?r.optin.trim().toLowerCase():r.optin))status="no_consent";
+    else if(!Number.isFinite(Date.parse(at))||Date.parse(at)>Date.now()||reference.length<3||reference.length>500||name.length>120)status="invalid_evidence";
+    if(phone&&status==="ready")seen.add(phone);
+    return {row:i+2,phone,name:name.slice(0,120),reference:reference.slice(0,500),consent_at:status==="ready"?new Date(at).toISOString():at.slice(0,50),status};
+   });
+   const {data,error:e}=await db.rpc("broadcast_import_optins",{p_rows:checked,p_user:user.id,p_commit:input.commit===true});if(e)throw e;
+   return reply({rows:data,committed:input.commit===true});
+  }
   if(action==="optin_add"){
    const wa_id=normalize(input.phone),source=String(input.consent_source||""),reference=String(input.consent_reference||"").trim(),at=String(input.consent_at||"");
    if(!wa_id||!["website_form","crm_manual","imported_record"].includes(source)||reference.length<3||reference.length>500||!Number.isFinite(Date.parse(at))||Date.parse(at)>Date.now())return reply({error:"Valid Indian mobile, consent date and consent evidence are required."},400);
@@ -43,7 +60,7 @@ Deno.serve(async req=>{
    const {data,error:e}=await db.from("broadcast_optouts").select("wa_id,reason").order("wa_id").limit(1000);if(e)throw e;return reply({optouts:data||[]});
   }
   if(action==="optin_list"){
-   const {data,error:e}=await db.from("broadcast_optins").select("wa_id,consent_at,consent_source,consent_reference,revoked_at").is("revoked_at",null).order("consent_at",{ascending:false}).limit(1000);if(e)throw e;
+   const {data,error:e}=await db.from("broadcast_optins").select("wa_id,display_name,consent_at,consent_source,consent_reference,revoked_at").is("revoked_at",null).order("consent_at",{ascending:false}).limit(1000);if(e)throw e;
    const phones=(data||[]).map(x=>x.wa_id),{data:out,error:oe}=phones.length?await db.from("broadcast_optouts").select("wa_id").in("wa_id",phones):{data:[],error:null};if(oe)throw oe;
    const blocked=new Set((out||[]).map(x=>x.wa_id));return reply({optins:(data||[]).filter(x=>!blocked.has(x.wa_id))});
   }
