@@ -11,18 +11,22 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="FSP CRM">
-<link rel="apple-touch-icon" href="./logo.jpg">
-<link rel="icon" type="image/x-icon" href="./logo.jpg">
-<link rel="manifest" href="./manifest.json?v=38">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="apple-touch-icon" href="../pwa-icon.svg">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preconnect" href="https://cjwxirpwzluynymwjzxl.supabase.co" crossorigin>
+<link rel="icon" type="image/x-icon" href="../pwa-icon.svg">
+<link rel="manifest" href="./manifest.json?v=51">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin="anonymous"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:Arial,sans-serif}
 :root{--sidebar:#172238;--primary:#247d78;--primary-dark:#1c6763;--bg:#f4f6f9;--card:#fff;--text:#273142;--muted:#6b7280;--border:#e5e7eb;--danger:#dc2626}
 body{background:var(--bg);color:var(--text)}
 .app{display:flex;min-height:100vh}
 .sidebar{width:220px;background:var(--sidebar);color:#fff;padding:24px 10px;display:flex;flex-direction:column;min-height:100vh}
-.brand{font-size:20px;font-weight:700;padding:10px 14px 26px;border-bottom:1px solid rgba(255,255,255,.12);margin-bottom:18px;line-height:1.3}
-.brand span{display:block;font-size:11px;color:#73c7bd;letter-spacing:1px;margin-top:7px;font-weight:500}
+.brand{font-size:18px;font-weight:700;padding:8px 10px 22px;border-bottom:1px solid rgba(255,255,255,.12);margin-bottom:18px;line-height:1.25;display:flex;flex-direction:column;align-items:center;text-align:center}
+.brand img{display:block!important;width:120px!important;max-width:120px!important;height:120px!important;object-fit:contain;margin:0 auto 12px!important;border-radius:8px}
+.brand-title{display:block;color:#fff;font-size:20px;font-weight:800;line-height:1.2;margin-top:3px;text-align:center;white-space:normal}
+.brand span{display:block;font-size:10px;color:#73c7bd;letter-spacing:1.5px;margin-top:7px;font-weight:600}
 .menu-label{font-size:10px;letter-spacing:1px;color:#7d8aa1;padding:10px 14px}
 .nav-item{padding:13px 14px;margin-bottom:5px;border-radius:8px;cursor:pointer;color:#d2d8e2;font-size:15px}
 .nav-item:hover,.nav-item.active{background:var(--primary);color:#fff}
@@ -72,7 +76,7 @@ button{border:0;border-radius:8px;padding:10px 14px;cursor:pointer}.btn-primary{
 
 /* WHATSAPP INBOX */
 .wa-inbox-card{overflow:hidden}
-.wa-layout{display:grid;grid-template-columns:320px minmax(0,1fr);height:clamp(520px,calc(100dvh - 260px),720px);min-height:0;max-height:none;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:#fff}.wa-list{border-right:1px solid var(--border);overflow-y:auto;background:#f8fafc}.wa-list-head{padding:16px;border-bottom:1px solid var(--border);background:#fff}.wa-contact{padding:14px 16px;border-bottom:1px solid var(--border);cursor:pointer}.wa-contact:hover,.wa-contact.active{background:#eaf6f4}.wa-contact-name{font-weight:700;margin-bottom:4px}.wa-contact-meta{font-size:12px;color:var(--muted)}.wa-chat{display:grid;grid-template-rows:auto minmax(0,1fr) auto auto;min-width:0;min-height:0;height:100%;overflow:hidden}.wa-chat-head{padding:16px 18px;border-bottom:1px solid var(--border);min-width:0}.wa-messages{min-height:0;height:100%;overflow-y:scroll;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;padding:20px;background:#eef2f3}.wa-bubble{max-width:78%;padding:10px 12px;border-radius:10px;margin-bottom:10px;background:#fff;white-space:pre-wrap;overflow-wrap:anywhere}.wa-bubble.outbound{margin-left:auto;background:#d9fdd3}.wa-time{display:block;text-align:right;font-size:10px;color:var(--muted);margin-top:5px}.wa-placeholder{margin:auto;color:var(--muted);text-align:center;padding:30px}@media(max-width:768px){.wa-layout{grid-template-columns:1fr;height:calc(100dvh - 170px);min-height:420px;max-height:none}.wa-list{border-right:0}.wa-chat{display:none}.wa-layout.chat-open .wa-list{display:none}.wa-layout.chat-open .wa-chat{display:flex}}
+.wa-layout{display:grid;grid-template-columns:320px minmax(0,1fr);height:clamp(520px,calc(100dvh - 260px),720px);min-height:0;max-height:none;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:#fff}.wa-list{border-right:1px solid var(--border);overflow-y:auto;background:#f8fafc}.wa-list-head{padding:16px;border-bottom:1px solid var(--border);background:#fff}.wa-contact{padding:14px 16px;border-bottom:1px solid var(--border);cursor:pointer}.wa-contact:hover,.wa-contact.active{background:#eaf6f4}.wa-contact-name{font-weight:700;margin-bottom:4px}.wa-contact.unread{background:#ecfdf5}.wa-contact.unread .wa-contact-name{font-weight:800}.wa-unread-badge{float:right;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:#16a34a;color:#fff;font-size:11px;line-height:20px;text-align:center}.wa-contact-meta{font-size:12px;color:var(--muted)}.wa-chat{display:grid;grid-template-rows:auto minmax(0,1fr) auto auto;min-width:0;min-height:0;height:100%;overflow:hidden}.wa-chat-head{padding:16px 18px;border-bottom:1px solid var(--border);min-width:0}.wa-messages{min-height:0;height:100%;overflow-y:scroll;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;padding:20px;background:#eef2f3}.wa-bubble{max-width:78%;padding:10px 12px;border-radius:10px;margin-bottom:10px;background:#fff;white-space:pre-wrap;overflow-wrap:anywhere}.wa-bubble.outbound{margin-left:auto;background:#d9fdd3}.wa-time{display:block;text-align:right;font-size:10px;color:var(--muted);margin-top:5px}.wa-msg-delete{border:0;background:transparent;color:#9ca3af;font-size:13px;line-height:1;padding:3px 0 0 8px;cursor:pointer;float:right}.wa-msg-delete:hover{color:#dc2626}.wa-placeholder{margin:auto;color:var(--muted);text-align:center;padding:30px}@media(max-width:768px){#whatsappPage .wa-inbox-card{padding:14px;overflow:hidden}#whatsappPage .wa-layout{display:block;width:100%;height:calc(100dvh - 245px);min-height:480px;max-height:none;overflow:hidden}#whatsappPage .wa-list{display:block;width:100%;height:100%;border-right:0;overflow-y:auto}#whatsappPage .wa-chat{display:none;width:100%;height:100%;min-width:0;overflow:hidden}#whatsappPage .wa-layout.chat-open .wa-list{display:none}#whatsappPage .wa-layout.chat-open .wa-chat{display:grid;grid-template-rows:auto minmax(0,1fr) auto auto}#whatsappPage .wa-messages{width:100%;min-width:0;overflow-x:hidden;overflow-y:auto;padding:12px}#whatsappPage .wa-bubble{max-width:86%;min-width:0;overflow-wrap:anywhere;word-break:normal}#whatsappPage .wa-composer{width:100%;min-width:0;padding:8px;gap:6px}#whatsappPage .wa-composer textarea{width:0;min-width:0;flex:1 1 0}#whatsappPage .wa-composer button{flex:0 0 auto;min-width:56px;padding-left:10px;padding-right:10px}}
 .wa-composer{display:flex;flex:0 0 auto;gap:10px;padding:12px;border-top:1px solid var(--border);background:#fff;position:relative;z-index:2}.wa-composer textarea{flex:1 1 auto;min-width:0;height:44px;min-height:44px;max-height:88px;resize:none;overflow-y:auto}.wa-composer button{min-width:86px}.wa-send-status{font-size:12px;flex:0 0 auto;background:#fff;color:var(--muted);position:relative;z-index:2}.wa-send-status:empty{display:none}.wa-send-status:not(:empty){padding:6px 12px 10px}@media(max-width:768px){.wa-composer{padding:10px;gap:8px}.wa-composer button{min-width:70px}}
 #broadcastPage input[type=checkbox]{width:auto;min-width:20px;min-height:20px}#broadcastPage button{min-height:44px;margin-top:8px}#broadcastPage .table-wrapper{max-width:100%;overflow-x:auto}#broadcastPage td{overflow-wrap:anywhere}#broadcastStatus,#broadcastConsentStatus{padding-top:12px}#broadcastPreview{overflow-wrap:anywhere}@media(max-width:650px){#broadcastPage .card{padding:14px}#broadcastPage .form-grid{grid-template-columns:1fr}#broadcastPage button{margin-right:6px}}
 </style>
@@ -80,7 +84,7 @@ button{border:0;border-radius:8px;padding:10px 14px;cursor:pointer}.btn-primary{
 <body>
 <div class="app">
 <aside class="sidebar">
-<div class="brand"><img src="./logo.jpg" alt="Future Secure Providers" style="width:100%;max-width:80px;height:auto;margin-bottom:8px;border-radius:6px;">Future Secure<br>Providers<span>CRM SYSTEM</span></div>
+<div class="brand"><img src="data:image/jpeg;base64,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" alt="Future Secure Providers" decoding="async"><strong class="brand-title">Future Secure Providers</strong><span>CRM SYSTEM</span></div>
 <div class="menu-label">MAIN MENU</div>
 <div class="nav-item active" data-page="dashboard" onclick="showPage('dashboard',this)">📊 Dashboard</div>
 <div class="nav-item" data-page="leads" onclick="showPage('leads',this);loadLeads()">👥 Leads</div>
@@ -90,7 +94,8 @@ button{border:0;border-radius:8px;padding:10px 14px;cursor:pointer}.btn-primary{
 <div class="nav-item" data-page="tasks" onclick="showPage('tasks',this);loadTasks()">🗓 Today's Tasks</div>
 <div class="nav-item" data-page="calendar" onclick="showPage('calendar',this);loadCalendar()">📅 Calendar</div>
 <div class="nav-item" data-page="whatsapp" onclick="showPage('whatsapp',this);loadWhatsAppInbox()">💬 WhatsApp Inbox</div>
-<div class="nav-item" data-page="waTemplates" onclick="showPage('waTemplates',this);loadWhatsAppTemplates()">📝 WhatsApp Templates</div><div class="nav-item" data-page="broadcast" onclick="showPage('broadcast',this)">📣 WhatsApp Broadcast</div>
+<div class="nav-item" data-page="waTemplates" onclick="showPage('waTemplates',this);loadWhatsAppTemplates()">📝 WhatsApp Templates</div>
+<div class="nav-item" data-page="broadcast" onclick="showPage('broadcast',this)">📣 WhatsApp Broadcast</div>
 <div class="nav-item" data-page="reports" onclick="showPage('reports',this);loadLeads()">📊 Reports</div>
 <div class="nav-item" data-page="pipeline" onclick="showPage('pipeline',this);loadPipeline()">🎯 Pipeline</div>
 <div class="sidebar-bottom"><div class="nav-item" data-page="settings" onclick="showPage('settings',this)">⚙️ Settings</div></div>
@@ -263,7 +268,7 @@ button{border:0;border-radius:8px;padding:10px 14px;cursor:pointer}.btn-primary{
 <section id="broadcastPage" class="page hidden">
 <div class="stats"><div class="stat-card"><h3>Mode</h3><div class="number" id="broadcastMode">TEST</div></div><div class="stat-card"><h3>Active opt-ins</h3><div class="number" id="broadcastOptinCount">0</div></div><div class="stat-card"><h3>Sending</h3><div class="number" id="broadcastSendState">OFF</div></div></div>
 <div class="card"><h2>Record marketing consent</h2><p class="muted">Add only explicit WhatsApp marketing opt-ins with a verifiable evidence reference.</p><div class="form-grid"><div class="form-group"><label>CRM lead</label><select id="broadcastLeadSelect"></select></div><div class="form-group"><label>Mobile</label><input id="broadcastOptinPhone" inputmode="numeric"></div><div class="form-group"><label>Consent date/time</label><input id="broadcastConsentAt" type="datetime-local"></div><div class="form-group"><label>Evidence type</label><select id="broadcastConsentSource"><option value="crm_manual">CRM verified record</option><option value="website_form">Website form</option><option value="imported_record">Imported record</option></select></div><div class="form-group full"><label>Evidence reference</label><input id="broadcastConsentReference" maxlength="500"></div></div><label style="display:flex;gap:8px;margin:12px 0"><input id="broadcastConsentConfirm" type="checkbox" style="width:auto">Explicit WhatsApp marketing consent was obtained; evidence above is verified.</label><button class="btn-primary" onclick="addBroadcastOptin()">Save opt-in</button><div id="broadcastConsentStatus"></div></div>
-<div class="card"><h2>Campaign</h2><div class="form-grid"><div class="form-group"><label>Name</label><input id="broadcastTitle"></div><div class="form-group"><label>Template</label><select id="broadcastTemplate"></select></div><div class="form-group full"><label>Message details</label><div id="broadcastVariableFields" class="form-grid"></div><div id="broadcastPreview" style="white-space:pre-wrap;padding:12px;background:#f8fafc;margin-top:12px">Choose a template to preview the message.</div></div><div class="form-group"><label>Schedule (Asia/Kolkata)</label><input id="broadcastScheduleAt" type="datetime-local"></div><div class="form-group"><label>Campaign ID</label><input id="broadcastCampaignId" readonly></div></div><button class="btn-secondary" onclick="newBroadcastCampaign()">New campaign</button> <button class="btn-primary" onclick="createBroadcastDraft()">Create draft</button> <button class="btn-secondary" onclick="attachBroadcastRecipients()">Add selected contacts</button> <button class="btn-primary" id="broadcastSendNow" onclick="approveBroadcast(false)" disabled>Send now</button> <button class="btn-secondary" id="broadcastScheduleBtn" onclick="approveBroadcast(true)" disabled>Schedule</button> <button class="btn-secondary" onclick="cancelBroadcast()">Cancel</button><div id="broadcastStatus" aria-live="polite"></div></div>
+<div class="card"><h2>Bulk contact import — CSV / Excel</h2><p class="muted">Import up to 500 contacts per file (CSV or .xlsx, max 2 MB). Columns: Name, Mobile, Opt-in, Consent date, Evidence reference. Dates use YYYY-MM-DD or YYYY-MM-DD HH:MM in India time. Only verified Yes opt-ins are saved. Existing opt-outs and revoked consent are skipped.</p><button class="btn-secondary" onclick="downloadBroadcastImportSample()">Download sample CSV</button><div class="form-group" style="margin-top:12px"><label for="broadcastImportFile">Contact file</label><input id="broadcastImportFile" type="file" accept=".csv,.xlsx" onchange="broadcastImportRows=[];document.getElementById('broadcastImportCommit').disabled=true;document.getElementById('broadcastImportPreview').textContent='';document.getElementById('broadcastImportConfirm').checked=false"></div><button class="btn-secondary" onclick="previewBroadcastImport()">Preview &amp; validate</button><label style="display:flex;gap:8px;margin:12px 0"><input id="broadcastImportConfirm" type="checkbox" style="width:auto">I verified explicit WhatsApp consent and the evidence for Yes rows.</label><button id="broadcastImportCommit" class="btn-primary" disabled onclick="commitBroadcastImport()">Import valid opt-ins</button> <button class="btn-secondary" onclick="downloadBroadcastImportResult()">Download results</button><div id="broadcastImportStatus" aria-live="polite"></div><div id="broadcastImportPreview"></div><p class="muted">Imported contacts are selected below. Create a draft, then use Add selected contacts. Importing does not send messages.</p></div><div class="card"><h2>Campaign</h2><div class="form-grid"><div class="form-group"><label>Name</label><input id="broadcastTitle"></div><div class="form-group"><label>Template</label><select id="broadcastTemplate"></select></div><div class="form-group full"><label>Message details</label><div id="broadcastVariableFields" class="form-grid"></div><div id="broadcastPreview" style="white-space:pre-wrap;padding:12px;background:#f8fafc;margin-top:12px">Choose a template to preview the message.</div></div><div class="form-group"><label>Schedule (Asia/Kolkata)</label><input id="broadcastScheduleAt" type="datetime-local"></div><div class="form-group"><label>Campaign ID</label><input id="broadcastCampaignId" readonly></div></div><button class="btn-secondary" onclick="newBroadcastCampaign()">New campaign</button> <button class="btn-primary" onclick="createBroadcastDraft()">Create draft</button> <button class="btn-secondary" onclick="attachBroadcastRecipients()">Add selected contacts</button> <button class="btn-primary" id="broadcastSendNow" onclick="approveBroadcast(false)" disabled>Send now</button> <button class="btn-secondary" id="broadcastScheduleBtn" onclick="approveBroadcast(true)" disabled>Schedule</button> <button class="btn-secondary" onclick="cancelBroadcast()">Cancel</button><div id="broadcastStatus" aria-live="polite"></div></div>
 <div class="card"><h2>Eligible opted-in contacts</h2><div class="table-wrapper"><table><thead><tr><th><input type="checkbox" onchange="toggleBroadcastRecipients(this.checked)"></th><th>Contact</th><th>WhatsApp</th><th>Consent time</th><th>Evidence type</th><th>Action</th></tr></thead><tbody id="broadcastOptins"></tbody></table></div></div>
 <div class="card"><h2>Opt-out management</h2><p class="muted">STOP, UNSUBSCRIBE, CANCEL, END and QUIT messages also record an opt-out automatically. Re-enable only after fresh explicit consent.</p><div class="form-grid"><div class="form-group"><label for="broadcastOptoutPhone">Mobile</label><input id="broadcastOptoutPhone" inputmode="numeric"></div><div class="form-group"><label for="broadcastOptoutReason">Reason</label><input id="broadcastOptoutReason" maxlength="500"></div></div><button class="btn-danger" onclick="recordBroadcastOptout()">Record opt-out</button><div class="table-wrapper"><table><thead><tr><th>WhatsApp</th><th>Reason</th></tr></thead><tbody id="broadcastOptouts"></tbody></table></div></div><div class="card"><h2>Delivery reports</h2><div class="table-wrapper"><table><thead><tr><th>Campaign</th><th>Status</th><th>Recipients</th><th>Sent</th><th>Delivered</th><th>Read</th><th>Failed</th><th>Skipped</th><th>Schedule (India time)</th><th></th></tr></thead><tbody id="broadcastCampaigns"></tbody></table></div><div id="broadcastReportDetails"></div></div></section><section id="reportsPage" class="page hidden">
 <div class="stats"><div class="stat-card"><h3>Conversion Rate</h3><div class="number" id="reportConversionRate">0%</div></div><div class="stat-card"><h3>Today's Leads</h3><div class="number" id="reportTodayLeads">0</div></div><div class="stat-card"><h3>This Week</h3><div class="number" id="reportWeekLeads">0</div></div><div class="stat-card"><h3>This Month</h3><div class="number" id="reportMonthLeads">0</div></div></div>
@@ -335,7 +340,9 @@ const savedPreviousPage=localStorage.getItem("crm_previous_page");
 const savedSessionUser=localStorage.getItem("crm_session_user");
 const currentSessionUser=currentUser?.id||"";
 const shouldRestorePage=savedPage&&savedSessionUser&&savedSessionUser===currentSessionUser;
-const pageToShow=shouldRestorePage?savedPage:"dashboard";
+const calendarReturn=new URLSearchParams(window.location.search).get("calendar")==="connected";
+const pageToShow=calendarReturn?"calendar":(shouldRestorePage?savedPage:"dashboard");
+if(calendarReturn){history.replaceState(null,"",window.location.pathname);}
 
 if(leadId&&pageToShow==="leadProfile"){
   previousPage=savedPreviousPage||"leads";
@@ -357,6 +364,7 @@ const target=document.getElementById(pageToShow+"Page");
 if(target)target.classList.remove("hidden");
 else document.getElementById("dashboardPage").classList.remove("hidden");
 showPage(pageToShow,document.querySelector('[data-page="'+pageToShow+'"]'));
+if(pageToShow==="calendar")void loadCalendar();
 }
 function updateHeaderForAuthenticatedUser(user){document.getElementById("currentUserDisplay").textContent=user.email||"User";document.getElementById("logoutButton").style.display="inline-block";}
 function updateHeaderForLoggedOut(){document.getElementById("currentUserDisplay").textContent="Administrator";document.getElementById("logoutButton").style.display="none";}
@@ -367,7 +375,9 @@ async function loadCRMData(){
  if(Date.now()-lastCRMDataLoadAt<3000)return;
  crmDataLoadPromise=(async()=>{
   await loadLeads();
-  await loadSmartDashboard(allLeadsCache);
+  // Dashboard is usable as soon as leads arrive. Load secondary dashboard data
+  // without blocking first render.
+  loadSmartDashboard(allLeadsCache).catch(err=>console.error("Dashboard background load:",err));
   lastCRMDataLoadAt=Date.now();
  })().finally(()=>{crmDataLoadPromise=null});
  return crmDataLoadPromise;
@@ -575,13 +585,24 @@ function getLocalDateKey(value){if(!value)return "";const d=new Date(value);if(i
 function normalizeInsuranceType(value){const v=String(value||"").trim().toLowerCase();if(!v)return "Not Specified";if(v.includes("super top-up")||v.includes("super topup")||v.includes("super surplus"))return "Super Top-Up Insurance";if(v.includes("women care")||v.includes("womens care")||v.includes("women-care")||v.includes("women's care"))return "Women Care Insurance";if(v.includes("health")||v.includes("medical"))return "Health Insurance";if(v.includes("life"))return "Life Insurance";if(v.includes("vehicle")||v.includes("motor")||v.includes("car")||v.includes("bike"))return "Vehicle Insurance";if(v.includes("other"))return "Other Insurance";return String(value).trim()||"Not Specified";}
 function getInsuranceType(lead){
   if(!lead)return "Not Specified";
+
+  // Website forms store the exact product in notes. Read specific products first,
+  // before the generic insurance_type value (the DB/RPC may default it to Health Insurance).
+  const notes=String(lead.notes||"");
+  const productMatch=notes.match(/(?:^|[\n|])\s*Product:\s*([^|\n]+)/i);
+  if(productMatch){
+    const productType=normalizeInsuranceType(productMatch[1]);
+    if(productType!=="Not Specified")return productType;
+  }
+  if(/(?:Product:\s*)?super\s*(?:top[- ]?up|surplus)(?:\s*insurance)?/i.test(notes))return "Super Top-Up Insurance";
+  if(/women(?:['’]?s)?\s*care/i.test(notes))return "Women Care Insurance";
+
+  const explicitNote=notes.match(/\[Insurance Type:\s*([^\]]+)\]/i);
+  if(explicitNote)return normalizeInsuranceType(explicitNote[1]);
+
   const direct=[lead.insurance_type,lead.insuranceType,lead.product,lead.policy_type,lead.policyType,lead.purpose].find(v=>String(v||"").trim());
   if(direct)return normalizeInsuranceType(direct);
-  const notes=String(lead.notes||"");
-  const m=notes.match(/\[Insurance Type:\s*([^\]]+)\]/i);
-  if(m)return normalizeInsuranceType(m[1]);
-  const p=notes.match(/(?:^|\|)\s*Product:\s*([^|\n]+)/i);
-  if(p)return normalizeInsuranceType(p[1]);
+
   if(/\b(health|medical|mediclaim|hospital|family floater|senior citizen)\b/i.test(notes))return "Health Insurance";
   if(/\b(life|term plan|term insurance|endowment|ulip)\b/i.test(notes))return "Life Insurance";
   if(/\b(vehicle|motor|car|bike|two wheeler|four wheeler|renewal)\b/i.test(notes))return "Vehicle Insurance";
@@ -1519,7 +1540,6 @@ async function loadSmartDashboard(preloadedLeads) {
 .followup-modal-box select,.followup-modal-box textarea,.followup-modal-box input{width:100%;box-sizing:border-box;border:1px solid #d7dce3;border-radius:9px;padding:12px;font:inherit;background:#fff}
 .followup-modal-box textarea{min-height:88px;resize:vertical}
 .followup-modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:22px}
-#broadcastPage input[type=checkbox]{width:auto;min-width:20px;min-height:20px}#broadcastPage button{min-height:44px;margin-top:8px}#broadcastPage .table-wrapper{max-width:100%;overflow-x:auto}#broadcastPage td{overflow-wrap:anywhere}#broadcastStatus,#broadcastConsentStatus{padding-top:12px}#broadcastPreview{overflow-wrap:anywhere}@media(max-width:650px){#broadcastPage .card{padding:14px}#broadcastPage .form-grid{grid-template-columns:1fr}#broadcastPage button{margin-right:6px}}
 </style>
 
 <div id="taskModal" class="followup-modal">
@@ -1536,7 +1556,6 @@ async function loadSmartDashboard(preloadedLeads) {
 <style>
 .priority-high{font-weight:700}.priority-medium{font-weight:600}.priority-low{font-weight:500}
 .task-completed{text-decoration:line-through;opacity:.65}
-#broadcastPage input[type=checkbox]{width:auto;min-width:20px;min-height:20px}#broadcastPage button{min-height:44px;margin-top:8px}#broadcastPage .table-wrapper{max-width:100%;overflow-x:auto}#broadcastPage td{overflow-wrap:anywhere}#broadcastStatus,#broadcastConsentStatus{padding-top:12px}#broadcastPreview{overflow-wrap:anywhere}@media(max-width:650px){#broadcastPage .card{padding:14px}#broadcastPage .form-grid{grid-template-columns:1fr}#broadcastPage button{margin-right:6px}}
 </style>
 
 <div id="appointmentModal" class="followup-modal">
@@ -1592,8 +1611,10 @@ let currentAppointments=[];
 let currentFollowups=[];
 let currentCalendarMonth=new Date();
 let currentEditingAppointmentId=null;
+let appointmentSaveInProgress=false;
 
 async function loadCalendar(){
+  if(typeof refreshGoogleCalendarStatus==="function")void refreshGoogleCalendarStatus();
   if(!currentUser){console.warn("No authenticated user");return;}
   const year=currentCalendarMonth.getFullYear();
   const month=String(currentCalendarMonth.getMonth()+1).padStart(2,"0");
@@ -1773,7 +1794,7 @@ const html=`
 <div>${escapeHtml(appt.notes||"-")}</div>
 </div>
 <div style="margin-top:20px;display:flex;gap:8px;">
-<button class="btn-primary" onclick="editAppointment(${id})">✏️ Edit</button>
+<button class="btn-primary" onclick="editAppointment(${id})">✏️ Edit</button>\n<button class="btn-secondary" onclick="rescheduleAppointment(${id})">🔄 Reschedule</button>
 <button class="btn-danger" onclick="confirmDeleteAppointment(${id})">🗑️ Delete</button>
 </div>
 `;
@@ -1851,29 +1872,51 @@ function closeDateScheduleModal(){
 document.getElementById("dateScheduleModal").classList.remove("show");
 }
 
+
+async function syncAppointmentGoogleCalendar(appointmentId){
+ try{
+  const {data,error}=await supabaseClient.functions.invoke("appointment-calendar-sync",{body:{appointment_id:Number(appointmentId)}});
+  if(error)throw error;
+  if(!data?.ok)throw new Error(data?.error||"Google Calendar sync failed");
+  return true;
+ }catch(e){
+  console.error("Google Calendar sync failed",e);
+  showMessage("Appointment saved, but Google Calendar sync failed. Please retry.","error");
+  return false;
+ }
+}
+
 async function saveAppointment(formData){
-if(!currentUser){alert("Not authenticated");return;}
+if(!currentUser){alert("Not authenticated");return false;}
 if(!formData.lead_id||!formData.customer_name||!formData.mobile_number||!formData.appointment_date||!formData.appointment_time||!formData.status){
-alert("Please fill all required fields");return;}
+alert("Please fill all required fields");return false;}
 const payload={...formData,created_by:currentUser.id};
 const {data,error}=await supabaseClient.from("appointments").insert([payload]).select().single();
-if(error){alert("Error saving appointment: "+error.message);return;}
+if(error){alert("Error saving appointment: "+error.message);return false;}
 await processWhatsAppAutomationQueue();
-showMessage("Appointment created successfully!","success");
+const calendarSynced=await syncAppointmentGoogleCalendar(data.id);
+showMessage(calendarSynced?"Appointment created successfully & Google Calendar synced!":"Appointment saved, but Google Calendar sync failed. Please retry.",calendarSynced?"success":"error");
 closeAppointmentModal();
 await loadCalendar();
+return true;
 }
 
 async function updateAppointment(id,formData){
-if(!currentUser){alert("Not authenticated");return;}
+if(!currentUser){alert("Not authenticated");return false;}
+if(!Number.isSafeInteger(Number(id))||Number(id)<=0){alert("Invalid appointment. Please reopen it from Calendar.");return false;}
 if(!formData.customer_name||!formData.mobile_number||!formData.appointment_date||!formData.appointment_time){
-alert("Please fill all required fields");return;}
+alert("Please fill all required fields");return false;}
+// Update only the selected row. Never insert or change its Google Calendar event ID.
 const updatePayload={customer_name:formData.customer_name,mobile_number:formData.mobile_number,appointment_date:formData.appointment_date,appointment_time:formData.appointment_time,status:formData.status,notes:formData.notes};
-const {error}=await supabaseClient.from("appointments").update(updatePayload).eq("id",id);
-if(error){alert("Error updating appointment: "+error.message);return;}
-showMessage("Appointment updated successfully!","success");
+const {data,error}=await supabaseClient.from("appointments").update(updatePayload).eq("id",id).select("id").single();
+if(error||!data){alert("Error updating appointment: "+(error?.message||"Appointment was not updated. Please reload Calendar."));return false;}
+const calendarSynced=await syncAppointmentGoogleCalendar(data.id);
+// Remove stale date details before refreshing the calendar and schedule list.
+closeDateScheduleModal();
 closeAppointmentModal();
 await loadCalendar();
+showMessage(calendarSynced?"Appointment updated successfully & Google Calendar synced!":"Appointment updated, but Google Calendar sync failed. Please retry.",calendarSynced?"success":"error");
+return true;
 }
 
 async function deleteAppointment(id){
@@ -1889,6 +1932,14 @@ function editAppointment(id){
 const appt=currentAppointments.find(a=>a.id===id);
 if(!appt)return;
 openAppointmentFormModal(appt.lead_id,id);
+}
+
+function rescheduleAppointment(id){
+const appt=currentAppointments.find(a=>a.id===id);
+if(!appt)return;
+closeAppointmentModal();
+currentEditingAppointmentId=id;
+openAppointmentFormModal(appt.lead_id,id,true);
 }
 
 function confirmDeleteAppointment(id){
@@ -1912,9 +1963,11 @@ document.getElementById("apptFormMobile").value=escapeHtml(selectedLead.mobile_n
 }
 }
 
-function openAppointmentFormModal(leadId,appointmentId){
-const appt=appointmentId?currentAppointments.find(a=>a.id===appointmentId):null;
-const title=appt?"Edit Appointment":"New Appointment";
+function openAppointmentFormModal(leadId,appointmentId,rescheduleMode=false){
+const appt=appointmentId?currentAppointments.find(a=>String(a.id)===String(appointmentId)):null;
+if((appointmentId||rescheduleMode)&&!appt){alert("Appointment no longer loaded. Please refresh Calendar and reopen it.");return;}
+currentEditingAppointmentId=appt?appt.id:null;
+const title=rescheduleMode?"Reschedule Appointment":(appt?"Edit Appointment":"New Appointment");
 const isEditMode=!!appt;
 const selectedLeadId=isEditMode?appt.lead_id:leadId;
 
@@ -1961,7 +2014,11 @@ ${leadsOptions}
 
 document.getElementById("appointmentFormContent").innerHTML=html;
 document.getElementById("appointmentFormTitle").textContent=title;
-document.getElementById("deleteApptButton").style.display=isEditMode?"block":"none";
+document.getElementById("deleteApptButton").style.display=(isEditMode&&!rescheduleMode)?"block":"none";
+const saveBtn=document.querySelector("#appointmentFormModal .followup-modal-actions .btn-primary");
+if(saveBtn){saveBtn.disabled=appointmentSaveInProgress;saveBtn.textContent=rescheduleMode?"Save & Send WhatsApp":"Save Appointment";}
+document.getElementById("appointmentFormModal").dataset.rescheduleMode=rescheduleMode?"1":"0";
+document.getElementById("appointmentFormModal").dataset.appointmentId=appointmentId?String(appointmentId):"";
 if(!isEditMode&&selectedLeadId){
 autoFillLeadData();
 }
@@ -1974,6 +2031,7 @@ currentEditingAppointmentId=null;
 }
 
 async function saveAppointmentFromForm(){
+if(appointmentSaveInProgress)return;
 const leadId=parseInt(document.getElementById("apptFormLeadId").value);
 const customerName=document.getElementById("apptFormCustomerName").value.trim();
 const mobile=document.getElementById("apptFormMobile").value.trim();
@@ -1987,12 +2045,40 @@ if(!customerName||!mobile||!date||!time||!status){alert("Please fill all require
 
 const formData={lead_id:leadId,customer_name:customerName,mobile_number:mobile,appointment_date:date,appointment_time:time,status:status,notes:notes||null};
 
-if(currentEditingAppointmentId){
-await updateAppointment(currentEditingAppointmentId,formData);
-}else{
-await saveAppointment(formData);
+const modal=document.getElementById("appointmentFormModal");
+const rescheduleMode=modal.dataset.rescheduleMode==="1";
+// The form's own ID is authoritative; a global selection can refer to another modal.
+const appointmentId=Number(modal.dataset.appointmentId||0);
+if((rescheduleMode||modal.dataset.appointmentId)&&(!Number.isSafeInteger(appointmentId)||appointmentId<=0)){
+alert("Appointment ID is missing. Please reopen the appointment; no new appointment was created.");return;
 }
+const saveBtn=modal.querySelector(".followup-modal-actions .btn-primary");
+const originalLabel=saveBtn?.textContent;
+appointmentSaveInProgress=true;
+if(saveBtn){saveBtn.disabled=true;saveBtn.textContent="Saving...";}
+try{
+const saved=appointmentId?await updateAppointment(appointmentId,formData):await saveAppointment(formData);
+if(!saved)return;
 closeAppointmentFormModal();
+if(rescheduleMode)await sendAppointmentRescheduleWhatsApp(formData);
+}catch(e){
+console.error("Appointment save failed",e);
+alert("Unable to complete the operation. Refresh Calendar to check the saved appointment before retrying.");
+}finally{
+appointmentSaveInProgress=false;
+if(saveBtn){saveBtn.disabled=false;saveBtn.textContent=originalLabel;}
+}
+}
+
+async function sendAppointmentRescheduleWhatsApp(formData){
+const waId=normalizeWhatsAppNumber(formData.mobile_number);
+if(!/^91[6-9]\d{9}$/.test(waId)){alert("Appointment saved, but customer mobile number is invalid for WhatsApp.");return;}
+const d=String(formData.appointment_date).split("-");
+const displayDate=d.length===3?d[2]+"-"+d[1]+"-"+d[0]:formData.appointment_date;
+const tp=String(formData.appointment_time||"").split(":");let h=Number(tp[0]||0),m=tp[1]||"00";const ap=h>=12?"PM":"AM";h=h%12||12;const displayTime=h+":"+m+" "+ap;
+const {data,error}=await supabaseClient.functions.invoke("whatsapp-send",{body:{wa_id:waId,type:"template",template_name:"fsp_appointment_rescheduled",language:"ta",parameters:[formData.customer_name,displayDate,displayTime]}});
+if(error||!data?.ok){alert("Appointment updated, but WhatsApp reschedule message could not be sent: "+(error?.message||data?.error||"Send failed"));return;}
+showMessage("Appointment rescheduled & WhatsApp sent!","success");
 }
 
 async function deleteAppointmentFromForm(){
@@ -2020,19 +2106,36 @@ async function loadWhatsAppInbox(){
   const {data,error}=await supabaseClient.from("whatsapp_contacts").select("*").order("last_message_at",{ascending:false}).limit(100);
   if(error)throw error;
   whatsappContactsCache=data||[];
-  h.innerHTML=whatsappContactsCache.map(x=>'<div class="wa-contact" data-wa="'+escapeHtml(x.wa_id)+'" onclick="openWhatsAppConversation(\''+escapeHtml(x.wa_id)+'\')"><div class="wa-contact-name">'+escapeHtml(x.profile_name||formatWhatsAppPhone(x.wa_id))+'</div><div class="wa-contact-meta">'+escapeHtml(formatWhatsAppPhone(x.phone_number||x.wa_id))+' · '+escapeHtml(formatWhatsAppTime(x.last_message_at))+'</div></div>').join("")||'<div class="empty">No WhatsApp conversations yet.</div>';
+  h.innerHTML=whatsappContactsCache.map(x=>'<div class="wa-contact '+(Number(x.unread_count||0)>0?"unread":"")+'" data-wa="'+escapeHtml(x.wa_id)+'" onclick="openWhatsAppConversation(\''+escapeHtml(x.wa_id)+'\')"><div class="wa-contact-name">'+escapeHtml(x.profile_name||formatWhatsAppPhone(x.wa_id))+(Number(x.unread_count||0)>0?' <span class="wa-unread-badge">'+(Number(x.unread_count)>99?"99+":Number(x.unread_count))+'</span>':"")+'</div><div class="wa-contact-meta">'+escapeHtml(formatWhatsAppPhone(x.phone_number||x.wa_id))+' · '+escapeHtml(formatWhatsAppTime(x.last_message_at))+'</div></div>').join("")||'<div class="empty">No WhatsApp conversations yet.</div>';
  }catch(e){console.error("WhatsApp inbox load error",e);h.innerHTML='<div class="empty">Unable to load conversations. <button class="btn-secondary" onclick="loadWhatsAppInbox()">Retry</button></div>'}
 }
 async function openWhatsAppConversation(waId){
  currentWhatsAppWaId=waId;whatsappSeenAt[waId]=new Date().toISOString();
+ const {error:readErr}=await supabaseClient.rpc("mark_whatsapp_read",{p_wa_id:waId});if(readErr)console.error("Mark read failed",readErr);
+ const contactEl=document.querySelector('.wa-contact[data-wa="'+CSS.escape(waId)+'"]');if(contactEl){contactEl.classList.remove("unread");const badge=contactEl.querySelector(".wa-unread-badge");if(badge)badge.remove();}
  const x=whatsappContactsCache.find(v=>v.wa_id===waId);document.getElementById("waLayout").classList.add("chat-open");const composer=document.getElementById("waComposer");if(composer)composer.style.display="flex";
- document.getElementById("waChatHead").innerHTML='<div style="display:flex;gap:10px;align-items:center"><button class="btn-secondary" id="waBackBtn" onclick="closeWhatsAppConversation()">←</button><div><strong>'+escapeHtml(x?.profile_name||formatWhatsAppPhone(waId))+'</strong><div class="wa-contact-meta">'+escapeHtml(formatWhatsAppPhone(waId))+'</div></div></div>';
+ document.getElementById("waChatHead").innerHTML='<div style="display:flex;gap:10px;align-items:center;justify-content:space-between;width:100%"><div style="display:flex;gap:10px;align-items:center;min-width:0"><button class="btn-secondary" id="waBackBtn" onclick="closeWhatsAppConversation()">←</button><div><strong>'+escapeHtml(x?.profile_name||formatWhatsAppPhone(waId))+'</strong><div class="wa-contact-meta">'+escapeHtml(formatWhatsAppPhone(waId))+'</div></div></div><button class="btn-danger" type="button" style="padding:7px 10px;flex:0 0 auto" onclick="deleteCurrentWhatsAppConversation()">🗑️ Delete Chat</button></div>';
  const back=document.getElementById("waBackBtn");if(window.innerWidth>768)back.style.display="none";
  document.querySelectorAll(".wa-contact").forEach(el=>el.classList.toggle("active",el.dataset.wa===waId));
  const box=document.getElementById("waMessages");box.innerHTML='<div class="wa-placeholder">Loading...</div>';
- const {data,error}=await supabaseClient.from("whatsapp_messages").select("direction,message_type,message_text,message_timestamp,created_at,delivery_status,status_timestamp,read_at").eq("wa_id",waId).order("message_timestamp",{ascending:true});
+ const {data,error}=await supabaseClient.from("whatsapp_messages").select("id,direction,message_type,message_text,message_timestamp,created_at,delivery_status,status_timestamp,read_at").eq("wa_id",waId).order("message_timestamp",{ascending:true});
  if(error){box.innerHTML='<div class="wa-placeholder">Unable to load messages.</div>';console.error(error);return}
- box.innerHTML=(data||[]).map(m=>'<div class="wa-bubble '+(m.direction==="outbound"?"outbound":"")+'">'+(m.message_text?escapeHtml(m.message_text):'<em>['+escapeHtml(m.message_type)+' message]</em>')+'<span class="wa-time">'+escapeHtml(formatWhatsAppTime(m.message_timestamp||m.created_at))+escapeHtml(waStatusLabel(m))+'</span></div>').join("")||'<div class="wa-placeholder">No messages.</div>';box.scrollTop=box.scrollHeight;
+ box.innerHTML=(data||[]).map(m=>'<div class="wa-bubble '+(m.direction==="outbound"?"outbound":"")+'" data-message-id="'+m.id+'">'+(m.message_text?escapeHtml(m.message_text):'<em>['+escapeHtml(m.message_type)+' message]</em>')+'<button class="wa-msg-delete" type="button" title="Delete from CRM" onclick="deleteWhatsAppMessage('+m.id+')">🗑️</button><span class="wa-time">'+escapeHtml(formatWhatsAppTime(m.message_timestamp||m.created_at))+escapeHtml(waStatusLabel(m))+'</span></div>').join("")||'<div class="wa-placeholder">No messages.</div>';box.scrollTop=box.scrollHeight;
+}
+async function deleteCurrentWhatsAppConversation(){
+ const waId=currentWhatsAppWaId;if(!waId)return;
+ if(!confirm("Delete this contact and all CRM chat messages? This does not delete anything from the customer's WhatsApp."))return;
+ const r=await supabaseClient.rpc("delete_whatsapp_conversation",{p_wa_id:waId});
+ if(r.error){alert("Unable to delete contact: "+r.error.message);return;}
+ closeWhatsAppConversation();
+ await loadWhatsAppInbox();
+ showMessage("WhatsApp contact and CRM chat deleted.","success");
+}
+async function deleteWhatsAppMessage(id){
+ if(!confirm("Delete this message from CRM Inbox?\n\nThis will not delete the message from the customer's WhatsApp."))return;
+ const {error}=await supabaseClient.rpc("delete_whatsapp_message",{p_message_id:id});
+ if(error){alert("Unable to delete message: "+error.message);return;}
+ const el=document.querySelector('.wa-bubble[data-message-id="'+id+'"]');if(el)el.remove();
 }
 function closeWhatsAppConversation(){document.getElementById("waLayout").classList.remove("chat-open");currentWhatsAppWaId=null;const composer=document.getElementById("waComposer");if(composer)composer.style.display="none"}
 function startWhatsAppAutoRefresh(){
@@ -2091,6 +2194,59 @@ Future Secure Providers உடனான உங்கள் appointment உறு
 நன்றி.`,variables:"{{1}} = Customer Name, {{2}} = Date, {{3}} = Time"}
 ];
 let waTemplateMeta={};
+let broadcastImportRows=[],broadcastImportResult=[],broadcastImportBusy=false;
+function parseBroadcastCSV(text){
+ text=text.replace(/^\uFEFF/,'');const rows=[];let row=[],cell='',quoted=false;
+ for(let i=0;i<text.length;i++){const c=text[i];if(quoted){if(c==='"'&&text[i+1]==='"'){cell+='"';i++}else if(c==='"')quoted=false;else cell+=c}else if(c==='"'){if(cell)throw Error('Invalid CSV quotation');quoted=true}else if(c===','){row.push(cell);cell=''}else if(c==='\n'||c==='\r'){if(c==='\r'&&text[i+1]==='\n')i++;row.push(cell);if(row.some(x=>x.trim()))rows.push(row);row=[];cell=''}else cell+=c}
+ if(quoted)throw Error('Unclosed CSV quotation');row.push(cell);if(row.some(x=>x.trim()))rows.push(row);return rows;
+}
+function broadcastImportDate(value){
+ if(value instanceof Date)return value.toISOString();const s=String(value||'').trim();
+ if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s+'T00:00:00+05:30';
+ if(/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}(:\d{2})?$/.test(s))return s.replace(' ','T')+(s.length===16?':00':'')+'+05:30';
+ return /([zZ]|[+-]\d{2}:\d{2})$/.test(s)?s:'';
+}
+function broadcastImportRecords(matrix){
+ if(matrix.length<2||matrix.length>501)throw Error('Use 1-500 contacts per file.');
+ const keys=matrix[0].map(x=>String(x||'').trim().toLowerCase().replace(/[ _-]/g,''));
+ const find=(names)=>keys.findIndex(k=>names.includes(k));
+ const indexes={name:find(['name','fullname']),phone:find(['mobile','phone','whatsapp','mobilenumber']),optin:find(['optin','consent']),consent_at:find(['consentdate','consentat','consentdatetime']),reference:find(['evidencereference','reference','consentreference'])};
+ if(Object.values(indexes).some(x=>x<0))throw Error('Required columns: Name, Mobile, Opt-in, Consent date, Evidence reference.');
+ if(new Set(Object.values(indexes)).size!==5)throw Error('Ambiguous column headers');
+ return matrix.slice(1).map(row=>Object.fromEntries(Object.entries(indexes).map(([k,i])=>[k,k==='consent_at'?broadcastImportDate(row[i]):String(row[i]??'').trim()])));
+}
+async function loadBroadcastExcel(){
+ if(window.ExcelJS)return;await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src='https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js';script.integrity='sha384-Pqp51FUN2/qzfxZxBCtF0stpc9ONI6MYZpVqmo8m20SoaQCzf+arZvACkLkirlPz';script.crossOrigin='anonymous';script.onload=resolve;script.onerror=()=>reject(Error('Excel reader could not load. Retry or save the file as CSV.'));document.head.appendChild(script)});
+}
+function validateBroadcastWorkbook(buffer){
+ const view=new DataView(buffer);let eocd=-1;for(let i=buffer.byteLength-22;i>=Math.max(0,buffer.byteLength-65557);i--){if(view.getUint32(i,true)===0x06054b50){eocd=i;break}}if(eocd<0)throw Error('Invalid Excel ZIP file.');
+ const count=view.getUint16(eocd+10,true),offset=view.getUint32(eocd+16,true);if(count>2000)throw Error('Excel file has too many entries.');let pos=offset,total=0;
+ for(let i=0;i<count;i++){if(pos+46>buffer.byteLength||view.getUint32(pos,true)!==0x02014b50)throw Error('Invalid Excel archive.');total+=view.getUint32(pos+24,true);if(total>20*1024*1024)throw Error('Excel expanded size exceeds 20 MB.');pos+=46+view.getUint16(pos+28,true)+view.getUint16(pos+30,true)+view.getUint16(pos+32,true)}
+}
+async function readBroadcastImportFile(file){
+ if(!file||file.size>2*1024*1024)throw Error('Choose a CSV or .xlsx file up to 2 MB.');
+ if(/\.csv$/i.test(file.name))return broadcastImportRecords(parseBroadcastCSV(await file.text()));
+ if(!/\.xlsx$/i.test(file.name))throw Error('Supported formats: CSV and Excel .xlsx. Save legacy .xls as .xlsx or CSV.');
+ const buffer=await file.arrayBuffer();validateBroadcastWorkbook(buffer);await loadBroadcastExcel();const workbook=new ExcelJS.Workbook();await workbook.xlsx.load(buffer);const sheet=workbook.worksheets[0];if(!sheet)throw Error('Excel file has no worksheet.');if(sheet.rowCount>501||sheet.columnCount>50)throw Error('Use at most 500 contacts and 50 columns.');
+ const matrix=[];sheet.eachRow({includeEmpty:false},row=>{const cells=[];for(let i=1;i<=sheet.columnCount;i++){const v=row.getCell(i).value;if(v&&typeof v==='object'&&!(v instanceof Date))throw Error('Use plain values; formulas, links and rich text are not supported.');cells.push(v??'')}matrix.push(cells)});return broadcastImportRecords(matrix);
+}
+function renderBroadcastImport(result){
+ broadcastImportResult=result.rows||[];const counts={};broadcastImportResult.forEach(r=>counts[r.status]=(counts[r.status]||0)+1);
+ document.getElementById('broadcastImportStatus').textContent=Object.entries(counts).map(([k,v])=>k.replace(/_/g,' ')+': '+v).join(' · ');
+ document.getElementById('broadcastImportPreview').innerHTML='<div class="table-wrapper"><table><thead><tr><th>Row</th><th>Name</th><th>Mobile</th><th>Status</th></tr></thead><tbody>'+broadcastImportResult.map(r=>'<tr><td>'+r.row+'</td><td>'+escapeHtml(r.name)+'</td><td>'+escapeHtml(r.phone)+'</td><td>'+escapeHtml(r.status.replace(/_/g,' '))+'</td></tr>').join('')+'</tbody></table></div>';
+ document.getElementById('broadcastImportCommit').disabled=result.committed||!broadcastImportResult.some(r=>r.status==='ready');
+}
+async function previewBroadcastImport(){
+ if(broadcastImportBusy)return;broadcastImportBusy=true;document.getElementById('broadcastImportCommit').disabled=true;broadcastImportRows=[];
+ try{broadcastImportRows=await readBroadcastImportFile(document.getElementById('broadcastImportFile').files[0]);renderBroadcastImport(await broadcastApi('contacts_import',{rows:broadcastImportRows}));document.getElementById('broadcastImportConfirm').checked=false}catch(e){document.getElementById('broadcastImportStatus').textContent=e.message}finally{broadcastImportBusy=false}
+}
+async function commitBroadcastImport(){
+ if(broadcastImportBusy)return;broadcastImportBusy=true;
+ try{if(!broadcastImportRows.length)throw Error('Preview your file first.');if(!document.getElementById('broadcastImportConfirm').checked)throw Error('Confirm the opt-in evidence is verified.');renderBroadcastImport(await broadcastApi('contacts_import',{rows:broadcastImportRows,commit:true,consent_confirmed:true}));await loadBroadcast();const imported=new Set(broadcastImportResult.filter(r=>['imported','existing'].includes(r.status)).map(r=>r.phone));document.querySelectorAll('.broadcast-recipient').forEach(x=>{if(imported.has(x.dataset.phone))x.checked=true});document.getElementById('broadcastImportConfirm').checked=false}catch(e){document.getElementById('broadcastImportStatus').textContent=e.message}finally{broadcastImportBusy=false}
+}
+function broadcastDownloadCSV(name,rows){const csv='\uFEFF'+rows.map(row=>row.map(v=>'"'+String(v??'').replace(/^[=+@-]/,"'$&").replace(/"/g,'""')+'"').join(',')).join('\r\n');const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
+function downloadBroadcastImportSample(){broadcastDownloadCSV('broadcast-contacts-template.csv',[['Name','Mobile','Opt-in','Consent date','Evidence reference'],['Customer name','9876543210','No','','']])}
+function downloadBroadcastImportResult(){broadcastDownloadCSV('broadcast-import-results.csv',[['Row','Name','Mobile','Status'],...broadcastImportResult.map(r=>[r.row,r.name,r.phone,r.status])])}
 
 let broadcastTemplates=[],broadcastCurrentCampaignId='',broadcastRequestId='',broadcastBusy=false,broadcastReportId='';
 async function broadcastApi(action,payload={}){
@@ -2125,7 +2281,7 @@ async function loadBroadcast(){
  const ts=document.getElementById('broadcastTemplate'),old=ts.value;ts.innerHTML='<option value="">Select a template</option>'+broadcastTemplates.map(x=>'<option value="'+escapeHtml(x.name+'|'+x.language)+'" '+(x.status==='APPROVED'?'':'disabled')+'>'+escapeHtml(x.name+' ('+x.language+') · '+(x.category||'Template')+' · '+x.status)+'</option>').join('');ts.value=old;ts.onchange=updateBroadcastPreview;
  const leads=allLeadsCache||[],ls=document.getElementById('broadcastLeadSelect');ls.innerHTML='<option value="">Select CRM lead</option>'+leads.map(x=>'<option value="'+escapeHtml(x.mobile_number||'')+'">'+escapeHtml(x.full_name||'Lead')+' · '+escapeHtml(x.mobile_number||'')+'</option>').join('');ls.onchange=()=>{if(ls.value)document.getElementById('broadcastOptinPhone').value=ls.value};
  document.getElementById('broadcastOptinCount').textContent=(opt.optins||[]).length;
- document.getElementById('broadcastOptins').innerHTML=(opt.optins||[]).map(x=>{const lead=leads.find(y=>String(y.mobile_number||'').replace(/\D/g,'').endsWith(x.wa_id.slice(-10))),name=lead?.full_name||x.wa_id;return '<tr><td><input aria-label="Select '+escapeHtml(name)+'" class="broadcast-recipient" type="checkbox" data-phone="'+escapeHtml(x.wa_id)+'" data-name="'+escapeHtml(name)+'" '+(checked.has(x.wa_id)?'checked':'')+'></td><td>'+escapeHtml(name)+'</td><td>'+escapeHtml(x.wa_id)+'</td><td>'+escapeHtml(broadcastDate(x.consent_at))+'</td><td>'+escapeHtml(x.consent_source)+'</td><td><button class="broadcast-optout" data-phone="'+escapeHtml(x.wa_id)+'">Opt out</button></td></tr>'}).join('')||'<tr><td colspan="6">No active opt-ins</td></tr>';
+ document.getElementById('broadcastOptins').innerHTML=(opt.optins||[]).map(x=>{const lead=leads.find(y=>String(y.mobile_number||'').replace(/\D/g,'').endsWith(x.wa_id.slice(-10))),name=x.display_name||lead?.full_name||x.wa_id;return '<tr><td><input aria-label="Select '+escapeHtml(name)+'" class="broadcast-recipient" type="checkbox" data-phone="'+escapeHtml(x.wa_id)+'" data-name="'+escapeHtml(name)+'" '+(checked.has(x.wa_id)?'checked':'')+'></td><td>'+escapeHtml(name)+'</td><td>'+escapeHtml(x.wa_id)+'</td><td>'+escapeHtml(broadcastDate(x.consent_at))+'</td><td>'+escapeHtml(x.consent_source)+'</td><td><button class="broadcast-optout" data-phone="'+escapeHtml(x.wa_id)+'">Opt out</button></td></tr>'}).join('')||'<tr><td colspan="6">No active opt-ins</td></tr>';
  document.querySelectorAll('.broadcast-optout').forEach(b=>b.onclick=()=>recordBroadcastOptout(b.dataset.phone));
  document.getElementById('broadcastOptouts').innerHTML=(out.optouts||[]).map(x=>'<tr><td>'+escapeHtml(x.wa_id)+'</td><td>'+escapeHtml(x.reason||'')+'</td></tr>').join('')||'<tr><td colspan="2">No opt-outs</td></tr>';
  await refreshBroadcastReports();s.textContent=enabled?'Ready. Approved templates can be sent. Pending or rejected templates are shown for reference.':'Live sending is OFF. Drafts and consent management are available.';
@@ -2136,7 +2292,7 @@ async function recordBroadcastOptout(phone){try{await broadcastApi('optout_add',
 async function addBroadcastOptin(){try{if(!document.getElementById('broadcastConsentConfirm').checked)throw Error('Confirm explicit WhatsApp marketing consent');await broadcastApi('optin_add',{phone:document.getElementById('broadcastOptinPhone').value,consent_at:broadcastIST(document.getElementById('broadcastConsentAt').value),consent_source:document.getElementById('broadcastConsentSource').value,consent_reference:document.getElementById('broadcastConsentReference').value.trim()});document.getElementById('broadcastConsentStatus').textContent='Opt-in evidence saved';document.getElementById('broadcastConsentConfirm').checked=false;await loadBroadcast()}catch(e){document.getElementById('broadcastConsentStatus').textContent=e.message}}
 async function createBroadcastDraft(){if(broadcastBusy)return;broadcastBusy=true;try{const t=selectedBroadcastTemplate();if(!t)throw Error('Choose an approved template');const variables={};document.querySelectorAll('#broadcastVariableFields [data-variable]').forEach(x=>{if(x.value.trim())variables[x.dataset.variable]=x.value.trim()});if(!broadcastRequestId)broadcastRequestId=crypto.randomUUID();const r=await broadcastApi('create',{request_id:broadcastRequestId,title:document.getElementById('broadcastTitle').value,template_name:t.name,language:t.language,template_variables:variables});broadcastCurrentCampaignId=r.campaign.id;document.getElementById('broadcastCampaignId').value=r.campaign.id;await refreshBroadcastReports();document.getElementById('broadcastStatus').textContent='Draft saved. Select contacts, then add them to this campaign.'}catch(e){document.getElementById('broadcastStatus').textContent=e.message}finally{broadcastBusy=false}}
 function newBroadcastCampaign(){broadcastRequestId='';broadcastCurrentCampaignId='';document.getElementById('broadcastCampaignId').value='';document.getElementById('broadcastTitle').value='';document.getElementById('broadcastStatus').textContent='Enter the new campaign details.'}
-async function attachBroadcastRecipients(){try{const id=document.getElementById('broadcastCampaignId').value,recipients=[...document.querySelectorAll('.broadcast-recipient:checked')].map(x=>({phone:x.dataset.phone,name:x.dataset.name}));if(!id)throw Error('Create or select a draft first');const r=await broadcastApi('recipients',{campaign_id:id,recipients});await refreshBroadcastReports();document.getElementById('broadcastStatus').textContent=r.eligible+' eligible; '+r.excluded+' excluded'}catch(e){document.getElementById('broadcastStatus').textContent=e.message}}
+async function attachBroadcastRecipients(){try{const id=document.getElementById('broadcastCampaignId').value,recipients=[...document.querySelectorAll('.broadcast-recipient:checked')].map(x=>({phone:x.dataset.phone,name:x.dataset.name}));if(!id)throw Error('Create or select a draft first');if(!recipients.length)throw Error('Select contacts first');let eligible=0,excluded=0;for(let i=0;i<recipients.length;i+=500){const r=await broadcastApi('recipients',{campaign_id:id,recipients:recipients.slice(i,i+500)});eligible+=r.eligible;excluded+=r.excluded}await refreshBroadcastReports();document.getElementById('broadcastStatus').textContent=eligible+' eligible; '+excluded+' excluded'}catch(e){document.getElementById('broadcastStatus').textContent=e.message}}
 async function approveBroadcast(schedule){if(broadcastBusy)return;broadcastBusy=true;try{const id=document.getElementById('broadcastCampaignId').value;if(!id)throw Error('Create or select a draft first');const scheduled_at=schedule?broadcastIST(document.getElementById('broadcastScheduleAt').value):new Date().toISOString();if(schedule&&Date.parse(scheduled_at)<=Date.now())throw Error('Choose a future schedule in India time');await broadcastApi('approve',{campaign_id:id,scheduled_at});await refreshBroadcastReports();document.getElementById('broadcastStatus').textContent=schedule?'Campaign scheduled in India time.':'Campaign queued. Sending starts on the next worker run.'}catch(e){document.getElementById('broadcastStatus').textContent=e.message}finally{broadcastBusy=false}}
 async function cancelBroadcast(){try{await broadcastApi('cancel',{campaign_id:document.getElementById('broadcastCampaignId').value});await refreshBroadcastReports();document.getElementById('broadcastStatus').textContent='Campaign cancelled; an in-flight message may already have been accepted.'}catch(e){document.getElementById('broadcastStatus').textContent=e.message}}
 async function showBroadcastReport(id){broadcastReportId=id;const b=document.getElementById('broadcastReportDetails');try{const r=await broadcastApi('report',{campaign_id:id});b.innerHTML='<div class="table-wrapper"><table><thead><tr><th>Contact</th><th>Number</th><th>Status</th><th>Attempts</th><th>Sent</th><th>Delivered</th><th>Read</th><th>Error</th></tr></thead><tbody>'+r.recipients.map(x=>'<tr><td>'+escapeHtml(x.display_name||'')+'</td><td>'+escapeHtml(x.wa_id)+'</td><td>'+escapeHtml(x.status)+'</td><td>'+x.attempts+'</td><td>'+escapeHtml(broadcastDate(x.sent_at))+'</td><td>'+escapeHtml(broadcastDate(x.delivered_at))+'</td><td>'+escapeHtml(broadcastDate(x.read_at))+'</td><td>'+escapeHtml(x.error_text||'—')+'</td></tr>').join('')+'</tbody></table></div>'}catch(e){b.textContent=e.message}}
@@ -2196,7 +2352,7 @@ document.querySelectorAll('.nav-item').forEach(item=>{item.addEventListener('cli
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', async () => {
     try {
-      const registration = await navigator.serviceWorker.register('./service-worker.js?v=38', { scope: './', updateViaCache: 'none' });
+      const registration = await navigator.serviceWorker.register('./service-worker.js?v=53', { scope: './', updateViaCache: 'none' });
       await registration.update();
       if (registration.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
       registration.addEventListener('updatefound', () => {
@@ -2222,6 +2378,8 @@ if ('serviceWorker' in navigator) {
 }
 </script>
 
+<script src="./google-calendar.js?v=1"></script>
 </body>
 </html>
+
 
