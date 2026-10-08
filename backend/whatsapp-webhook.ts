@@ -8,49 +8,6 @@ const supabase = createClient(
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
 );
 
-async function processBroadcastQueue(db:any,token:string,testScope?:string[]){
- const {data:cfg,error:cfgErr}=await db.from("broadcast_settings").select("send_enabled,mode").eq("id",true).maybeSingle();
- if(cfgErr)throw cfgErr;if(!testScope&&(!cfg?.send_enabled||cfg.mode!=="live"||!(Deno.env.get("WHATSAPP_APP_SECRET")||Deno.env.get("META_APP_SECRET"))))return {broadcast:"disabled",sent:0,failed:0,skipped:0};
- const WABA="922433197569331",PHONE=testScope?"917299278124316":"1248446071686225";
- if(testScope){const sr=await fetch("https://graph.facebook.com/v23.0/"+PHONE+"?fields=id,display_phone_number,verified_name",{headers:{Authorization:"Bearer "+token}}),sj=await sr.json();if(!sr.ok||sj.verified_name!=="Test Number"||!String(sj.display_phone_number).replace(/\D/g,"").startsWith("1555"))throw Error("Not a Meta test sender");}
- const stale=new Date(Date.now()-600000).toISOString();
- let cq=db.from("broadcast_campaigns").select("*").eq("status","scheduled").eq("send_mode",testScope?"test":"live").lte("scheduled_at",new Date().toISOString()).order("scheduled_at").limit(5);if(testScope)cq=cq.in("id",testScope);const {data:campaigns,error}=await cq;if(error)throw error;
- let sent=0,failed=0,skipped=0;
- for(const campaign of campaigns||[]){
-  const {error:staleError}=await db.from("broadcast_recipients").update({status:"failed",error_text:"Dispatch outcome unknown after interrupted worker; not retried"}).eq("campaign_id",campaign.id).eq("status","queued").lt("claimed_at",stale);if(staleError)throw staleError;
-  const tplRes=testScope?null:await fetch("https://graph.facebook.com/v23.0/"+WABA+"/message_templates?fields=name,status,language,category,components&limit=100",{headers:{Authorization:"Bearer "+token}});
-  const tplData=tplRes?await tplRes.json():{data:[]},tpl=testScope?{name:"hello_world",language:"en_US",components:[{type:"BODY",text:"Meta hello_world — CRM Broadcast test"}]}:(tplData.data||[]).find((x:any)=>x.name===campaign.template_name&&x.language===campaign.template_language&&x.status==="APPROVED"&&x.category==="MARKETING");
-  if(!tpl){await db.from("broadcast_recipients").update({status:"failed",error_text:"Approved marketing template unavailable"}).eq("campaign_id",campaign.id).eq("status","pending");await db.from("broadcast_campaigns").update({status:"completed"}).eq("id",campaign.id);failed++;continue;}
-  const {data:recipients,error:re}=await db.from("broadcast_recipients").select("*").eq("campaign_id",campaign.id).eq("status","pending").order("created_at").limit(10);if(re)throw re;
-  for(const r of recipients||[]){
-   if(testScope&&r.wa_id!=="919585905905"){await db.from("broadcast_recipients").update({status:"skipped",error_text:"Test recipient not allowed"}).eq("id",r.id);skipped++;continue;}
-   const {data:current,error:currentError}=await db.from("broadcast_campaigns").select("status").eq("id",campaign.id).single();if(currentError)throw currentError;if(current.status!=="scheduled")break;
-   if(!testScope){const {data:latestCfg,error:latestError}=await db.from("broadcast_settings").select("send_enabled,mode").eq("id",true).single();if(latestError)throw latestError;if(!latestCfg.send_enabled||latestCfg.mode!=="live")break;}
-   const {data:consent,error:consentError}=await db.from("broadcast_optins").select("wa_id").eq("wa_id",r.wa_id).is("revoked_at",null).maybeSingle();if(consentError)throw consentError;
-   const {data:optout,error:optoutError}=await db.from("broadcast_optouts").select("wa_id").eq("wa_id",r.wa_id).maybeSingle();if(optoutError)throw optoutError;
-   if(!consent||optout){await db.from("broadcast_recipients").update({status:"skipped",error_text:optout?"Customer opted out":"No active marketing opt-in"}).eq("id",r.id).eq("status","pending");skipped++;continue;}
-   const {data:claim}=await db.from("broadcast_recipients").update({status:"queued",claimed_at:new Date().toISOString(),attempts:(r.attempts||0)+1,error_text:null}).eq("id",r.id).eq("status","pending").select("id").maybeSingle();if(!claim)continue;
-   const body=String((tpl.components||[]).find((x:any)=>x.type==="BODY")?.text||"");
-   const nums=[...new Set([...body.matchAll(/\{\{(\d+)\}\}/g)].map((m:any)=>Number(m[1])))].sort((a,b)=>a-b);
-   const vars=campaign.template_variables||{};
-   const parameters=nums.map((n:number)=>({type:"text",text:String(vars[String(n)]??(n===1?(r.display_name||"Customer"):"")).slice(0,1024)}));
-   const payload={messaging_product:"whatsapp",to:r.wa_id,type:"template",template:{name:campaign.template_name,language:{code:campaign.template_language},components:parameters.length?[{type:"body",parameters}]:[]}};
-   let mr:any,mj:any,uncertain=false;
-   try{mr=await fetch("https://graph.facebook.com/v23.0/"+PHONE+"/messages",{method:"POST",headers:{Authorization:"Bearer "+token,"Content-Type":"application/json"},body:JSON.stringify(payload),signal:AbortSignal.timeout(15000)});mj=await mr.json();}
-   catch(_e){uncertain=true;mj={error:{message:"Provider outcome unknown; not retried to avoid duplicate delivery"}};mr={ok:false};}
-   if(!mr.ok){const retry=(r.attempts||0)+1,status=uncertain||retry>=3||![429,500,502,503,504].includes(mr.status)?"failed":"pending";await db.from("broadcast_recipients").update({status,error_text:String(mj?.error?.message||"WhatsApp send failed").slice(0,500),attempts:retry}).eq("id",r.id);failed++;continue;}
-   const metaId=mj?.messages?.[0]?.id;if(!metaId){await db.from("broadcast_recipients").update({status:"failed",error_text:"Provider accepted without message ID; not retried"}).eq("id",r.id);failed++;continue;}const now=new Date().toISOString();
-   const rendered=body.replace(/\{\{(\d+)\}\}/g,(_:string,n:string)=>String(vars[n]??(Number(n)===1?(r.display_name||"Customer"):"")));
-   const {error:saveErr}=await db.from("broadcast_recipients").update({status:"sent",meta_message_id:metaId||null,sent_at:now,error_text:null}).eq("id",r.id).eq("status","queued");if(saveErr)throw saveErr;
-   if(metaId){await db.from("whatsapp_contacts").upsert({wa_id:r.wa_id,phone_number:r.wa_id,updated_at:now},{onConflict:"wa_id"});const {error:msgErr}=await db.from("whatsapp_messages").upsert({meta_message_id:metaId,wa_id:r.wa_id,direction:"outbound",message_type:"template",message_text:rendered,message_timestamp:now,raw_payload:mj},{onConflict:"meta_message_id",ignoreDuplicates:true});if(msgErr)console.error("Broadcast inbox save error",msgErr);}
-   sent++;
-  }
-  const {count}=await db.from("broadcast_recipients").select("id",{count:"exact",head:true}).eq("campaign_id",campaign.id).in("status",["pending","queued"]);
-  if(!count)await db.from("broadcast_campaigns").update({status:"completed"}).eq("id",campaign.id).eq("status","scheduled");
- }
- return {broadcast:testScope?"test":"live",sent,failed,skipped};
-}
-
 Deno.serve(async (req: Request) => {
   const url = new URL(req.url);
 
@@ -109,7 +66,7 @@ Deno.serve(async (req: Request) => {
           }
           await supabase.from("whatsapp_automation_queue").update({status:"sent",attempts:(job.attempts??0)+1,last_error:null,processed_at:now}).eq("id",job.id);sent++;
         }
-        const broadcastResult=await processBroadcastQueue(supabase,metaToken); return Response.json({ok:true,processed:(jobs??[]).length,sent,failed,...broadcastResult});
+        return Response.json({ok:true,processed:(jobs??[]).length,sent,failed});
       }
 
       console.log(
@@ -123,26 +80,14 @@ Deno.serve(async (req: Request) => {
 
           const value = change?.value ?? {};
           for (const status of value?.statuses ?? []) {
-            if (!status?.id || !status?.status) continue;
-            const statusTime = status.timestamp ? new Date(Number(status.timestamp) * 1000).toISOString() : new Date().toISOString();
-            const patch: Record<string, unknown> = { delivery_status: String(status.status), status_timestamp: statusTime };
-            if (status.status === "read") patch.read_at = statusTime;
-            const mapped = ["sent","delivered","read","failed"].includes(String(status.status)) ? String(status.status) : null;
-            if (mapped && (signed || !appSecret)) {
-              const {data:br}=await supabase.from("broadcast_recipients").select("id,status").eq("meta_message_id",String(status.id)).maybeSingle();
-              const rank:any={pending:0,queued:0,sent:1,delivered:2,read:3,failed:0};
-              if(br && (mapped==="failed"?!["delivered","read"].includes(br.status):(rank[mapped]??0)>=(rank[br.status]??0))){
-                const {error:bse}=await supabase.from("broadcast_recipients").update({status:mapped,...(mapped==="delivered"?{delivered_at:statusTime}:mapped==="read"?{read_at:statusTime}:{}),error_text:status.status==="failed"?String(status.errors?.[0]?.title||status.errors?.[0]?.message||"Delivery failed").slice(0,500):null}).eq("id",br.id).eq("status",br.status);
-                if(bse)console.error("Broadcast status save error:",bse);
-              }
-            }
-            const {data:existingStatus,error:existingError}=await supabase.from("whatsapp_messages").select("delivery_status,status_timestamp").eq("meta_message_id",String(status.id)).maybeSingle();
-            if(existingError)console.error("WhatsApp status lookup error",existingError);
-            const deliveryRank:any={sent:1,delivered:2,read:3,failed:0};
-            if(!existingError&&mapped&&existingStatus&&(mapped==="failed"?!["delivered","read"].includes(existingStatus.delivery_status):(deliveryRank[mapped]??0)>=(deliveryRank[existingStatus.delivery_status]??0))&&(!existingStatus.status_timestamp||Date.parse(statusTime)>=Date.parse(existingStatus.status_timestamp))){
-              let statusQuery=supabase.from("whatsapp_messages").update(patch).eq("meta_message_id",String(status.id));statusQuery=existingStatus.delivery_status?statusQuery.eq("delivery_status",existingStatus.delivery_status):statusQuery.is("delivery_status",null);
-              const {error:statusError}=await statusQuery;if(statusError)console.error("WhatsApp status save error",statusError);
-            }
+            if (!status?.id || !["sent","delivered","read","failed"].includes(String(status.status))) continue;
+            const seconds=Number(status.timestamp);
+            const statusTime=Number.isFinite(seconds)&&seconds>0?new Date(seconds*1000).toISOString():new Date().toISOString();
+            const {error:statusError}=await supabase.rpc("broadcast_apply_delivery",{
+              p_meta_id:String(status.id),p_status:String(status.status),p_at:statusTime,
+              p_error:status.status==="failed"?String(status.errors?.[0]?.title||status.errors?.[0]?.message||"Delivery failed").slice(0,500):null
+            });
+            if(statusError)throw statusError;
           }
 
           const contacts = value?.contacts ?? [];
