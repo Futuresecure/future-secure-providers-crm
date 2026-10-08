@@ -1,6 +1,16 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.57.4";
 
+function broadcastHeader(tpl:any,vars:any){
+ const header=(tpl.components||[]).find((x:any)=>x.type==="HEADER");if(!header)return null;
+ if(header.format==="TEXT"){if(/\{\{/.test(header.text||""))throw Error("Dynamic text headers are not supported yet");return null;}
+ if(!["IMAGE","VIDEO","DOCUMENT"].includes(header.format))throw Error("Unsupported template header format");
+ const link=String(vars?.__header_media_url||header.example?.header_handle?.[0]||"").trim();let url:URL;
+ try{url=new URL(link)}catch{throw Error("Add a public HTTPS URL for the template header media")}
+ if(url.protocol!=="https:"||url.username||url.password||link.length>2048||url.hostname==="localhost"||url.hostname.endsWith(".local")||/^(127\.|10\.|192\.168\.|169\.254\.|172\.(1[6-9]|2\d|3[01])\.|0\.)/.test(url.hostname)||url.hostname.startsWith("["))throw Error("Header media requires a public HTTPS URL");
+ const type=header.format.toLowerCase();return {type:"header",parameters:[{type,[type]:{link}}]};
+}
+
 // Meta requires server-side App Secret Proof for this app's Graph requests.
 async function metaFetch(input:string,options:RequestInit={}){
  const url=new URL(input),authorization=new Headers(options.headers).get("Authorization")||"";
@@ -72,7 +82,7 @@ Deno.serve(async req=>{
   }
   if(action==="create"){
    const title=String(input.title||"").trim(),name=String(input.template_name||"").trim(),language=String(input.language||"").trim(),variables=input.template_variables||{};
-   if(!title||title.length>150||!/^[a-z0-9_]{3,512}$/.test(name)||!/^[a-z]{2}(_[A-Z]{2})?$/.test(language)||typeof variables!=="object"||variables===null||Array.isArray(variables)||JSON.stringify(variables).length>10000||Object.entries(variables).some(([k,v])=>!/^\d+$/.test(k)||typeof v!=="string"||v.length>1024))return reply({error:"Invalid campaign fields"},400);
+   if(!title||title.length>150||!/^[a-z0-9_]{3,512}$/.test(name)||!/^[a-z]{2}(_[A-Z]{2})?$/.test(language)||typeof variables!=="object"||variables===null||Array.isArray(variables)||JSON.stringify(variables).length>10000||Object.entries(variables).some(([k,v])=>!/^(__header_media_url|\d+)$/.test(k)||typeof v!=="string"||v.length>(k==="__header_media_url"?2048:1024)))return reply({error:"Invalid campaign fields"},400);
    const request_id=String(input.request_id||"");
    if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(request_id))return reply({error:"Valid request ID required"},400);
    const {data:existing,error:xe}=await db.from("broadcast_campaigns").select("id").eq("created_by",user.id).eq("request_id",request_id).maybeSingle();if(xe)throw xe;if(existing)return reply({campaign:existing});
@@ -106,7 +116,8 @@ Deno.serve(async req=>{
    const tj=await tr.json(),tpl=(tj.data||[]).find((x:any)=>x.name===campaign.template_name&&x.language===campaign.template_language&&x.status==="APPROVED");
    if(!tr.ok||!tpl)return reply({error:"An approved Meta template is required"},422);
    const comps=tpl.components||[],body=String(comps.find((x:any)=>x.type==="BODY")?.text||""),nums=[...new Set([...body.matchAll(/\{\{(\d+)\}\}/g)].map(m=>Number(m[1])))].sort((a,b)=>a-b);
-   if(comps.some((x:any)=>(x.type==="HEADER"&&(x.format!=="TEXT"||/\{\{/.test(x.text||"")))||(x.type==="BUTTONS"&&x.buttons?.some((b:any)=>!["URL","QUICK_REPLY","PHONE_NUMBER"].includes(b.type)||(b.type==="URL"&&/\{\{/.test(b.url||""))))))return reply({error:"This template has unsupported header or button parameters"},422);
+   try{broadcastHeader(tpl,campaign.template_variables)}catch(e){return reply({error:e.message},422);}
+   if(comps.some((x:any)=>x.type==="BUTTONS"&&x.buttons?.some((b:any)=>!["URL","QUICK_REPLY","PHONE_NUMBER"].includes(b.type)||(b.type==="URL"&&/\{\{/.test(b.url||"")))))return reply({error:"This template has unsupported button parameters"},422);
    if(nums.some((n,i)=>n!==i+1||(n!==1&&!String(campaign.template_variables?.[String(n)]||"").trim())))return reply({error:"Complete all sequential template variables"},422);
    const {count,error:re}=await db.from("broadcast_recipients").select("id",{count:"exact",head:true}).eq("campaign_id",id).eq("status","pending");if(re)throw re;if(!count)return reply({error:"No eligible recipients"},400);
    const at=scheduled?new Date(scheduled).toISOString():new Date().toISOString();
