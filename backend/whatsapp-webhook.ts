@@ -1,6 +1,18 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.57.4";
 
+// Meta requires server-side App Secret Proof for this app's Graph requests.
+async function metaFetch(input:string,options:RequestInit={}){
+ const url=new URL(input),authorization=new Headers(options.headers).get("Authorization")||"";
+ const token=authorization.replace(/^Bearer\s+/i,""),secret=Deno.env.get("WHATSAPP_APP_SECRET")||Deno.env.get("META_APP_SECRET");
+ if(url.hostname==="graph.facebook.com"&&token&&secret){
+  const key=await crypto.subtle.importKey("raw",new TextEncoder().encode(secret),{name:"HMAC",hash:"SHA-256"},false,["sign"]);
+  const proof=[...new Uint8Array(await crypto.subtle.sign("HMAC",key,new TextEncoder().encode(token)))].map(x=>x.toString(16).padStart(2,"0")).join("");
+  url.searchParams.set("appsecret_proof",proof);
+ }
+ return fetch(url.toString(),options);
+}
+
 const VERIFY_TOKEN = "fsp_meta_webhook_2026";
 
 const supabase = createClient(
@@ -52,10 +64,10 @@ Deno.serve(async (req: Request) => {
           if(job.event_type==="new_enquiry"){templateName="fsp_new_enquiry_received";params=[String(r.full_name??"Customer").trim()||"Customer"];}
           else if(job.event_type==="appointment_confirmed"){let d=String(r.appointment_date??""),p=d.split("-");if(p.length===3)d=p[2]+"-"+p[1]+"-"+p[0];templateName="fsp_appointment_confirmed";params=[String(r.customer_name??"Customer").trim()||"Customer",d,String(r.appointment_time??"")];}
           else {await supabase.from("whatsapp_automation_queue").update({status:"failed",attempts:(job.attempts??0)+1,last_error:"Unknown event"}).eq("id",job.id);failed++;continue;}
-          const tr=await fetch("https://graph.facebook.com/v23.0/922433197569331/message_templates?fields=name,status,language,components&limit=100",{headers:{Authorization:"Bearer "+metaToken}});const tj=await tr.json();const tpl=(tj.data??[]).find((x:any)=>x.name===templateName&&x.status==="APPROVED");
+          const tr=await metaFetch("https://graph.facebook.com/v23.0/922433197569331/message_templates?fields=name,status,language,components&limit=100",{headers:{Authorization:"Bearer "+metaToken}});const tj=await tr.json();const tpl=(tj.data??[]).find((x:any)=>x.name===templateName&&x.status==="APPROVED");
           if(!tpl){await supabase.from("whatsapp_automation_queue").update({status:"failed",attempts:(job.attempts??0)+1,last_error:"Template not approved"}).eq("id",job.id);failed++;continue;}
           const payload={messaging_product:"whatsapp",to,type:"template",template:{name:templateName,language:{code:tpl.language},components:[{type:"body",parameters:params.map(x=>({type:"text",text:x}))}]}};
-          const mr=await fetch("https://graph.facebook.com/v23.0/1248446071686225/messages",{method:"POST",headers:{Authorization:"Bearer "+metaToken,"Content-Type":"application/json"},body:JSON.stringify(payload)});const mj=await mr.json();
+          const mr=await metaFetch("https://graph.facebook.com/v23.0/1248446071686225/messages",{method:"POST",headers:{Authorization:"Bearer "+metaToken,"Content-Type":"application/json"},body:JSON.stringify(payload)});const mj=await mr.json();
           if(!mr.ok){const attempts=(job.attempts??0)+1;await supabase.from("whatsapp_automation_queue").update({status:attempts>=5?"failed":"pending",attempts,last_error:mj?.error?.message??"Send failed"}).eq("id",job.id);failed++;continue;}
           const mid=mj?.messages?.[0]?.id,now=new Date().toISOString(),txt=String((tpl.components??[]).find((x:any)=>x.type==="BODY")?.text??templateName).replace(/\{\{(\d+)\}\}/g,(_:string,i:string)=>params[Number(i)-1]??"");
           if(mid){
@@ -183,7 +195,7 @@ Deno.serve(async (req: Request) => {
               try {
                 const { data: cfg } = await supabase.from("push_config_private").select("internal_token").eq("id", true).single();
                 if (cfg?.internal_token) {
-                  await fetch("https://cjwxirpwzluynymwjzxl.supabase.co/functions/v1/push-new-lead", {
+                  await metaFetch("https://cjwxirpwzluynymwjzxl.supabase.co/functions/v1/push-new-lead", {
                     method: "POST",
                     headers: {"Content-Type":"application/json","x-fsp-push-token":cfg.internal_token},
                     body: JSON.stringify({
@@ -226,3 +238,4 @@ Deno.serve(async (req: Request) => {
     { status: 405 }
   );
 });
+
