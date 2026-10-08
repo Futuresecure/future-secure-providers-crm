@@ -63,3 +63,12 @@ Deployed broadcast-manage v8, broadcast-worker v4, whatsapp-webhook v26, whatsap
 
 ## All-template selection update
 Broadcast now displays every returned template with language, category and approval status. Non-approved templates are displayed disabled. Approved UTILITY templates can be queued and dispatched; the category-only restriction was removed in both approval and worker revalidation. Unsupported media/dynamic header, dynamic URL and OTP/copy-code button parameters remain rejected before queueing. Consent, opt-out, ownership, signature, duplicate prevention and live OFF gates are retained. 66 automated checks passed, including approved utility dispatch and pending-template rejection. No actual production messages were sent during this change. Actual CRM service-worker cache v52.
+
+
+## CSV / Excel bulk import — 2026-10-08
+
+Broadcast now supports CSV and Excel .xlsx (first worksheet), up to 500 contacts / 2 MB per file. Required columns: Name, Mobile, Opt-in, Consent date, Evidence reference. India local dates are converted explicitly to +05:30. The downloadable sample defaults to No and blank evidence. Preview is read-only; committing requires verified-consent confirmation. Only explicit Yes rows with valid evidence are imported. Existing opt-outs and revoked consent are never re-enabled by bulk import. Imported names persist and valid imported/existing contacts are selected for attaching to a draft. Import never schedules or sends messages. Campaign attachment uses batches of 500. Result CSV export neutralizes spreadsheet formula prefixes.
+
+Management API validates independently, permits only the existing allowlisted admin and invokes a service-only, security-invoker atomic import RPC. Phone locks and conflict handling prevent duplicate inserts; STOP checks apply again at dispatch. Existing CRM leads and automation are untouched. Excel reader is lazy-loaded, version-pinned ExcelJS 4.4.0 with SHA-384 integrity. Formulas and hyperlinks are rejected; expanded archive limit 20 MB and 2,000 entries.
+
+Validation: 75 management/worker/regression checks passed; CSV quoting/BOM/headers/IST, real XLSX numeric phone, formula rejection and archive/file limits passed. Production SQL tests ran inside BEGIN/ROLLBACK: preview made no writes, commit/import retry deduplicated, STOP prevented re-import, QA records persisted = 0. RPC execution denied to anon/authenticated; service-only. No customer test messages sent. Live sending remains OFF pending the previously outstanding physical mobile PWA check.
