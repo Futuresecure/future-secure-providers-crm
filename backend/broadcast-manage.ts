@@ -86,10 +86,10 @@ Deno.serve(async req=>{
    if(!settings?.send_enabled||settings.mode!=="live")return reply({error:"Broadcast sending is disabled until the Meta test-number validation passes."},409);
    if(!(Deno.env.get("WHATSAPP_APP_SECRET")||Deno.env.get("META_APP_SECRET")))return reply({error:"Webhook signature secret is required before live sending"},409);
    const tr=await metaFetch("https://graph.facebook.com/v23.0/922433197569331/message_templates?fields=name,status,language,category,components&limit=100",{headers:{Authorization:"Bearer "+(Deno.env.get("WHATSAPP_ACCESS_TOKEN")||"")}});
-   const tj=await tr.json(),tpl=(tj.data||[]).find((x:any)=>x.name===campaign.template_name&&x.language===campaign.template_language&&x.status==="APPROVED"&&x.category==="MARKETING");
-   if(!tr.ok||!tpl)return reply({error:"An approved Meta marketing template is required"},422);
+   const tj=await tr.json(),tpl=(tj.data||[]).find((x:any)=>x.name===campaign.template_name&&x.language===campaign.template_language&&x.status==="APPROVED");
+   if(!tr.ok||!tpl)return reply({error:"An approved Meta template is required"},422);
    const comps=tpl.components||[],body=String(comps.find((x:any)=>x.type==="BODY")?.text||""),nums=[...new Set([...body.matchAll(/\{\{(\d+)\}\}/g)].map(m=>Number(m[1])))].sort((a,b)=>a-b);
-   if(comps.some((x:any)=>(x.type==="HEADER"&&(x.format!=="TEXT"||/\{\{/.test(x.text||"")))||(x.type==="BUTTONS"&&x.buttons?.some((b:any)=>b.type==="URL"&&/\{\{/.test(b.url||"")))))return reply({error:"Use a text template without dynamic header or URL buttons"},422);
+   if(comps.some((x:any)=>(x.type==="HEADER"&&(x.format!=="TEXT"||/\{\{/.test(x.text||"")))||(x.type==="BUTTONS"&&x.buttons?.some((b:any)=>!["URL","QUICK_REPLY","PHONE_NUMBER"].includes(b.type)||(b.type==="URL"&&/\{\{/.test(b.url||""))))))return reply({error:"This template has unsupported header or button parameters"},422);
    if(nums.some((n,i)=>n!==i+1||(n!==1&&!String(campaign.template_variables?.[String(n)]||"").trim())))return reply({error:"Complete all sequential template variables"},422);
    const {count,error:re}=await db.from("broadcast_recipients").select("id",{count:"exact",head:true}).eq("campaign_id",id).eq("status","pending");if(re)throw re;if(!count)return reply({error:"No eligible recipients"},400);
    const at=scheduled?new Date(scheduled).toISOString():new Date().toISOString();
@@ -105,4 +105,5 @@ Deno.serve(async req=>{
   return reply({error:"Unknown action"},400);
  }catch(e){console.error(e);return reply({error:"Request failed"},500)}
 });
+
 
