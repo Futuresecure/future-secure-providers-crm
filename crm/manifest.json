@@ -10,15 +10,15 @@
   "theme_color": "#247d78",
   "icons": [
     {
-      "src": "./logo.jpg",
-      "sizes": "2048x2048",
-      "type": "image/jpeg",
+      "src": "../pwa-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
       "purpose": "any"
     },
     {
-      "src": "./logo.jpg",
-      "sizes": "2048x2048",
-      "type": "image/jpeg",
+      "src": "../pwa-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
       "purpose": "maskable"
     }
   ],
@@ -34,9 +34,9 @@
       "url": "./?page=dashboard",
       "icons": [
         {
-          "src": "./logo.jpg",
-          "sizes": "2048x2048",
-          "type": "image/jpeg"
+          "src": "../pwa-icon.svg",
+          "sizes": "any",
+          "type": "image/svg+xml"
         }
       ]
     },
@@ -47,9 +47,9 @@
       "url": "./?page=leads",
       "icons": [
         {
-          "src": "./logo.jpg",
-          "sizes": "2048x2048",
-          "type": "image/jpeg"
+          "src": "../pwa-icon.svg",
+          "sizes": "any",
+          "type": "image/svg+xml"
         }
       ]
     }
