@@ -1,7 +1,7 @@
 // Future Secure Providers CRM Service Worker
-const CACHE_NAME = 'fsp-crm-v14';
-const RUNTIME_CACHE = 'fsp-crm-runtime-v14';
-const APP_SHELL = ['./', './index.html', './manifest.json?v=13', './logo.jpg'];
+const CACHE_NAME = 'fsp-crm-v55';
+const RUNTIME_CACHE = 'fsp-crm-runtime-v55';
+const APP_SHELL = ['./', './index.html?v=55', './manifest.json?v=55', '../pwa-icon.svg'];
 
 self.addEventListener('message', event => {
   if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting();
@@ -19,7 +19,7 @@ self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys()
       .then(names => Promise.all(
-        names.filter(name => name !== CACHE_NAME && name !== RUNTIME_CACHE)
+        names.filter(name => name.startsWith('fsp-crm-') && name !== CACHE_NAME && name !== RUNTIME_CACHE)
              .map(name => caches.delete(name))
       ))
       .then(() => self.clients.claim())
@@ -33,25 +33,17 @@ self.addEventListener('fetch', event => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
-  // Documents: serve the installed app shell immediately, then refresh it in the background.
-  // Live CRM records still come directly from Supabase, so cached UI never makes business data stale.
+  // Documents: always use network first so CRM UI updates immediately; cache only as offline fallback.
   if (request.mode === 'navigate') {
-    event.respondWith((async () => {
-      const cached = (await caches.match('./index.html')) || (await caches.match('./'));
-      const network = fetch(request).then(async response => {
+    event.respondWith(
+      fetch(request, { cache: 'no-store' }).then(async response => {
         if (response && response.ok) {
           const cache = await caches.open(RUNTIME_CACHE);
-          await cache.put(request, response.clone());
+          await cache.put('./index.html?v=55', response.clone());
         }
         return response;
-      });
-      if (cached) {
-        event.waitUntil(network.catch(() => undefined));
-        return cached;
-      }
-      try { return await network; }
-      catch (_) { return new Response('Offline', { status: 503, headers: { 'Content-Type': 'text/plain' } }); }
-    })());
+      }).catch(async () => (await caches.match('./index.html?v=55')) || new Response('Offline', { status: 503, headers: { 'Content-Type': 'text/plain' } }))
+    );
     return;
   }
 
@@ -81,27 +73,16 @@ self.addEventListener('fetch', event => {
   }
 });
 
-self.addEventListener('push', event => {
-  if (!event.data) return;
-  let data = {};
-  try { data = event.data.json(); } catch (_) { data = { body: event.data.text() }; }
-  event.waitUntil(self.registration.showNotification(data.title || 'Future Secure Providers CRM', {
-    body: data.body || 'New notification',
-    icon: './logo.jpg',
-    badge: './logo.jpg',
-    tag: data.tag || 'fsp-crm-notification',
-    requireInteraction: !!data.requireInteraction
-  }));
-});
 
-self.addEventListener('notificationclick', event => {
-  event.notification.close();
-  event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
-      for (const client of list) {
-        if ('focus' in client) return client.focus();
-      }
-      return clients.openWindow ? clients.openWindow('./') : undefined;
-    })
-  );
+self.addEventListener('push',event=>{
+ if(!event.data)return;let data={};try{data=event.data.json()}catch{data={body:event.data.text()}}
+ event.waitUntil(self.registration.showNotification(data.title||'Future Secure Providers CRM',{body:data.body||'New notification',icon:'../pwa-icon.svg',badge:'../pwa-icon.svg',tag:data.tag||'fsp-crm-notification',requireInteraction:!!data.requireInteraction,data:{url:data.url||'./'}}));
+});
+self.addEventListener('notificationclick',event=>{
+ event.notification.close();const base=self.registration.scope;let target=new URL('./',base);
+ try{const requested=new URL(event.notification.data?.url||'./',base);if(requested.origin===self.location.origin&&requested.pathname.startsWith(new URL(base).pathname))target=requested}catch{}
+ event.waitUntil(clients.matchAll({type:'window',includeUncontrolled:true}).then(async list=>{
+ for(const client of list){if(client.url&&new URL(client.url).pathname.startsWith(new URL(base).pathname)&&'focus' in client){if('navigate' in client)await client.navigate(target.href);return client.focus()}}
+ return clients.openWindow?clients.openWindow(target.href):undefined;
+ }));
 });
