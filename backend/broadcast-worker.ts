@@ -1,6 +1,16 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import {createClient} from "npm:@supabase/supabase-js@2.57.4";
 
+function broadcastHeader(tpl:any,vars:any){
+ const header=(tpl.components||[]).find((x:any)=>x.type==="HEADER");if(!header)return null;
+ if(header.format==="TEXT"){if(/\{\{/.test(header.text||""))throw Error("Dynamic text headers are not supported yet");return null;}
+ if(!["IMAGE","VIDEO","DOCUMENT"].includes(header.format))throw Error("Unsupported template header format");
+ const link=String(vars?.__header_media_url||header.example?.header_handle?.[0]||"").trim();let url:URL;
+ try{url=new URL(link)}catch{throw Error("Add a public HTTPS URL for the template header media")}
+ if(url.protocol!=="https:"||url.username||url.password||link.length>2048||url.hostname==="localhost"||url.hostname.endsWith(".local")||/^(127\.|10\.|192\.168\.|169\.254\.|172\.(1[6-9]|2\d|3[01])\.|0\.)/.test(url.hostname)||url.hostname.startsWith("["))throw Error("Header media requires a public HTTPS URL");
+ const type=header.format.toLowerCase();return {type:"header",parameters:[{type,[type]:{link}}]};
+}
+
 // Meta requires server-side App Secret Proof for this app's Graph requests.
 async function metaFetch(input:string,options:RequestInit={}){
  const url=new URL(input),authorization=new Headers(options.headers).get("Authorization")||"";
@@ -25,6 +35,7 @@ async function processBroadcastQueue(db:any,token:string,testScope?:string[]){
   const tplRes=testScope?null:await metaFetch("https://graph.facebook.com/v23.0/"+WABA+"/message_templates?fields=name,status,language,category,components&limit=100",{headers:{Authorization:"Bearer "+token}});
   const tplData=tplRes?await tplRes.json():{data:[]},tpl=testScope?{name:"hello_world",language:"en_US",components:[{type:"BODY",text:"Meta hello_world — CRM Broadcast test"}]}:(tplData.data||[]).find((x:any)=>x.name===campaign.template_name&&x.language===campaign.template_language&&x.status==="APPROVED");
   if(!tpl){await db.from("broadcast_recipients").update({status:"failed",error_text:"Approved template unavailable"}).eq("campaign_id",campaign.id).eq("status","pending");await db.from("broadcast_campaigns").update({status:"completed"}).eq("id",campaign.id);failed++;continue;}
+  let header:any;try{header=broadcastHeader(tpl,campaign.template_variables)}catch(e){await db.from("broadcast_campaigns").update({status:"paused"}).eq("id",campaign.id);continue;}
   const {data:recipients,error:re}=await db.from("broadcast_recipients").select("*").eq("campaign_id",campaign.id).eq("status","pending").order("created_at").limit(10);if(re)throw re;
   for(const r of recipients||[]){
    if(testScope&&r.wa_id!=="919585905905"){await db.from("broadcast_recipients").update({status:"skipped",error_text:"Test recipient not allowed"}).eq("id",r.id);skipped++;continue;}
@@ -38,7 +49,7 @@ async function processBroadcastQueue(db:any,token:string,testScope?:string[]){
    const nums=[...new Set([...body.matchAll(/\{\{(\d+)\}\}/g)].map((m:any)=>Number(m[1])))].sort((a,b)=>a-b);
    const vars=campaign.template_variables||{};
    const parameters=nums.map((n:number)=>({type:"text",text:String(vars[String(n)]??(n===1?(r.display_name||"Customer"):"")).slice(0,1024)}));
-   const payload={messaging_product:"whatsapp",to:r.wa_id,type:"template",template:{name:campaign.template_name,language:{code:campaign.template_language},components:parameters.length?[{type:"body",parameters}]:[]}};
+   const payload={messaging_product:"whatsapp",to:r.wa_id,type:"template",template:{name:campaign.template_name,language:{code:campaign.template_language},components:[...(header?[header]:[]),...(parameters.length?[{type:"body",parameters}]:[])]}};
    let mr:any,mj:any,uncertain=false;
    try{mr=await metaFetch("https://graph.facebook.com/v23.0/"+PHONE+"/messages",{method:"POST",headers:{Authorization:"Bearer "+token,"Content-Type":"application/json"},body:JSON.stringify(payload),signal:AbortSignal.timeout(15000)});mj=await mr.json();}
    catch(_e){uncertain=true;mj={error:{message:"Provider outcome unknown; not retried to avoid duplicate delivery"}};mr={ok:false};}
@@ -70,4 +81,5 @@ Deno.serve(async req=>{
  return Response.json(await processBroadcastQueue(db,token));
  }catch(e){console.error("Broadcast worker failed",e);return Response.json({error:"Broadcast processing failed"},{status:500});}
 });
+
 
