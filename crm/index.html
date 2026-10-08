@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="FSP CRM">
 <link rel="apple-touch-icon" href="./logo.jpg">
 <link rel="icon" type="image/x-icon" href="./logo.jpg">
-<link rel="manifest" href="./manifest.json?v=37">
+<link rel="manifest" href="./manifest.json?v=38">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:Arial,sans-serif}
@@ -74,6 +74,7 @@ button{border:0;border-radius:8px;padding:10px 14px;cursor:pointer}.btn-primary{
 .wa-inbox-card{overflow:hidden}
 .wa-layout{display:grid;grid-template-columns:320px minmax(0,1fr);height:clamp(520px,calc(100dvh - 260px),720px);min-height:0;max-height:none;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:#fff}.wa-list{border-right:1px solid var(--border);overflow-y:auto;background:#f8fafc}.wa-list-head{padding:16px;border-bottom:1px solid var(--border);background:#fff}.wa-contact{padding:14px 16px;border-bottom:1px solid var(--border);cursor:pointer}.wa-contact:hover,.wa-contact.active{background:#eaf6f4}.wa-contact-name{font-weight:700;margin-bottom:4px}.wa-contact-meta{font-size:12px;color:var(--muted)}.wa-chat{display:grid;grid-template-rows:auto minmax(0,1fr) auto auto;min-width:0;min-height:0;height:100%;overflow:hidden}.wa-chat-head{padding:16px 18px;border-bottom:1px solid var(--border);min-width:0}.wa-messages{min-height:0;height:100%;overflow-y:scroll;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;padding:20px;background:#eef2f3}.wa-bubble{max-width:78%;padding:10px 12px;border-radius:10px;margin-bottom:10px;background:#fff;white-space:pre-wrap;overflow-wrap:anywhere}.wa-bubble.outbound{margin-left:auto;background:#d9fdd3}.wa-time{display:block;text-align:right;font-size:10px;color:var(--muted);margin-top:5px}.wa-placeholder{margin:auto;color:var(--muted);text-align:center;padding:30px}@media(max-width:768px){.wa-layout{grid-template-columns:1fr;height:calc(100dvh - 170px);min-height:420px;max-height:none}.wa-list{border-right:0}.wa-chat{display:none}.wa-layout.chat-open .wa-list{display:none}.wa-layout.chat-open .wa-chat{display:flex}}
 .wa-composer{display:flex;flex:0 0 auto;gap:10px;padding:12px;border-top:1px solid var(--border);background:#fff;position:relative;z-index:2}.wa-composer textarea{flex:1 1 auto;min-width:0;height:44px;min-height:44px;max-height:88px;resize:none;overflow-y:auto}.wa-composer button{min-width:86px}.wa-send-status{font-size:12px;flex:0 0 auto;background:#fff;color:var(--muted);position:relative;z-index:2}.wa-send-status:empty{display:none}.wa-send-status:not(:empty){padding:6px 12px 10px}@media(max-width:768px){.wa-composer{padding:10px;gap:8px}.wa-composer button{min-width:70px}}
+#broadcastPage input[type=checkbox]{width:auto;min-width:20px;min-height:20px}#broadcastPage button{min-height:44px;margin-top:8px}#broadcastPage .table-wrapper{max-width:100%;overflow-x:auto}#broadcastPage td{overflow-wrap:anywhere}#broadcastStatus,#broadcastConsentStatus{padding-top:12px}#broadcastPreview{overflow-wrap:anywhere}@media(max-width:650px){#broadcastPage .card{padding:14px}#broadcastPage .form-grid{grid-template-columns:1fr}#broadcastPage button{margin-right:6px}}
 </style>
 </head>
 <body>
@@ -89,7 +90,7 @@ button{border:0;border-radius:8px;padding:10px 14px;cursor:pointer}.btn-primary{
 <div class="nav-item" data-page="tasks" onclick="showPage('tasks',this);loadTasks()">🗓 Today's Tasks</div>
 <div class="nav-item" data-page="calendar" onclick="showPage('calendar',this);loadCalendar()">📅 Calendar</div>
 <div class="nav-item" data-page="whatsapp" onclick="showPage('whatsapp',this);loadWhatsAppInbox()">💬 WhatsApp Inbox</div>
-<div class="nav-item" data-page="waTemplates" onclick="showPage('waTemplates',this);loadWhatsAppTemplates()">📝 WhatsApp Templates</div>
+<div class="nav-item" data-page="waTemplates" onclick="showPage('waTemplates',this);loadWhatsAppTemplates()">📝 WhatsApp Templates</div><div class="nav-item" data-page="broadcast" onclick="showPage('broadcast',this)">📣 WhatsApp Broadcast</div>
 <div class="nav-item" data-page="reports" onclick="showPage('reports',this);loadLeads()">📊 Reports</div>
 <div class="nav-item" data-page="pipeline" onclick="showPage('pipeline',this);loadPipeline()">🎯 Pipeline</div>
 <div class="sidebar-bottom"><div class="nav-item" data-page="settings" onclick="showPage('settings',this)">⚙️ Settings</div></div>
@@ -259,7 +260,12 @@ button{border:0;border-radius:8px;padding:10px 14px;cursor:pointer}.btn-primary{
  <div class="table-wrapper"><table><thead><tr><th>Template</th><th>Purpose</th><th>Language</th><th>Meta Status</th><th>Action</th></tr></thead><tbody id="waTemplatesBody"><tr><td colspan="5" class="empty">Loading...</td></tr></tbody></table></div>
 </div></section>
 
-<section id="reportsPage" class="page hidden">
+<section id="broadcastPage" class="page hidden">
+<div class="stats"><div class="stat-card"><h3>Mode</h3><div class="number" id="broadcastMode">TEST</div></div><div class="stat-card"><h3>Active opt-ins</h3><div class="number" id="broadcastOptinCount">0</div></div><div class="stat-card"><h3>Sending</h3><div class="number" id="broadcastSendState">OFF</div></div></div>
+<div class="card"><h2>Record marketing consent</h2><p class="muted">Add only explicit WhatsApp marketing opt-ins with a verifiable evidence reference.</p><div class="form-grid"><div class="form-group"><label>CRM lead</label><select id="broadcastLeadSelect"></select></div><div class="form-group"><label>Mobile</label><input id="broadcastOptinPhone" inputmode="numeric"></div><div class="form-group"><label>Consent date/time</label><input id="broadcastConsentAt" type="datetime-local"></div><div class="form-group"><label>Evidence type</label><select id="broadcastConsentSource"><option value="crm_manual">CRM verified record</option><option value="website_form">Website form</option><option value="imported_record">Imported record</option></select></div><div class="form-group full"><label>Evidence reference</label><input id="broadcastConsentReference" maxlength="500"></div></div><label style="display:flex;gap:8px;margin:12px 0"><input id="broadcastConsentConfirm" type="checkbox" style="width:auto">Explicit WhatsApp marketing consent was obtained; evidence above is verified.</label><button class="btn-primary" onclick="addBroadcastOptin()">Save opt-in</button><div id="broadcastConsentStatus"></div></div>
+<div class="card"><h2>Campaign</h2><div class="form-grid"><div class="form-group"><label>Name</label><input id="broadcastTitle"></div><div class="form-group"><label>Approved marketing template</label><select id="broadcastTemplate"></select></div><div class="form-group full"><label>Message details</label><div id="broadcastVariableFields" class="form-grid"></div><div id="broadcastPreview" style="white-space:pre-wrap;padding:12px;background:#f8fafc;margin-top:12px">Choose a template to preview the message.</div></div><div class="form-group"><label>Schedule (Asia/Kolkata)</label><input id="broadcastScheduleAt" type="datetime-local"></div><div class="form-group"><label>Campaign ID</label><input id="broadcastCampaignId" readonly></div></div><button class="btn-secondary" onclick="newBroadcastCampaign()">New campaign</button> <button class="btn-primary" onclick="createBroadcastDraft()">Create draft</button> <button class="btn-secondary" onclick="attachBroadcastRecipients()">Add selected contacts</button> <button class="btn-primary" id="broadcastSendNow" onclick="approveBroadcast(false)" disabled>Send now</button> <button class="btn-secondary" id="broadcastScheduleBtn" onclick="approveBroadcast(true)" disabled>Schedule</button> <button class="btn-secondary" onclick="cancelBroadcast()">Cancel</button><div id="broadcastStatus" aria-live="polite"></div></div>
+<div class="card"><h2>Eligible opted-in contacts</h2><div class="table-wrapper"><table><thead><tr><th><input type="checkbox" onchange="toggleBroadcastRecipients(this.checked)"></th><th>Contact</th><th>WhatsApp</th><th>Consent time</th><th>Evidence type</th><th>Action</th></tr></thead><tbody id="broadcastOptins"></tbody></table></div></div>
+<div class="card"><h2>Opt-out management</h2><p class="muted">STOP, UNSUBSCRIBE, CANCEL, END and QUIT messages also record an opt-out automatically. Re-enable only after fresh explicit consent.</p><div class="form-grid"><div class="form-group"><label for="broadcastOptoutPhone">Mobile</label><input id="broadcastOptoutPhone" inputmode="numeric"></div><div class="form-group"><label for="broadcastOptoutReason">Reason</label><input id="broadcastOptoutReason" maxlength="500"></div></div><button class="btn-danger" onclick="recordBroadcastOptout()">Record opt-out</button><div class="table-wrapper"><table><thead><tr><th>WhatsApp</th><th>Reason</th></tr></thead><tbody id="broadcastOptouts"></tbody></table></div></div><div class="card"><h2>Delivery reports</h2><div class="table-wrapper"><table><thead><tr><th>Campaign</th><th>Status</th><th>Recipients</th><th>Sent</th><th>Delivered</th><th>Read</th><th>Failed</th><th>Skipped</th><th>Schedule (India time)</th><th></th></tr></thead><tbody id="broadcastCampaigns"></tbody></table></div><div id="broadcastReportDetails"></div></div></section><section id="reportsPage" class="page hidden">
 <div class="stats"><div class="stat-card"><h3>Conversion Rate</h3><div class="number" id="reportConversionRate">0%</div></div><div class="stat-card"><h3>Today's Leads</h3><div class="number" id="reportTodayLeads">0</div></div><div class="stat-card"><h3>This Week</h3><div class="number" id="reportWeekLeads">0</div></div><div class="stat-card"><h3>This Month</h3><div class="number" id="reportMonthLeads">0</div></div></div>
 <div class="card"><h2>Status-wise Leads</h2><div class="table-wrapper"><table><thead><tr><th>Status</th><th>Leads</th></tr></thead><tbody id="statusReportTable"></tbody></table></div></div>
 <div class="card"><h2>Lead Source Performance</h2><div class="table-wrapper"><table><thead><tr><th>Lead Source</th><th>Total Leads</th><th>Converted</th><th>Conversion Rate</th></tr></thead><tbody id="sourceReportTable"></tbody></table></div></div>
@@ -375,6 +381,7 @@ leads:["Leads","Manage all customer leads"],addLead:["Add New Lead","Create or u
 followups:["Follow-ups","Manage scheduled follow-ups"],tasks:["Today's Tasks","Manage your daily activities"],
 calendar:["Calendar","View and manage appointments"],
 whatsapp:["WhatsApp Inbox","View customer WhatsApp conversations"],
+broadcast:["WhatsApp Broadcast","Campaigns and delivery reports"],
 reports:["Reports","View CRM performance reports"],pipeline:["Lead Pipeline","Track leads by sales stage"],
 leadProfile:["Lead Profile","Customer details and activity"],settings:["Settings","CRM configuration"]};
 
@@ -384,6 +391,7 @@ const target=document.getElementById(page+"Page");if(target)target.classList.rem
 document.querySelectorAll(".nav-item").forEach(x=>x.classList.remove("active"));
 if(element)element.classList.add("active");
 if(pageInfo[page]){pageTitle.textContent=pageInfo[page][0];pageSubtitle.textContent=pageInfo[page][1]}
+if(page==="broadcast")loadBroadcast();
 if(page!=="leadProfile"){previousPage=page;localStorage.setItem("crm_active_page",page);localStorage.setItem("crm_session_user",currentUser?.id||"");}
 window.scrollTo({top:0,behavior:"smooth"});
 }
@@ -1511,6 +1519,7 @@ async function loadSmartDashboard(preloadedLeads) {
 .followup-modal-box select,.followup-modal-box textarea,.followup-modal-box input{width:100%;box-sizing:border-box;border:1px solid #d7dce3;border-radius:9px;padding:12px;font:inherit;background:#fff}
 .followup-modal-box textarea{min-height:88px;resize:vertical}
 .followup-modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:22px}
+#broadcastPage input[type=checkbox]{width:auto;min-width:20px;min-height:20px}#broadcastPage button{min-height:44px;margin-top:8px}#broadcastPage .table-wrapper{max-width:100%;overflow-x:auto}#broadcastPage td{overflow-wrap:anywhere}#broadcastStatus,#broadcastConsentStatus{padding-top:12px}#broadcastPreview{overflow-wrap:anywhere}@media(max-width:650px){#broadcastPage .card{padding:14px}#broadcastPage .form-grid{grid-template-columns:1fr}#broadcastPage button{margin-right:6px}}
 </style>
 
 <div id="taskModal" class="followup-modal">
@@ -1527,6 +1536,7 @@ async function loadSmartDashboard(preloadedLeads) {
 <style>
 .priority-high{font-weight:700}.priority-medium{font-weight:600}.priority-low{font-weight:500}
 .task-completed{text-decoration:line-through;opacity:.65}
+#broadcastPage input[type=checkbox]{width:auto;min-width:20px;min-height:20px}#broadcastPage button{min-height:44px;margin-top:8px}#broadcastPage .table-wrapper{max-width:100%;overflow-x:auto}#broadcastPage td{overflow-wrap:anywhere}#broadcastStatus,#broadcastConsentStatus{padding-top:12px}#broadcastPreview{overflow-wrap:anywhere}@media(max-width:650px){#broadcastPage .card{padding:14px}#broadcastPage .form-grid{grid-template-columns:1fr}#broadcastPage button{margin-right:6px}}
 </style>
 
 <div id="appointmentModal" class="followup-modal">
@@ -2081,6 +2091,57 @@ Future Secure Providers உடனான உங்கள் appointment உறு
 நன்றி.`,variables:"{{1}} = Customer Name, {{2}} = Date, {{3}} = Time"}
 ];
 let waTemplateMeta={};
+
+let broadcastTemplates=[],broadcastCurrentCampaignId='',broadcastRequestId='',broadcastBusy=false,broadcastReportId='';
+async function broadcastApi(action,payload={}){
+ const {data,error}=await supabaseClient.functions.invoke('broadcast-manage',{body:{action,...payload}});
+ if(error){let detail;try{detail=await error.context?.json()}catch{}throw Error(detail?.error||error.message)}
+ if(data?.error)throw Error(data.error);return data;
+}
+function broadcastDate(value){return value?new Date(value).toLocaleString('en-IN',{timeZone:'Asia/Kolkata'}):'—'}
+function broadcastIST(value){if(!value||!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value))throw Error('Choose a valid date and time');const d=new Date(value+':00+05:30');if(!Number.isFinite(d.getTime()))throw Error('Invalid date');return d.toISOString()}
+function selectedBroadcastTemplate(){return broadcastTemplates.find(x=>x.name+'|'+x.language===document.getElementById('broadcastTemplate').value)}
+function updateBroadcastPreview(){
+ const tpl=selectedBroadcastTemplate(),body=(tpl?.components||[]).find(x=>x.type==='BODY')?.text||'';
+ const nums=[...new Set([...body.matchAll(/\{\{(\d+)\}\}/g)].map(m=>Number(m[1])))].sort((a,b)=>a-b);
+ document.getElementById('broadcastVariableFields').innerHTML=nums.map(n=>'<div class="form-group"><label for="broadcastVar'+n+'">'+(n===1?'Name (leave empty for each contact’s name)':'Message detail '+n)+'</label><input id="broadcastVar'+n+'" data-variable="'+n+'" maxlength="1024"></div>').join('');
+ document.getElementById('broadcastPreview').textContent=body||'Choose a template to preview the message.';
+}
+async function refreshBroadcastReports(){
+ const data=await broadcastApi('list');
+ document.getElementById('broadcastCampaigns').innerHTML=(data.campaigns||[]).map(c=>'<tr><td>'+escapeHtml(c.title)+(c.send_mode==='test'?' <small>TEST</small>':'')+'</td><td>'+escapeHtml(c.status)+'</td><td>'+c.total+'</td><td>'+c.sent+'</td><td>'+c.delivered+'</td><td>'+c.read+'</td><td>'+c.failed+'</td><td>'+c.skipped+'</td><td>'+escapeHtml(broadcastDate(c.scheduled_at))+'</td><td><button data-campaign="'+escapeHtml(c.id)+'" class="broadcast-view">View / select</button></td></tr>').join('')||'<tr><td colspan="10">No campaigns</td></tr>';
+ document.querySelectorAll('.broadcast-view').forEach(b=>b.onclick=()=>{broadcastCurrentCampaignId=b.dataset.campaign;document.getElementById('broadcastCampaignId').value=b.dataset.campaign;showBroadcastReport(b.dataset.campaign)});
+ if(broadcastReportId)await showBroadcastReport(broadcastReportId);
+}
+async function loadBroadcast(){
+ const s=document.getElementById('broadcastStatus');try{
+ const checked=new Set([...document.querySelectorAll('.broadcast-recipient:checked')].map(x=>x.dataset.phone));
+ const [cfg,opt,out,tpls]=await Promise.all([broadcastApi('config'),broadcastApi('optin_list'),broadcastApi('optout_list'),supabaseClient.functions.invoke('whatsapp-templates',{body:{action:'list'}})]);
+ const enabled=cfg.config?.send_enabled&&cfg.config?.mode==='live';
+ document.getElementById('broadcastMode').textContent=(cfg.config?.mode||'test').toUpperCase();document.getElementById('broadcastSendState').textContent=enabled?'ON':'OFF';
+ document.getElementById('broadcastSendNow').disabled=!enabled;document.getElementById('broadcastScheduleBtn').disabled=!enabled;
+ if(tpls.error||!tpls.data?.ok)throw Error(tpls.data?.error||'Template lookup failed');
+ broadcastTemplates=(tpls.data.templates||[]).filter(x=>x.status==='APPROVED'&&String(x.category).toUpperCase()==='MARKETING');
+ const ts=document.getElementById('broadcastTemplate'),old=ts.value;ts.innerHTML='<option value="">Select approved template</option>'+broadcastTemplates.map(x=>'<option value="'+escapeHtml(x.name+'|'+x.language)+'">'+escapeHtml(x.name+' ('+x.language+')')+'</option>').join('');ts.value=old;ts.onchange=updateBroadcastPreview;
+ const leads=allLeadsCache||[],ls=document.getElementById('broadcastLeadSelect');ls.innerHTML='<option value="">Select CRM lead</option>'+leads.map(x=>'<option value="'+escapeHtml(x.mobile_number||'')+'">'+escapeHtml(x.full_name||'Lead')+' · '+escapeHtml(x.mobile_number||'')+'</option>').join('');ls.onchange=()=>{if(ls.value)document.getElementById('broadcastOptinPhone').value=ls.value};
+ document.getElementById('broadcastOptinCount').textContent=(opt.optins||[]).length;
+ document.getElementById('broadcastOptins').innerHTML=(opt.optins||[]).map(x=>{const lead=leads.find(y=>String(y.mobile_number||'').replace(/\D/g,'').endsWith(x.wa_id.slice(-10))),name=lead?.full_name||x.wa_id;return '<tr><td><input aria-label="Select '+escapeHtml(name)+'" class="broadcast-recipient" type="checkbox" data-phone="'+escapeHtml(x.wa_id)+'" data-name="'+escapeHtml(name)+'" '+(checked.has(x.wa_id)?'checked':'')+'></td><td>'+escapeHtml(name)+'</td><td>'+escapeHtml(x.wa_id)+'</td><td>'+escapeHtml(broadcastDate(x.consent_at))+'</td><td>'+escapeHtml(x.consent_source)+'</td><td><button class="broadcast-optout" data-phone="'+escapeHtml(x.wa_id)+'">Opt out</button></td></tr>'}).join('')||'<tr><td colspan="6">No active opt-ins</td></tr>';
+ document.querySelectorAll('.broadcast-optout').forEach(b=>b.onclick=()=>recordBroadcastOptout(b.dataset.phone));
+ document.getElementById('broadcastOptouts').innerHTML=(out.optouts||[]).map(x=>'<tr><td>'+escapeHtml(x.wa_id)+'</td><td>'+escapeHtml(x.reason||'')+'</td></tr>').join('')||'<tr><td colspan="2">No opt-outs</td></tr>';
+ await refreshBroadcastReports();s.textContent=enabled?'Ready. Sends use your approved marketing template.':'Live sending is OFF. Drafts and consent management are available.';
+ }catch(e){s.textContent=e.message}
+}
+function toggleBroadcastRecipients(v){document.querySelectorAll('.broadcast-recipient').forEach(x=>x.checked=v)}
+async function recordBroadcastOptout(phone){try{await broadcastApi('optout_add',{phone:phone||document.getElementById('broadcastOptoutPhone').value,reason:document.getElementById('broadcastOptoutReason').value});await loadBroadcast();document.getElementById('broadcastStatus').textContent='Opt-out saved; pending messages for this number are skipped.'}catch(e){document.getElementById('broadcastStatus').textContent=e.message}}
+async function addBroadcastOptin(){try{if(!document.getElementById('broadcastConsentConfirm').checked)throw Error('Confirm explicit WhatsApp marketing consent');await broadcastApi('optin_add',{phone:document.getElementById('broadcastOptinPhone').value,consent_at:broadcastIST(document.getElementById('broadcastConsentAt').value),consent_source:document.getElementById('broadcastConsentSource').value,consent_reference:document.getElementById('broadcastConsentReference').value.trim()});document.getElementById('broadcastConsentStatus').textContent='Opt-in evidence saved';document.getElementById('broadcastConsentConfirm').checked=false;await loadBroadcast()}catch(e){document.getElementById('broadcastConsentStatus').textContent=e.message}}
+async function createBroadcastDraft(){if(broadcastBusy)return;broadcastBusy=true;try{const t=selectedBroadcastTemplate();if(!t)throw Error('Choose an approved template');const variables={};document.querySelectorAll('#broadcastVariableFields [data-variable]').forEach(x=>{if(x.value.trim())variables[x.dataset.variable]=x.value.trim()});if(!broadcastRequestId)broadcastRequestId=crypto.randomUUID();const r=await broadcastApi('create',{request_id:broadcastRequestId,title:document.getElementById('broadcastTitle').value,template_name:t.name,language:t.language,template_variables:variables});broadcastCurrentCampaignId=r.campaign.id;document.getElementById('broadcastCampaignId').value=r.campaign.id;await refreshBroadcastReports();document.getElementById('broadcastStatus').textContent='Draft saved. Select contacts, then add them to this campaign.'}catch(e){document.getElementById('broadcastStatus').textContent=e.message}finally{broadcastBusy=false}}
+function newBroadcastCampaign(){broadcastRequestId='';broadcastCurrentCampaignId='';document.getElementById('broadcastCampaignId').value='';document.getElementById('broadcastTitle').value='';document.getElementById('broadcastStatus').textContent='Enter the new campaign details.'}
+async function attachBroadcastRecipients(){try{const id=document.getElementById('broadcastCampaignId').value,recipients=[...document.querySelectorAll('.broadcast-recipient:checked')].map(x=>({phone:x.dataset.phone,name:x.dataset.name}));if(!id)throw Error('Create or select a draft first');const r=await broadcastApi('recipients',{campaign_id:id,recipients});await refreshBroadcastReports();document.getElementById('broadcastStatus').textContent=r.eligible+' eligible; '+r.excluded+' excluded'}catch(e){document.getElementById('broadcastStatus').textContent=e.message}}
+async function approveBroadcast(schedule){if(broadcastBusy)return;broadcastBusy=true;try{const id=document.getElementById('broadcastCampaignId').value;if(!id)throw Error('Create or select a draft first');const scheduled_at=schedule?broadcastIST(document.getElementById('broadcastScheduleAt').value):new Date().toISOString();if(schedule&&Date.parse(scheduled_at)<=Date.now())throw Error('Choose a future schedule in India time');await broadcastApi('approve',{campaign_id:id,scheduled_at});await refreshBroadcastReports();document.getElementById('broadcastStatus').textContent=schedule?'Campaign scheduled in India time.':'Campaign queued. Sending starts on the next worker run.'}catch(e){document.getElementById('broadcastStatus').textContent=e.message}finally{broadcastBusy=false}}
+async function cancelBroadcast(){try{await broadcastApi('cancel',{campaign_id:document.getElementById('broadcastCampaignId').value});await refreshBroadcastReports();document.getElementById('broadcastStatus').textContent='Campaign cancelled; an in-flight message may already have been accepted.'}catch(e){document.getElementById('broadcastStatus').textContent=e.message}}
+async function showBroadcastReport(id){broadcastReportId=id;const b=document.getElementById('broadcastReportDetails');try{const r=await broadcastApi('report',{campaign_id:id});b.innerHTML='<div class="table-wrapper"><table><thead><tr><th>Contact</th><th>Number</th><th>Status</th><th>Attempts</th><th>Sent</th><th>Delivered</th><th>Read</th><th>Error</th></tr></thead><tbody>'+r.recipients.map(x=>'<tr><td>'+escapeHtml(x.display_name||'')+'</td><td>'+escapeHtml(x.wa_id)+'</td><td>'+escapeHtml(x.status)+'</td><td>'+x.attempts+'</td><td>'+escapeHtml(broadcastDate(x.sent_at))+'</td><td>'+escapeHtml(broadcastDate(x.delivered_at))+'</td><td>'+escapeHtml(broadcastDate(x.read_at))+'</td><td>'+escapeHtml(x.error_text||'—')+'</td></tr>').join('')+'</tbody></table></div>'}catch(e){b.textContent=e.message}}
+setInterval(()=>{if(currentUser&&!document.hidden&&!document.getElementById('broadcastPage').classList.contains('hidden'))refreshBroadcastReports().catch(e=>document.getElementById('broadcastStatus').textContent=e.message)},15000);
+
 async function loadWhatsAppTemplates(){
  const body=document.getElementById("waTemplatesBody"),status=document.getElementById("waTemplateStatus");if(!body)return;
  body.innerHTML='<tr><td colspan="5" class="empty">Loading Meta status...</td></tr>';if(status)status.textContent="";
@@ -2135,7 +2196,7 @@ document.querySelectorAll('.nav-item').forEach(item=>{item.addEventListener('cli
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', async () => {
     try {
-      const registration = await navigator.serviceWorker.register('./service-worker.js?v=37', { scope: './', updateViaCache: 'none' });
+      const registration = await navigator.serviceWorker.register('./service-worker.js?v=38', { scope: './', updateViaCache: 'none' });
       await registration.update();
       if (registration.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
       registration.addEventListener('updatefound', () => {
@@ -2163,3 +2224,4 @@ if ('serviceWorker' in navigator) {
 
 </body>
 </html>
+
