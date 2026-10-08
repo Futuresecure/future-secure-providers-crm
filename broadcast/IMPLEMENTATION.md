@@ -1,3 +1,7 @@
+# Live activation — 2026-10-08 19:27 IST
+
+LIVE Broadcast enabled after the user confirmed `mobile ok`. Database: send_enabled=true, mode=live, updated_at=2026-10-08T13:57:12.542268Z. Final 75 regression checks and CSV/Excel parser checks passed again. Preflight: zero scheduled live campaigns, zero ready live recipients, zero in-flight recipients, zero active opt-ins; broadcast RLS enabled, bulk import RPC inaccessible to anon/authenticated, dedicated worker cron active and worker token present. Prior own test-number Sent/Delivered/Read and webhook signature validation remain the E2E evidence. No new customer messages or test campaigns were created for activation. Existing CRM, Inbox, lead automation and appointment functions unchanged. Earlier OFF/pending-mobile notes below are historical and superseded by this activation record.
+
 # WhatsApp Broadcast implementation and verification — 2026-10-08
 
 ## Release state
