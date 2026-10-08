@@ -6,7 +6,7 @@ Broadcast is integrated in the main menu of the actual CRM at https://futuresecu
 **Live dispatch remains OFF: send_enabled=false, mode=test.** WHATSAPP_APP_SECRET is configured and verified against the actual Future Secure Meta app (809254711889670). Production approval and dispatch both fail closed without it. The user requested completion without intermediate approval; no approval question was introduced. Signed real Meta webhook verification now passes. Physical mobile/PWA verification remains pending before live activation; the cloud browser cannot access the owner's installed phone PWA. Do not paste access tokens or App Secret into chat.
 
 ## Implemented
-- CRM menu, campaign drafts, approved MARKETING template preview and friendly variable inputs.
+- CRM menu, campaign drafts, approved template preview and friendly variable inputs.
 - Manual queueing, future scheduling with explicit India time, cancellation and campaign selection.
 - Dated explicit consent evidence; atomic opt-out revokes consent and skips pending recipients. STOP, UNSUBSCRIBE, CANCEL, END and QUIT incoming messages opt out.
 - Auto-refresh reports, sent/delivered/read timestamps and failures, inbox integration.
@@ -16,12 +16,12 @@ Broadcast is integrated in the main menu of the actual CRM at https://futuresecu
 - Timeout/unknown provider outcomes are not retried automatically. Bounded retries for definite transient provider failures.
 - Atomic buffered delivery events preserve read/delivered state and reconcile callbacks arriving before the recipient's Meta ID is saved.
 - Administrator allowlist, owner checks, JWT on management API, RLS and service-only consent/delivery RPCs. Webhook HMAC validation when App Secret is configured; legacy webhook operation preserved while missing secret keeps broadcast disabled.
-- Approved MARKETING templates with text bodies; unsupported media/dynamic header/URL parameters rejected at approval.
+- Approved templates of all categories with supported text bodies; unsupported media/dynamic header/URL parameters rejected at approval.
 
 ## Verification evidence
 | Check | Result |
 | --- | --- |
-| Automated handler/dispatch/security/regression checks | 62 passed: node tests/broadcast.test.cjs |
+| Automated handler/dispatch/security/regression checks | 66 passed: node tests/broadcast.test.cjs |
 | Actual Meta test sender | +1 555-183-0040, verified Test Number; only owner's verified recipient |
 | Manual shared-code send | Actual webhook reported sent, delivered, read |
 | Scheduled shared-code send | Sent after due time; actual webhook reported sent, delivered, read |
@@ -60,3 +60,6 @@ Deployed broadcast-manage v8, broadcast-worker v4, whatsapp-webhook v26, whatsap
 - Real mobile/desktop verification wrapper: crm/tests/responsive.html in the website repository; it contains no credentials or customer data.
 - Temporary isolated runner disabled with JWT ON (v16); owner test consent restored to revoked. Zero scheduled live campaigns, zero duplicate recipients and all Broadcast tables RLS-enabled.
 - Live flag remains OFF pending physical phone/PWA verification. There is no remaining App Secret configuration blocker.
+
+## All-template selection update
+Broadcast now displays every returned template with language, category and approval status. Non-approved templates are displayed disabled. Approved UTILITY templates can be queued and dispatched; the category-only restriction was removed in both approval and worker revalidation. Unsupported media/dynamic header, dynamic URL and OTP/copy-code button parameters remain rejected before queueing. Consent, opt-out, ownership, signature, duplicate prevention and live OFF gates are retained. 66 automated checks passed, including approved utility dispatch and pending-template rejection. No actual production messages were sent during this change. Actual CRM service-worker cache v52.
