@@ -45,6 +45,14 @@ let checks=0;function ok(v){assert(v);checks++}
  db=seeded();let calls=0;app=load('backend/broadcast-worker.ts',db,owner,true,async()=>{calls++;throw Error('must not fetch')});await app.context.processBroadcastQueue(db,'prod');ok(calls===0);
  db.tables.broadcast_settings[0]={id:true,send_enabled:true,mode:'live'};app=load('backend/broadcast-worker.ts',db,owner,false,async()=>{calls++;throw Error('must not fetch')});await app.context.processBroadcastQueue(db,'prod');ok(calls===0);
  ok((await app.handler(new Request('https://test.invalid',{method:'POST'}))).status===401);
+ // Approved utility templates can be queued and dispatched; non-approved templates remain blocked.
+ for(const status of ['APPROVED','PENDING']){
+  const dbu=seeded();dbu.tables.broadcast_settings[0]={id:true,send_enabled:true,mode:'live'};Object.assign(dbu.tables.broadcast_campaigns[0],{status:'draft',send_mode:'live',template_name:'utility'});
+  const utility={name:'utility',language:'en_US',status,category:'UTILITY',components:[{type:'BODY',text:'Your appointment is confirmed'}]};
+  let sent=0;const transport=async(url,opts)=>{if(new URL(url).pathname.endsWith('/messages')){sent++;return Response.json({messages:[{id:'wamid.utility'}]})}return Response.json({data:[utility]})};
+  const apiu=load('backend/broadcast-manage.ts',dbu,owner,true,transport);ok((await api(apiu,{action:'approve',campaign_id:'campaign'})).status===(status==='APPROVED'?200:422));
+  dbu.tables.broadcast_campaigns[0].status='scheduled';const workeru=load('backend/broadcast-worker.ts',dbu,owner,true,transport);await workeru.context.processBroadcastQueue(dbu,'prod');ok(sent===(status==='APPROVED'?1:0));
+ }
  // Signed Meta events update reports and reject forged callbacks. Existing GET verification stays valid.
  db=seeded();Object.assign(db.tables.broadcast_recipients[0],{status:'sent',meta_message_id:'wamid.test'});db.tables.whatsapp_messages.push({meta_message_id:'wamid.test'});app=load('backend/whatsapp-webhook.ts',db);
  const event=status=>JSON.stringify({entry:[{changes:[{field:'messages',value:{statuses:[{id:'wamid.test',status,timestamp:'1791454843'}]}}]}]});
