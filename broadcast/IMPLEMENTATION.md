@@ -4,9 +4,9 @@ Status: implemented on the isolated feature branch; live sending remains disable
 
 ## Delivered
 - CRM page for creating campaigns, registering evidenced marketing opt-ins, selecting eligible contacts, scheduling, cancellation and per-contact delivery reports.
-- Authenticated `broadcast-manage` Edge Function (v2) with campaign-owner checks, approved marketing-template validation, duplicate prevention, consent/opt-out filtering and server-side reporting.
+- Authenticated `broadcast-manage` Edge Function (v3) with campaign-owner checks, approved marketing-template validation, duplicate prevention, consent/opt-out filtering and server-side reporting.
 - Additive broadcast tables and indexes. Client roles cannot read consent records or write campaign/recipient records.
-- Existing WhatsApp webhook (v17) records delivery/read/failure states for broadcast messages, handles STOP and common opt-out keywords, and processes due campaigns through the existing scheduled worker.
+- Existing WhatsApp webhook (v19) records delivery/read/failure states for broadcast messages, handles STOP and common opt-out keywords, and processes due campaigns through the existing scheduled worker.
 - A database feature gate (`broadcast_settings.send_enabled=false`, mode=`test`) prevents all broadcast sends by default.
 
 ## Existing setup
