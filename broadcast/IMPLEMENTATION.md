@@ -3,7 +3,7 @@
 ## Release state
 Broadcast is integrated in the main menu of the actual CRM at https://futuresecureproviders.com/crm/ (website repository Futuresecure/futuresecure.github.io, crm/index.html, service worker v51). Backend code and verification are recorded in this repository.
 
-**Live dispatch remains OFF: send_enabled=false, mode=test.** WHATSAPP_APP_SECRET / META_APP_SECRET is absent. Production approval and dispatch both fail closed without it. The user requested completion without intermediate approval; no approval question was introduced. A missing server secret cannot be safely invented. Configure the Meta app's App Secret privately in Supabase; signed real webhook verification and remaining device validation must pass before live activation. Do not paste access tokens or App Secret into chat.
+**Live dispatch remains OFF: send_enabled=false, mode=test.** WHATSAPP_APP_SECRET is configured and verified against the actual Future Secure Meta app (809254711889670). Production approval and dispatch both fail closed without it. The user requested completion without intermediate approval; no approval question was introduced. Signed real Meta webhook verification now passes. Physical mobile/PWA verification remains pending before live activation; the cloud browser cannot access the owner's installed phone PWA. Do not paste access tokens or App Secret into chat.
 
 ## Implemented
 - CRM menu, campaign drafts, approved MARKETING template preview and friendly variable inputs.
@@ -21,7 +21,7 @@ Broadcast is integrated in the main menu of the actual CRM at https://futuresecu
 ## Verification evidence
 | Check | Result |
 | --- | --- |
-| Automated handler/dispatch/security/regression checks | 41 passed: node tests/broadcast.test.cjs |
+| Automated handler/dispatch/security/regression checks | 62 passed: node tests/broadcast.test.cjs |
 | Actual Meta test sender | +1 555-183-0040, verified Test Number; only owner's verified recipient |
 | Manual shared-code send | Actual webhook reported sent, delivered, read |
 | Scheduled shared-code send | Sent after due time; actual webhook reported sent, delivered, read |
@@ -36,7 +36,7 @@ Broadcast is integrated in the main menu of the actual CRM at https://futuresecu
 | Scheduler | Active independent cron; latest run succeeded; live gate remained OFF |
 | Database protections | Zero duplicate recipients/Meta IDs; new delivery RPC execute denied anon/authenticated and granted service_role |
 
-Mobile testing was responsive browser testing of the exact Broadcast component. Physical Android/iOS/PWA end-to-end verification has not been completed. Full live signed Meta webhook verification cannot pass until the App Secret is configured. Therefore this is an implemented, safely deployed feature with blocked live activation, not an all-gates-complete live release.
+Mobile testing was responsive browser testing of the exact Broadcast component. Physical Android/iOS/PWA end-to-end verification has not been completed. Actual signed Meta webhook verification passed after App Secret Proof was added to Graph requests. A new own-number test reached read. Physical phone/PWA verification remains uncompleted. Therefore this is an implemented, safely deployed feature with blocked live activation, not an all-gates-complete live release.
 
 Existing project security-advisor warnings remain outside this broadcast change: intentionally exposed website lead/appointment RPCs, existing unread-counter EXECUTE grants, password-protection setting and informational RLS-without-policy findings. No unrelated security configuration was changed.
 
@@ -46,4 +46,17 @@ Temporary test cron removed; isolated runner disabled with JWT verification ON. 
 The worker token is encrypted in Vault as fsp_broadcast_worker_token; the cron obtains it internally. No plaintext token is stored in repository code or cron command. Worker source contains only its digest. To rotate, replace the Vault token privately and deploy the corresponding digest together. Never reuse the legacy webhook verification token as worker authentication.
 
 Published UI commit: b22b03a2765f261de78a555c8f61db5a0abe0311; actual CRM cache release v51: fd646f195d329aa046a819481a2906bd4801f9be.
-Deployed broadcast-manage v6, broadcast-worker v2, whatsapp-webhook v24.
+Deployed broadcast-manage v8, broadcast-worker v4, whatsapp-webhook v26, whatsapp-send v11, whatsapp-templates v9, whatsapp-automation-worker v12.
+
+## App Secret completion update
+- Meta app and production/test token ownership verified; configured App Secret matches the Future Secure app. No secret values were read into chat or stored in source.
+- Valid signed empty webhook: 200; forged and unsigned callbacks: 403.
+- Initial own-number test was definitively rejected with 131005 Access denied. Adding HMAC App Secret Proof resolved it. This exact test campaign subsequently reached sent/delivered/read through real signed Meta callbacks.
+- App Secret Proof added to all six WhatsApp Graph callers. Existing business logic compared against original source and preserved exactly apart from the authentication helper/call routing. Supabase/non-Meta requests remain unchanged.
+- Signed test campaign: 68847f80-4bd3-42a7-a47f-7e9cbf75fb2d; sent 2026-10-08T11:45:45.634Z, delivered 11:45:47Z, read 11:46:01Z.
+- New actual authenticated Broadcast mobile-width check: 390px frame, content width 375px, document/body scroll width 375px; desktop content 1085px with no horizontal overflow. Hamburger/menu closure, template preview, safe zero-recipient draft creation, repeat-create idempotency, cancellation and signed report timestamps exercised against the actual backend.
+- Mobile QA draft 50530cd6-4344-4138-adee-b9c4bfd0a2a2 is cancelled and has zero recipients.
+- Desktop regression rechecked after deployment: 8 Inbox contacts, approved enquiry/appointment/marketing templates, connected calendar and 4 appointment rows. No production customer sends were used.
+- Real mobile/desktop verification wrapper: crm/tests/responsive.html in the website repository; it contains no credentials or customer data.
+- Temporary isolated runner disabled with JWT ON (v16); owner test consent restored to revoked. Zero scheduled live campaigns, zero duplicate recipients and all Broadcast tables RLS-enabled.
+- Live flag remains OFF pending physical phone/PWA verification. There is no remaining App Secret configuration blocker.
