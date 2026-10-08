@@ -64,6 +64,17 @@ let checks=0;function ok(v){assert(v);checks++}
   const apiu=load('backend/broadcast-manage.ts',dbu,owner,true,transport);ok((await api(apiu,{action:'approve',campaign_id:'campaign'})).status===(status==='APPROVED'?200:422));
   dbu.tables.broadcast_campaigns[0].status='scheduled';const workeru=load('backend/broadcast-worker.ts',dbu,owner,true,transport);await workeru.context.processBroadcastQueue(dbu,'prod');ok(sent===(status==='APPROVED'?1:0));
  }
+ // Media headers include the send-time parameter; static URL buttons need no parameter.
+ for(const format of ['IMAGE','VIDEO','DOCUMENT']){
+  const d=seeded();d.tables.broadcast_settings[0]={id:true,send_enabled:true,mode:'live'};Object.assign(d.tables.broadcast_campaigns[0],{status:'draft',send_mode:'live',template_name:'media_marketing',template_variables:{}});
+  const tpl={name:'media_marketing',language:'en_US',status:'APPROVED',category:'MARKETING',components:[{type:'HEADER',format,example:{header_handle:['https://scontent.whatsapp.net/example.jpg']}},{type:'BODY',text:'Welcome'},{type:'BUTTONS',buttons:[{type:'URL',text:'QUOTE',url:'https://futuresecureproviders.com/#quote'}]}]};let payload;
+  const transport=async(url,opts)=>{if(new URL(url).pathname.endsWith('/messages')){payload=JSON.parse(opts.body);return Response.json({messages:[{id:'wamid.media'}]})}return Response.json({data:[tpl]})};
+  const manager=load('backend/broadcast-manage.ts',d,owner,true,transport);ok((await api(manager,{action:'approve',campaign_id:'campaign'})).status===200);
+  const worker=load('backend/broadcast-worker.ts',d,owner,true,transport);await worker.context.processBroadcastQueue(d,'prod');const h=payload.template.components[0];ok(h.type==='header'&&h.parameters[0].type===format.toLowerCase()&&h.parameters[0][format.toLowerCase()].link==='https://scontent.whatsapp.net/example.jpg');
+  ok(worker.context.broadcastHeader(tpl,{__header_media_url:'https://futuresecureproviders.com/assets/header.jpg'}).parameters[0][format.toLowerCase()].link.includes('/assets/header.jpg'));
+  let rejected=false;try{worker.context.broadcastHeader(tpl,{__header_media_url:'http://localhost/private'})}catch{rejected=true}ok(rejected);
+  d.tables.broadcast_campaigns[0].status='draft';tpl.components[0].example={};ok((await api(manager,{action:'approve',campaign_id:'campaign'})).status===422);
+ }
  // Signed Meta events update reports and reject forged callbacks. Existing GET verification stays valid.
  db=seeded();Object.assign(db.tables.broadcast_recipients[0],{status:'sent',meta_message_id:'wamid.test'});db.tables.whatsapp_messages.push({meta_message_id:'wamid.test'});app=load('backend/whatsapp-webhook.ts',db);
  const event=status=>JSON.stringify({entry:[{changes:[{field:'messages',value:{statuses:[{id:'wamid.test',status,timestamp:'1791454843'}]}}]}]});
