@@ -104,3 +104,10 @@ User explicitly requested an owner-only live test. Created 4e1ee2b4-bfe4-44d0-8a
 ## Owner live marketing delivery verified after inbound — 2026-10-09
 
 Owner sent Hi from 919585905905 at 13:20:06Z. Created one fresh owner-only campaign 07689624-e5c9-4431-a2af-8f180aa6233a with leads_marketing and durable public website PNG override. Sent once at 13:20:53.183Z, delivered at 13:20:55Z, read at 13:20:55Z, confirmed by signed Meta webhook and canonical Broadcast report. No errors. Previous failed messages were not retried. Owner temporary opt-in revocation restored after successful test. No production customer test messages. This verifies live image-header marketing delivery inside this owner's active conversation; it does not guarantee delivery to recipients subject to Meta experiment restrictions outside an active conversation. The original template sample CDN URL remains unsuitable (403); campaigns must supply working public header media URLs.
+
+
+## Friendly Broadcast workflow — 2026-10-09
+
+CRM PWA v56 simplifies bulk import: Name/Mobile-only CSV/XLSX supported with a single shared actual consent date/reference and explicit permission confirmation. Missing per-row consent fields use these shared fields; existing per-row No, dates and references are preserved. No consent/date/source is fabricated. Existing server validation, STOP/revoked checks and import limits remain unchanged. Full five-column imports remain supported. Manual single-contact evidence form is collapsible. Tamil helper text explains contacts, save, sending and scheduling. Save campaign automatically attaches selected contacts to its draft; manual add remains available for later changes. Import does not send.
+
+Verification: friendly import tests passed for shared fields, explicit confirmation, No preservation and per-row evidence/date preservation; 90 backend regression checks passed. GitHub Pages deployment succeeded. Existing CRM scripts preserved outside Broadcast and PWA cache versions. No customer messages or backend changes for this UI update. Physical mobile interaction was not exercised in this release.
