@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://cjwxirpwzluynymwjzxl.supabase.co" crossorigin>
 <link rel="icon" type="image/x-icon" href="../pwa-icon.svg">
-<link rel="manifest" href="./manifest.json?v=58">
+<link rel="manifest" href="./manifest.json?v=59">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin="anonymous"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:Arial,sans-serif}
@@ -324,9 +324,20 @@ const SUPABASE_URL="https://cjwxirpwzluynymwjzxl.supabase.co";
 const SUPABASE_KEY="sb_publishable_jkr9U6yu6ODDa4JvHmrE4w_gIWJBsOz";
 const supabaseClient=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 let currentUser=null;
-async function initializeAuth(){try{const{data:{session},error}=await supabaseClient.auth.getSession();if(error)throw error;if(session){currentUser=session.user;updateHeaderForAuthenticatedUser(currentUser);showCRMUI();await loadCRMData();}else{showLoginPage();}}catch(err){console.error("Error initializing auth:",err);showLoginPage();}}
-async function initializeAuthStateListener(){supabaseClient.auth.onAuthStateChange((event,session)=>{if(event==="SIGNED_IN"&&session){currentUser=session.user;updateHeaderForAuthenticatedUser(currentUser);showCRMUI();loadCRMData();}else if(event==="SIGNED_OUT"){currentUser=null;clearCRMData();updateHeaderForLoggedOut();showLoginPage();}else if(event==="TOKEN_REFRESHED"){console.log("Token refreshed");}});}
-async function handleLoginSubmit(event){event.preventDefault();const email=document.getElementById("loginEmail").value.trim();const password=document.getElementById("loginPassword").value;const submitButton=document.getElementById("loginSubmitButton");const errorDiv=document.getElementById("loginErrorMessage");submitButton.disabled=true;submitButton.textContent="Signing In...";errorDiv.classList.remove("show");try{const{data,error}=await supabaseClient.auth.signInWithPassword({email,password});if(error)throw error;currentUser=data.user;updateHeaderForAuthenticatedUser(currentUser);showCRMUI();await loadCRMData();}catch(err){console.error("Sign in error:",err);showLoginError(err.message||"Sign in failed. Please check your credentials and try again.");}finally{submitButton.disabled=false;submitButton.textContent="Sign In";}}
+async function activateCRMUser(user){
+ const sameUser=currentUser?.id===user.id;currentUser=user;updateHeaderForAuthenticatedUser(user);
+ if(sameUser)return;
+ showCRMUI();await loadCRMData();
+}
+async function initializeAuth(){try{const{data:{session},error}=await supabaseClient.auth.getSession();if(error)throw error;if(session)await activateCRMUser(session.user);else if(!currentUser)showLoginPage();}catch(err){console.error("Error initializing auth:",err);if(!currentUser)showLoginPage();}}
+let crmAuthEventVersion=0;
+async function initializeAuthStateListener(){supabaseClient.auth.onAuthStateChange((event,session)=>{
+ const version=++crmAuthEventVersion;
+ if(event==="SIGNED_IN"&&session){setTimeout(()=>{if(version===crmAuthEventVersion)activateCRMUser(session.user).catch(err=>console.error("CRM session load:",err))},0);}
+ else if(event==="SIGNED_OUT"){currentUser=null;clearCRMData();updateHeaderForLoggedOut();showLoginPage();}
+ else if(event==="TOKEN_REFRESHED"&&session&&currentUser?.id===session.user.id){currentUser=session.user;updateHeaderForAuthenticatedUser(currentUser);}
+});}
+async function handleLoginSubmit(event){event.preventDefault();const email=document.getElementById("loginEmail").value.trim();const password=document.getElementById("loginPassword").value;const submitButton=document.getElementById("loginSubmitButton");const errorDiv=document.getElementById("loginErrorMessage");submitButton.disabled=true;submitButton.textContent="Signing In...";errorDiv.classList.remove("show");try{const{data,error}=await supabaseClient.auth.signInWithPassword({email,password});if(error)throw error;await activateCRMUser(data.user);}catch(err){console.error("Sign in error:",err);showLoginError(err.message||"Sign in failed. Please check your credentials and try again.");}finally{submitButton.disabled=false;submitButton.textContent="Sign In";}}
 function showLoginError(message){const errorDiv=document.getElementById("loginErrorMessage");errorDiv.textContent=message;errorDiv.classList.add("show");}
 async function handleLogout(){try{const{error}=await supabaseClient.auth.signOut();if(error)throw error;currentUser=null;clearCRMData();updateHeaderForLoggedOut();showLoginPage();}catch(err){console.error("Sign out error:",err);alert("Error signing out: "+err.message);}}
 function showLoginPage(){const allPages=document.querySelectorAll(".page");allPages.forEach(page=>page.classList.add("hidden"));document.getElementById("loginPage").classList.remove("hidden");document.querySelector(".sidebar").style.display="none";document.querySelector(".sidebar-overlay").style.display="none";document.getElementById("logoutButton").style.display="none";}
@@ -341,7 +352,8 @@ const savedSessionUser=localStorage.getItem("crm_session_user");
 const currentSessionUser=currentUser?.id||"";
 const shouldRestorePage=savedPage&&savedSessionUser&&savedSessionUser===currentSessionUser;
 const calendarReturn=new URLSearchParams(window.location.search).get("calendar")==="connected";
-const pageToShow=calendarReturn?"calendar":(shouldRestorePage?savedPage:"dashboard");
+const requestedPage=calendarReturn?"calendar":(shouldRestorePage?savedPage:"dashboard");
+const pageToShow=document.getElementById(requestedPage+"Page")?requestedPage:"dashboard";
 if(calendarReturn){history.replaceState(null,"",window.location.pathname);}
 
 if(leadId&&pageToShow==="leadProfile"){
@@ -350,12 +362,7 @@ if(leadId&&pageToShow==="leadProfile"){
   return;
 }
 
-if(leadId&&pageToShow==="leads"){
-  viewLead(leadId,savedPreviousPage||previousPage);
-  return;
-}
-
-if(leadId&&pageToShow!=="leadProfile"&&pageToShow!=="leads"){
+if(leadId&&pageToShow!=="leadProfile"){
   localStorage.removeItem("crm_current_lead_id");
   localStorage.removeItem("crm_previous_page");
 }
@@ -364,7 +371,8 @@ const target=document.getElementById(pageToShow+"Page");
 if(target)target.classList.remove("hidden");
 else document.getElementById("dashboardPage").classList.remove("hidden");
 showPage(pageToShow,document.querySelector('[data-page="'+pageToShow+'"]'));
-if(pageToShow==="calendar")void loadCalendar();
+const restoreLoaders={calendar:loadCalendar,followups:loadFollowups,tasks:loadTasks,whatsapp:loadWhatsAppInbox,waTemplates:loadWhatsAppTemplates,pipeline:loadPipeline};
+if(restoreLoaders[pageToShow])Promise.resolve(restoreLoaders[pageToShow]()).catch(err=>console.error("Restored page load:",err));
 }
 function updateHeaderForAuthenticatedUser(user){document.getElementById("currentUserDisplay").textContent=user.email||"User";document.getElementById("logoutButton").style.display="inline-block";}
 function updateHeaderForLoggedOut(){document.getElementById("currentUserDisplay").textContent="Administrator";document.getElementById("logoutButton").style.display="none";}
@@ -2383,7 +2391,7 @@ document.querySelectorAll('.nav-item').forEach(item=>{item.addEventListener('cli
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', async () => {
     try {
-      const registration = await navigator.serviceWorker.register('./service-worker.js?v=58', { scope: './', updateViaCache: 'none' });
+      const registration = await navigator.serviceWorker.register('./service-worker.js?v=59', { scope: './', updateViaCache: 'none' });
       await registration.update();
       if (registration.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
       registration.addEventListener('updatefound', () => {
@@ -2395,11 +2403,9 @@ if ('serviceWorker' in navigator) {
           }
         });
       });
-      let refreshing = false;
       navigator.serviceWorker.addEventListener('controllerchange', () => {
-        if (refreshing) return;
-        refreshing = true;
-        window.location.reload();
+        // New requests use the updated worker. Keep the user's current form/page intact.
+        console.log('[PWA] Update ready; the latest UI loads on the next manual refresh.');
       });
       console.log('[PWA] Service Worker ready:', registration.scope);
     } catch (error) {
