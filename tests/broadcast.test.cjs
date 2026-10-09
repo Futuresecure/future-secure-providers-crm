@@ -83,5 +83,23 @@ let checks=0;function ok(v){assert(v);checks++}
  for(const status of ['delivered','read','sent','failed']){const raw=event(status);ok((await app.handler(new Request('https://test.invalid',{method:'POST',body:raw,headers:{'x-hub-signature-256':await signed(raw)}}))).status===200)}
  ok(db.tables.broadcast_recipients[0].status==='read'&&!!db.tables.broadcast_recipients[0].read_at);ok(db.tables.whatsapp_messages[0].delivery_status==='read');
  ok((await app.handler(new Request('https://test.invalid?hub.mode=subscribe&hub.verify_token=fsp_meta_webhook_2026&hub.challenge=challenge'))).status===200);
+ // Reports retain actual outbound messages and archive safely without erasing dispatch history.
+ const reportDb=new DB;
+ reportDb.tables.broadcast_campaigns.push({id:'report',created_by:owner,status:'completed',title:'Report',template_name:'deleted_template'});
+ reportDb.tables.broadcast_recipients.push({id:'rr',campaign_id:'report',wa_id:'919585905905',status:'read',meta_message_id:'report-message'});
+ reportDb.tables.whatsapp_messages.push({meta_message_id:'report-message',message_text:'Actual sent text <script>',message_type:'template'});
+ const reportApp=load('backend/broadcast-manage.ts',reportDb);
+ let reportResponse=await api(reportApp,{action:'report',campaign_id:'report'});
+ ok(reportResponse.status===200&&reportResponse.body.campaign.title==='Report');
+ ok(reportResponse.body.recipients[0].message_text==='Actual sent text <script>');
+ ok((await api(load('backend/broadcast-manage.ts',reportDb,'other-user'),{action:'report_delete',campaign_id:'report'})).status===403);
+ ok((await api(reportApp,{action:'report_delete',campaign_id:'report'})).status===200);
+ ok(reportDb.tables.broadcast_recipients.length===1&&reportDb.tables.whatsapp_messages.length===1);
+ ok((await api(reportApp,{action:'list'})).body.campaigns.length===0);
+ ok((await api(reportApp,{action:'approve',campaign_id:'report'})).status===409);
+ reportDb.tables.broadcast_campaigns[0].status='scheduled';
+ ok((await api(reportApp,{action:'report_delete',campaign_id:'report'})).status===409);
+ reportDb.tables.broadcast_campaigns[0].status='cancelled';reportDb.tables.broadcast_recipients[0].status='queued';
+ ok((await api(reportApp,{action:'report_delete',campaign_id:'report'})).status===409);
  console.log(JSON.stringify({checks,passed:true}));
 })().catch(e=>{console.error(e);process.exitCode=1});
