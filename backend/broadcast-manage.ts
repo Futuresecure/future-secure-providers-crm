@@ -75,7 +75,7 @@ Deno.serve(async req=>{
    const blocked=new Set((out||[]).map(x=>x.wa_id));return reply({optins:(data||[]).filter(x=>!blocked.has(x.wa_id))});
   }
   if(action==="list"){
-   const {data,error:e}=await db.from("broadcast_campaigns").select("id,title,template_name,template_language,status,send_mode,scheduled_at,created_at").eq("created_by",user.id).order("created_at",{ascending:false}).limit(100);if(e)throw e;
+   const {data,error:e}=await db.from("broadcast_campaigns").select("id,title,template_name,template_language,status,send_mode,scheduled_at,created_at").eq("created_by",user.id).is("report_archived_at",null).order("created_at",{ascending:false}).limit(100);if(e)throw e;
    const ids=(data||[]).map(x=>x.id),{data:rows,error:re}=ids.length?await db.from("broadcast_recipients").select("campaign_id,status").in("campaign_id",ids):{data:[],error:null};if(re)throw re;
    const campaigns=(data||[]).map(c=>{const rr=(rows||[]).filter(x=>x.campaign_id===c.id);return {...c,total:rr.length,sent:rr.filter(x=>["sent","delivered","read"].includes(x.status)).length,skipped:rr.filter(x=>x.status==="skipped").length,delivered:rr.filter(x=>["delivered","read"].includes(x.status)).length,read:rr.filter(x=>x.status==="read").length,failed:rr.filter(x=>x.status==="failed").length,queued:rr.filter(x=>["pending","queued"].includes(x.status)).length};});
    return reply({campaigns});
@@ -106,6 +106,7 @@ Deno.serve(async req=>{
    return reply({ok:true,eligible:eligible.length,excluded:phones.length-eligible.length});
   }
   if(action==="approve"){
+   if(campaign.report_archived_at)return reply({error:"Report removed; create a new campaign"},409);
    if(campaign.status!=="draft")return reply({error:"Campaign is not a draft"},409);
    const scheduled=String(input.scheduled_at||"");
    if(scheduled&&(!Number.isFinite(Date.parse(scheduled))||Date.parse(scheduled)<Date.now()-30000))return reply({error:"Choose a future schedule"},400);
@@ -125,7 +126,17 @@ Deno.serve(async req=>{
    return reply({ok:true,status:"scheduled",recipients:count,scheduled_at:at});
   }
   if(action==="report"){
-   const {data:rows,error:e}=await db.from("broadcast_recipients").select("wa_id,display_name,status,attempts,error_text,sent_at,delivered_at,read_at,meta_message_id,created_at").eq("campaign_id",id).order("created_at");if(e)throw e;return reply({recipients:rows||[]});
+   const {data:rows,error:e}=await db.from("broadcast_recipients").select("wa_id,display_name,status,attempts,error_text,sent_at,delivered_at,read_at,meta_message_id,created_at").eq("campaign_id",id).order("created_at");if(e)throw e;
+   const ids=(rows||[]).map((x:any)=>x.meta_message_id).filter(Boolean);
+   const {data:messages,error:me}=ids.length?await db.from("whatsapp_messages").select("meta_message_id,message_text,message_type").in("meta_message_id",ids):{data:[],error:null};if(me)throw me;
+   const messageMap=new Map((messages||[]).map((m:any)=>[m.meta_message_id,m]));
+   return reply({campaign,recipients:(rows||[]).map((r:any)=>({...r,message_text:messageMap.get(r.meta_message_id)?.message_text||null}))});
+  }
+  if(action==="report_delete"){
+   if(!["draft","completed","cancelled"].includes(campaign.status))return reply({error:"Cancel or finish the campaign before deleting its report"},409);
+   const {count,error:qe}=await db.from("broadcast_recipients").select("id",{count:"exact",head:true}).eq("campaign_id",id).eq("status","queued");if(qe)throw qe;if(count)return reply({error:"Sending is in progress; try again after it finishes"},409);
+   const {data:removed,error:de}=await db.from("broadcast_campaigns").update({report_archived_at:new Date().toISOString()}).eq("id",id).eq("created_by",user.id).in("status",["draft","completed","cancelled"]).select("id").maybeSingle();if(de)throw de;if(!removed)return reply({error:"Campaign changed; refresh and retry"},409);return reply({ok:true});
+
   }
   if(action==="cancel"){
    const {data:changed,error:e}=await db.from("broadcast_campaigns").update({status:"cancelled"}).eq("id",id).in("status",["draft","scheduled","paused"]).select("id").maybeSingle();if(e)throw e;if(!changed)return reply({error:"Campaign has finished or cannot be cancelled"},409);return reply({ok:true});
