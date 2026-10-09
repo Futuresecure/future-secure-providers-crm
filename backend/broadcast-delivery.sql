@@ -18,7 +18,7 @@ begin
  on conflict(meta_message_id) do update set status=excluded.status,event_at=excluded.event_at,error_text=excluded.error_text,updated_at=now()
  where (case excluded.status when 'read' then 3 when 'delivered' then 2 when 'sent' then 1 when 'failed' then 1 else 0 end) > (case broadcast_delivery_events.status when 'read' then 3 when 'delivered' then 2 when 'sent' then 1 when 'failed' then 1 else 0 end)
  or (excluded.status=broadcast_delivery_events.status and excluded.event_at>broadcast_delivery_events.event_at)
- or (excluded.status='failed' and broadcast_delivery_events.status='sent' and excluded.event_at>=broadcast_delivery_events.event_at);
+ or (excluded.status='failed' and broadcast_delivery_events.status='sent');
  select * into e from public.broadcast_delivery_events where meta_message_id=p_meta_id for update;
  update public.broadcast_recipients set
   status=e.status,
