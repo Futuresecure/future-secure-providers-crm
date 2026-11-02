@@ -1,7 +1,7 @@
 // Future Secure Providers CRM Service Worker
-const CACHE_NAME = 'fsp-crm-v59';
-const RUNTIME_CACHE = 'fsp-crm-runtime-v59';
-const APP_SHELL = ['./', './index.html?v=59', './manifest.json?v=59', '../pwa-icon.svg'];
+const CACHE_NAME = 'fsp-crm-v60';
+const RUNTIME_CACHE = 'fsp-crm-runtime-v60';
+const APP_SHELL = ['./', './index.html?v=60', './manifest.json?v=60', '../pwa-icon.svg', './google-calendar.js?v=1', './push-notifications.js?v=1'];
 
 self.addEventListener('message', event => {
   if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting();
@@ -39,10 +39,10 @@ self.addEventListener('fetch', event => {
       fetch(request, { cache: 'no-store' }).then(async response => {
         if (response && response.ok) {
           const cache = await caches.open(RUNTIME_CACHE);
-          await cache.put('./index.html?v=59', response.clone());
+          await cache.put('./index.html?v=60', response.clone());
         }
         return response;
-      }).catch(async () => (await caches.match('./index.html?v=59')) || new Response('Offline', { status: 503, headers: { 'Content-Type': 'text/plain' } }))
+      }).catch(async () => (await caches.match('./index.html?v=60')) || new Response('Offline', { status: 503, headers: { 'Content-Type': 'text/plain' } }))
     );
     return;
   }
