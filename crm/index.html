@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://cjwxirpwzluynymwjzxl.supabase.co" crossorigin>
 <link rel="icon" type="image/x-icon" href="../pwa-icon.svg">
-<link rel="manifest" href="./manifest.json?v=59">
+<link rel="manifest" href="./manifest.json?v=60">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin="anonymous"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:Arial,sans-serif}
@@ -315,6 +315,25 @@ button{border:0;border-radius:8px;padding:10px 14px;cursor:pointer}.btn-primary{
   </div>
   <div id="restoreResult" class="import-result"></div>
 </div>
+<div class="card" id="googleCalendarCard">
+  <h2>Google Calendar Sync</h2>
+  <p class="muted" id="googleCalendarStatus">Sign in to CRM to manage Google Calendar.</p>
+  <div class="import-export-actions">
+    <button class="btn-primary" type="button" onclick="connectGoogleCalendar()">Connect / Reconnect Google Calendar</button>
+    <button class="btn-secondary" type="button" onclick="retryGoogleCalendarSync()">Retry linked appointment sync</button>
+  </div>
+  <div id="googleCalendarSyncDetails" class="import-result"></div>
+</div>
+<div class="card" id="pushSettingsCard">
+  <h2>Browser Push Notifications</h2>
+  <p class="muted" id="pushNotificationStatus">Sign in to CRM to manage device notifications.</p>
+  <div class="import-export-actions">
+    <button id="enablePushBtn" class="btn-primary" type="button" onclick="enableCrmPush()">Enable notifications</button>
+    <button id="testPushBtn" class="btn-secondary" type="button" onclick="testCrmPush()">Send test to this device</button>
+    <button id="disablePushBtn" class="btn-secondary" type="button" onclick="disableCrmPush()">Disable on this device</button>
+  </div>
+  <div id="pushNotificationResult" class="import-result"></div>
+</div>
 </section>
 
 </div></main></div>
@@ -327,7 +346,7 @@ let currentUser=null;
 async function activateCRMUser(user){
  const sameUser=currentUser?.id===user.id;currentUser=user;updateHeaderForAuthenticatedUser(user);
  if(sameUser)return;
- showCRMUI();await loadCRMData();
+ showCRMUI();await loadCRMData();window.__fspCRMAuthenticated=true;window.dispatchEvent(new Event('fsp-crm-authenticated'));
 }
 async function initializeAuth(){try{const{data:{session},error}=await supabaseClient.auth.getSession();if(error)throw error;if(session)await activateCRMUser(session.user);else if(!currentUser)showLoginPage();}catch(err){console.error("Error initializing auth:",err);if(!currentUser)showLoginPage();}}
 let crmAuthEventVersion=0;
@@ -2391,7 +2410,7 @@ document.querySelectorAll('.nav-item').forEach(item=>{item.addEventListener('cli
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', async () => {
     try {
-      const registration = await navigator.serviceWorker.register('./service-worker.js?v=59', { scope: './', updateViaCache: 'none' });
+      const registration = await navigator.serviceWorker.register('./service-worker.js?v=60', { scope: './', updateViaCache: 'none' });
       await registration.update();
       if (registration.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
       registration.addEventListener('updatefound', () => {
@@ -2416,6 +2435,7 @@ if ('serviceWorker' in navigator) {
 </script>
 
 <script src="./google-calendar.js?v=1"></script>
+<script src="./push-notifications.js?v=1"></script>
 </body>
 </html>
 
