@@ -1,6 +1,9 @@
-const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict');
+const fs=require('fs'),path=require('path'),vm=require('vm'),assert=require('node:assert/strict');
+const swSource=fs.readFileSync(path.join(__dirname,'../crm/service-worker.js'),'utf8');
+const cacheVersion=swSource.match(/const CACHE_NAME = 'fsp-crm-v(\\d+)'/);
+assert.ok(cacheVersion,'Service Worker cache version must be declared');
 const events={};let notifications=0,pending;
-const context={URL,Response,self:{location:{origin:'https://futuresecureproviders.com'},registration:{scope:'https://futuresecureproviders.com/crm/',showNotification:async()=>{notifications++}},addEventListener:(n,f)=>{(events[n]??=[]).push(f)}},clients:{matchAll:async()=>[],openWindow:async url=>url},caches:{match:async key=>{assert.equal(key,'./index.html?v=55');return new Response('offline app')}},fetch:async()=>{throw Error('Offline')}};
+const context={URL,Response,self:{location:{origin:'https://futuresecureproviders.com'},registration:{scope:'https://futuresecureproviders.com/crm/',showNotification:async()=>{notifications++}},addEventListener:(n,f)=>{(events[n]??=[]).push(f)}},clients:{matchAll:async()=>[],openWindow:async url=>url},caches:{match:async key=>{assert.equal(key,'./index.html?v='+cacheVersion[1]);return new Response('offline app')}},fetch:async()=>{throw Error('Offline')}};
 vm.runInNewContext(fs.readFileSync('crm/service-worker.js','utf8'),context);
 assert.equal(events.push.length,1);assert.equal(events.notificationclick.length,1);
 (async()=>{
